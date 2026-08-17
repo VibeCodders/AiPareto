@@ -83,6 +83,8 @@ export interface Strings {
   notReasoning: string
   closedWeights: string
   noComparison: string
+  cacheWrite: string
+  taskCost: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -169,6 +171,8 @@ export const STRINGS: Record<Lang, Strings> = {
     notReasoning: 'Non reasoning',
     closedWeights: 'Pesi chiusi',
     noComparison: 'Nessun modello selezionato per il confronto',
+    cacheWrite: 'Cache write',
+    taskCost: 'Costo task selezionato',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -253,6 +257,8 @@ export const STRINGS: Record<Lang, Strings> = {
     notReasoning: 'Not reasoning',
     closedWeights: 'Closed weights',
     noComparison: 'No models selected for comparison',
+    cacheWrite: 'Cache write',
+    taskCost: 'Selected task cost',
   },
 }
 

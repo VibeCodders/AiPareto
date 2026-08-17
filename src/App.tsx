@@ -392,7 +392,7 @@ export default function App() {
       <section className="table-section">
         <div className="table-head">
           <h2>{t.table}</h2>
-          <button className="csv-btn" onClick={() => exportModelsCsv(visibleModels, metric, costView, taskInput, taskOutput, t)}>
+          <button className="csv-btn" onClick={() => exportModelsCsv(visibleModels, costView, taskInput, taskOutput, t)}>
             ⬇ {t.exportCsv}
           </button>
         </div>
