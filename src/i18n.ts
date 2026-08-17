@@ -93,6 +93,19 @@ export interface Strings {
   releasedFrom: string
   columns: string
   exportCompare: string
+  subscriptions: string
+  showSubscriptions: string
+  subscriptionUsage: string
+  usageFull: string
+  usageHeavy: string
+  usageLight: string
+  plan: string
+  priceMonthly: string
+  tokensMonthly: string
+  effectiveCost: string
+  rateLimits: string
+  planNotes: string
+  subscriptionOnly: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -102,7 +115,7 @@ export const STRINGS: Record<Lang, Strings> = {
     frontier: 'Frontiera di Pareto',
     metric: 'Punteggio',
     cost: 'Costo',
-    search: 'Cerca modello…',
+    search: 'Cerca modello o abbonamento…',
     logScale: 'Scala logaritmica',
     includeEfforts: 'Includi varianti di effort',
     maxEffortOnly: 'Solo max effort',
@@ -110,12 +123,12 @@ export const STRINGS: Record<Lang, Strings> = {
     family: 'Famiglia',
     all: 'Tutti',
     none: 'Nessuno',
-    modelsShown: 'modelli mostrati',
+    modelsShown: 'elementi mostrati',
     ofTotal: 'su',
-    noResults: 'Nessun modello corrisponde ai filtri.',
+    noResults: 'Nessun modello o abbonamento corrisponde ai filtri.',
     table: 'Tabella',
     sortBy: 'Ordina',
-    model: 'Modello',
+    model: 'Modello / Abbonamento',
     score: 'Score',
     input: 'Input',
     output: 'Output',
@@ -172,13 +185,13 @@ export const STRINGS: Record<Lang, Strings> = {
     addToCompare: 'Aggiungi al confronto',
     removeFromCompare: 'Rimuovi dal confronto',
     clearCompare: 'Svuota confronto',
-    compareTitle: 'Confronto Modelli',
+    compareTitle: 'Confronto Modelli & Abbonamenti',
     rank: 'Rank',
     costEfficiency: 'Efficienza costo',
     benchmark: 'Benchmark',
     notReasoning: 'Non reasoning',
     closedWeights: 'Pesi chiusi',
-    noComparison: 'Nessun modello selezionato per il confronto',
+    noComparison: 'Nessun elemento selezionato per il confronto',
     cacheWrite: 'Cache write',
     taskCost: 'Costo task selezionato',
     speedAdjustedScore: 'Score/Latenza',
@@ -189,6 +202,19 @@ export const STRINGS: Record<Lang, Strings> = {
     releasedFrom: 'Rilasciato dopo',
     columns: 'Colonne',
     exportCompare: 'Esporta confronto CSV',
+    subscriptions: 'Abbonamenti',
+    showSubscriptions: 'Includi Abbonamenti',
+    subscriptionUsage: 'Scenario Utilizzo',
+    usageFull: 'Pieno utilizzo (100%)',
+    usageHeavy: 'Power user (50%)',
+    usageLight: 'Uso moderato (25%)',
+    plan: 'Piano',
+    priceMonthly: 'Costo Mensile',
+    tokensMonthly: 'Token/Mese Stimati',
+    effectiveCost: 'Costo Effettivo/1M',
+    rateLimits: 'Limiti & Finestre',
+    planNotes: 'Note Piano',
+    subscriptionOnly: 'Solo Abbonamenti',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -196,7 +222,7 @@ export const STRINGS: Record<Lang, Strings> = {
     frontier: 'Pareto frontier',
     metric: 'Score',
     cost: 'Cost',
-    search: 'Search model…',
+    search: 'Search model or subscription…',
     logScale: 'Log scale',
     includeEfforts: 'Include effort variants',
     maxEffortOnly: 'Max effort only',
@@ -204,12 +230,12 @@ export const STRINGS: Record<Lang, Strings> = {
     family: 'Family',
     all: 'All',
     none: 'None',
-    modelsShown: 'models shown',
+    modelsShown: 'items shown',
     ofTotal: 'of',
-    noResults: 'No models match the filters.',
+    noResults: 'No models or subscriptions match the filters.',
     table: 'Table',
     sortBy: 'Sort',
-    model: 'Model',
+    model: 'Model / Subscription',
     score: 'Score',
     input: 'Input',
     output: 'Output',
@@ -266,13 +292,13 @@ export const STRINGS: Record<Lang, Strings> = {
     addToCompare: 'Add to compare',
     removeFromCompare: 'Remove from compare',
     clearCompare: 'Clear compare',
-    compareTitle: 'Model Comparison',
+    compareTitle: 'Model & Subscription Comparison',
     rank: 'Rank',
     costEfficiency: 'Cost efficiency',
     benchmark: 'Benchmark',
     notReasoning: 'Not reasoning',
     closedWeights: 'Closed weights',
-    noComparison: 'No models selected for comparison',
+    noComparison: 'No items selected for comparison',
     cacheWrite: 'Cache write',
     taskCost: 'Selected task cost',
     speedAdjustedScore: 'Score/Latency',
@@ -283,6 +309,19 @@ export const STRINGS: Record<Lang, Strings> = {
     releasedFrom: 'Released after',
     columns: 'Columns',
     exportCompare: 'Export comparison CSV',
+    subscriptions: 'Subscriptions',
+    showSubscriptions: 'Include Subscriptions',
+    subscriptionUsage: 'Usage Scenario',
+    usageFull: 'Full utilization (100%)',
+    usageHeavy: 'Power user (50%)',
+    usageLight: 'Moderate use (25%)',
+    plan: 'Plan',
+    priceMonthly: 'Monthly Price',
+    tokensMonthly: 'Est. Tokens/Mo',
+    effectiveCost: 'Effective Cost/1M',
+    rateLimits: 'Limits & Windows',
+    planNotes: 'Plan Notes',
+    subscriptionOnly: 'Subscriptions Only',
   },
 }
 

@@ -214,6 +214,52 @@ h1 {
   gap: 8px;
 }
 
+.sub-badge {
+  background: linear-gradient(135deg, #eab308, #ca8a04);
+  color: #000;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.4);
+}
+
+.sub-plan-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sub-price {
+  font-weight: 600;
+  color: #eab308;
+}
+
+.sub-tokens {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.row-sub {
+  background: rgba(234, 179, 8, 0.04);
+}
+
+.row-sub:hover {
+  background: rgba(234, 179, 8, 0.08) !important;
+}
+
+.usage-select {
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;

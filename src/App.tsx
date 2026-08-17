@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import modelsData from './data/models.json'
 import metaData from './data/meta.json'
-import type { CostView, MetricKey, Model, Point } from './types'
+import subscriptionsData from './data/subscriptions.json'
+import type { CostView, MetricKey, Model, Point, SubscriptionPlan } from './types'
 import { computeFrontier, computeMetric, formatAxisTick, formatMetric, formatTokens, formatUsd, costOf } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
@@ -12,10 +13,11 @@ import ParetoChart from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
 
-const MODELS = modelsData as Model[]
+const BASE_MODELS = modelsData as Model[]
+const SUBSCRIPTIONS = subscriptionsData as SubscriptionPlan[]
 const META = metaData as { fetchedAt: string }
 
-const ALL_FAMILIES = [...new Set(MODELS.map((m) => m.family))].sort()
+const ALL_FAMILIES = [...new Set([...BASE_MODELS.map((m) => m.family), ...SUBSCRIPTIONS.map((s) => s.provider)])].sort()
 
 const METRIC_DEFS = [
   { key: 'intelligenceIndex', labelKey: 'intel', higherIsBetter: true },
@@ -32,24 +34,17 @@ const METRIC_DEFS = [
   { key: 'contextValue', labelKey: 'contextValue', higherIsBetter: true },
 ] as const
 
-/**
- * Per-metric upper bound for the range slider. Most metrics are plain model
- * fields and don't depend on cost view, but valueScore (score/cost) does —
- * e.g. cost-per-task is ~1000x smaller than cost-per-1M-tokens, so its
- * value-score max is ~1000x larger. Must be recomputed whenever costView or
- * the task token counts change, or the slider range goes stale.
- */
-function computeMetricMax(costView: CostView, taskInput: number, taskOutput: number): Record<MetricKey, number> {
+function computeMetricMax(models: Model[], costView: CostView, taskInput: number, taskOutput: number): Record<MetricKey, number> {
   return Object.fromEntries(
     METRIC_DEFS.map(({ key }) => {
-      const vals = MODELS.map((m) => computeMetric(m, key, costView, taskInput, taskOutput)).filter((v): v is number => v != null)
+      const vals = models.map((m) => computeMetric(m, key, costView, taskInput, taskOutput)).filter((v): v is number => v != null)
       return [key, vals.length ? Math.ceil(Math.max(...vals)) : 1]
     }),
   ) as Record<MetricKey, number>
 }
 
 // Only used to clamp minScore while parsing the initial URL, before costView is known from state.
-const STATIC_METRIC_MAX = computeMetricMax('blended', 3000, 1000)
+const STATIC_METRIC_MAX = computeMetricMax(BASE_MODELS, 'blended', 3000, 1000)
 const INITIAL = parseUrl(window.location.search, ALL_FAMILIES, STATIC_METRIC_MAX)
 
 const PALETTE = [
@@ -91,9 +86,7 @@ export default function App() {
   const [minScore, setMinScore] = useState(INITIAL.minScore)
   const [includeEfforts, setIncludeEfforts] = useState(INITIAL.includeEfforts)
   const [maxEffortOnly, setMaxEffortOnly] = useState(INITIAL.maxEffortOnly)
-  const [selectedId, setSelectedId] = useState<string | null>(() =>
-    INITIAL.selectedId && MODELS.some((m) => m.slug === INITIAL.selectedId) ? INITIAL.selectedId : null,
-  )
+  const [selectedId, setSelectedId] = useState<string | null>(INITIAL.selectedId)
   const [presets, setPresets] = useState<Preset[]>(() => listPresets())
   const [presetId, setPresetId] = useState<string | null>(() => (INITIAL.presetId && getPreset(INITIAL.presetId) ? INITIAL.presetId : null))
   const [savingPreset, setSavingPreset] = useState(false)
@@ -106,14 +99,43 @@ export default function App() {
   const [compareIds, setCompareIds] = useState<string[]>(INITIAL.compareIds)
   const [minContext, setMinContext] = useState(INITIAL.minContext)
   const [releasedFrom, setReleasedFrom] = useState(INITIAL.releasedFrom)
+  const [showSubscriptions, setShowSubscriptions] = useState(INITIAL.showSubscriptions)
+  const [usageFactor, setUsageFactor] = useState(INITIAL.usageFactor)
+  const [subscriptionOnly, setSubscriptionOnly] = useState(INITIAL.subscriptionOnly)
 
   const t = STRINGS[lang]
 
-  // Reactive to costView/taskInput/taskOutput since valueScore's scale depends on the chosen cost basis.
-  const METRIC_MAX = useMemo(() => computeMetricMax(costView, taskInput, taskOutput), [costView, taskInput, taskOutput])
+  // Synthesize combined Model items with subscriptions calculated dynamically based on usageFactor
+  const ALL_ITEMS = useMemo(() => {
+    const subModels: Model[] = SUBSCRIPTIONS.map((sub) => {
+      const baseModel = BASE_MODELS.find((m) => m.slug === sub.modelSlug || m.id === sub.modelId) || BASE_MODELS[0]
+      const actualTokensMonthly = sub.estimatedTokensMonthly * usageFactor
+      const effectiveCostPerM = (sub.priceMonthly / actualTokensMonthly) * 1e6
+      return {
+        ...baseModel,
+        id: `sub:${sub.id}`,
+        name: sub.name,
+        slug: `sub:${sub.id}`,
+        aaName: `${sub.name} [${sub.priceMonthly}$/mo ~${(actualTokensMonthly / 1e6).toFixed(1)}M tok]`,
+        family: sub.provider,
+        isSubscription: true,
+        subscription: {
+          ...sub,
+          estimatedTokensMonthly: actualTokensMonthly,
+        },
+        effectiveCostPerM,
+        inputPerM: effectiveCostPerM,
+        outputPerM: null,
+        cacheReadPerM: null,
+        cacheWritePerM: null,
+      }
+    })
+    return [...BASE_MODELS, ...subModels]
+  }, [usageFactor])
 
-  // Keep the slider's value in range if the scale shrinks (e.g. task token counts change
-  // while metric is valueScore), so the range input never holds a now-impossible value.
+  // Reactive to costView/taskInput/taskOutput since valueScore's scale depends on the chosen cost basis.
+  const METRIC_MAX = useMemo(() => computeMetricMax(ALL_ITEMS, costView, taskInput, taskOutput), [ALL_ITEMS, costView, taskInput, taskOutput])
+
   useEffect(() => {
     setMinScore((prev) => Math.min(prev, METRIC_MAX[metric]))
   }, [METRIC_MAX, metric])
@@ -147,38 +169,22 @@ export default function App() {
     compareIds,
     minContext,
     releasedFrom,
+    showSubscriptions,
+    usageFactor,
+    subscriptionOnly,
   }
 
   useEffect(() => {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   }
 
-  const buildFilterSummary = (): string => {
-    const parts: string[] = [`metric=${metric}`, `cost=${costView}`]
-    if (families.size !== ALL_FAMILIES.length) parts.push(`families=${[...families].join(',')}`)
-    if (reasoningOnly) parts.push('reasoningOnly')
-    if (openWeightsOnly) parts.push('openWeightsOnly')
-    if (minPrice > 0) parts.push(`minPrice=${minPrice}`)
-    if (maxPrice < 1000) parts.push(`maxPrice=${maxPrice}`)
-    if (minContext > 0) parts.push(`minContext=${minContext}`)
-    if (releasedFrom) parts.push(`releasedFrom=${releasedFrom}`)
-    if (query.trim()) parts.push(`query=${query.trim()}`)
-    if (minScore > 0) parts.push(`minScore=${minScore}`)
-    if (maxEffortOnly) parts.push('maxEffortOnly')
-    if (!includeEfforts) parts.push('noEfforts')
-    return parts.join('; ')
-  }
-
   const selectCostView = (view: CostView) => {
-    // valueScore = score/cost, so its scale shifts drastically between cost bases
-    // (e.g. per-task cost is ~1000x smaller than per-1M-token cost). Reset the
-    // slider so it doesn't keep an old threshold that's now meaningless.
     if (metric === 'valueScore') setMinScore(0)
     setCostView(view)
   }
@@ -193,7 +199,6 @@ export default function App() {
   }
 
   const selectMetric = (key: MetricKey) => {
-    // Keep the slider meaningful when switching between higher/lower-is-better metrics.
     if (key === 'valueScore') {
       setMinScore(0)
     } else if (isLowerBetter(key)) {
@@ -217,14 +222,17 @@ export default function App() {
     setMinScore(s.minScore)
     setQuery(s.query)
     setFamilies(new Set(s.families?.filter((f) => ALL_FAMILIES.includes(f)) ?? ALL_FAMILIES))
-    setSelectedId(s.selectedId && MODELS.some((m) => m.slug === s.selectedId) ? s.selectedId : null)
+    setSelectedId(s.selectedId && ALL_ITEMS.some((m) => m.slug === s.selectedId) ? s.selectedId : null)
     setReasoningOnly(s.reasoningOnly)
     setOpenWeightsOnly(s.openWeightsOnly)
     setMinPrice(s.minPrice)
     setMaxPrice(s.maxPrice)
-    setCompareIds(s.compareIds.filter((id) => MODELS.some((m) => m.slug === id)))
+    setCompareIds(s.compareIds.filter((id) => ALL_ITEMS.some((m) => m.slug === id)))
     setMinContext(s.minContext)
     setReleasedFrom(s.releasedFrom)
+    setShowSubscriptions(s.showSubscriptions)
+    setUsageFactor(s.usageFactor)
+    setSubscriptionOnly(s.subscriptionOnly)
   }
 
   const handleSavePreset = () => {
@@ -263,7 +271,12 @@ export default function App() {
   const points: Point[] = useMemo(() => {
     const q = query.trim().toLowerCase()
     const lower = isLowerBetter(metric)
-    return MODELS.filter((m) => {
+    return ALL_ITEMS.filter((m) => {
+      if (m.isSubscription) {
+        if (!showSubscriptions) return false
+      } else {
+        if (subscriptionOnly) return false
+      }
       if (!families.has(m.family)) return false
       if (reasoningOnly && !m.isReasoning) return false
       if (openWeightsOnly && !m.openWeights) return false
@@ -287,14 +300,32 @@ export default function App() {
         score: computeMetric(m, metric, costView, taskInput, taskOutput)!,
       }))
       .sort((a, b) => a.cost - b.cost)
-  }, [families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom])
+  }, [ALL_ITEMS, showSubscriptions, subscriptionOnly, families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom])
 
   const frontier = useMemo(() => computeFrontier(points, isLowerBetter(metric)), [points, metric])
   const frontierSlugs = useMemo(() => new Set(frontier.map((p) => p.model.slug)), [frontier])
 
-  const selected = useMemo(() => (selectedId ? MODELS.find((m) => m.slug === selectedId) ?? null : null), [selectedId])
+  const selected = useMemo(() => (selectedId ? ALL_ITEMS.find((m) => m.slug === selectedId) ?? null : null), [selectedId, ALL_ITEMS])
 
   const visibleModels = useMemo(() => points.map((p) => p.model), [points])
+
+  const buildFilterSummary = (): string => {
+    const parts: string[] = [`metric=${metric}`, `cost=${costView}`]
+    if (families.size !== ALL_FAMILIES.length) parts.push(`families=${[...families].join(',')}`)
+    if (showSubscriptions) parts.push(`subscriptions=on (usage=${usageFactor * 100}%)`)
+    if (subscriptionOnly) parts.push('subscriptionOnly')
+    if (reasoningOnly) parts.push('reasoningOnly')
+    if (openWeightsOnly) parts.push('openWeightsOnly')
+    if (minPrice > 0) parts.push(`minPrice=${minPrice}`)
+    if (maxPrice < 1000) parts.push(`maxPrice=${maxPrice}`)
+    if (minContext > 0) parts.push(`minContext=${minContext}`)
+    if (releasedFrom) parts.push(`releasedFrom=${releasedFrom}`)
+    if (query.trim()) parts.push(`query=${query.trim()}`)
+    if (minScore > 0) parts.push(`minScore=${minScore}`)
+    if (maxEffortOnly) parts.push('maxEffortOnly')
+    if (!includeEfforts) parts.push('noEfforts')
+    return parts.join('; ')
+  }
 
   return (
     <div className="app">
@@ -314,6 +345,7 @@ export default function App() {
           </div>
         </div>
       </header>
+
 
       <section className="controls">
         <div className="control-row">
@@ -380,6 +412,29 @@ export default function App() {
         </div>
 
         <div className="control-row wrap">
+          <label className="check">
+            <input type="checkbox" checked={showSubscriptions} onChange={(e) => setShowSubscriptions(e.target.checked)} />
+            <b>{t.showSubscriptions}</b>
+          </label>
+          <label className="check">
+            <input type="checkbox" checked={subscriptionOnly} onChange={(e) => setSubscriptionOnly(e.target.checked)} />
+            {t.subscriptionOnly}
+          </label>
+          <div className="control-group">
+            <span className="control-label">{t.subscriptionUsage}</span>
+            <select
+              className="usage-select"
+              value={usageFactor}
+              onChange={(e) => setUsageFactor(Number(e.target.value))}
+            >
+              <option value={1.0}>{t.usageFull}</option>
+              <option value={0.5}>{t.usageHeavy}</option>
+              <option value={0.25}>{t.usageLight}</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="control-row wrap">
           <label className="task-inputs">
             {t.priceRange}
             <input type="number" min={0} step={0.1} value={minPrice} onChange={(e) => setMinPrice(Math.max(0, Number(e.target.value)))} title={t.minPrice} />
@@ -396,6 +451,7 @@ export default function App() {
             {releasedFrom && <button className="btn" onClick={() => setReleasedFrom('')}>✕</button>}
           </label>
         </div>
+
 
         <div className="control-row wrap family-row">
           <span className="control-label">{t.family}</span>
@@ -468,7 +524,7 @@ export default function App() {
           onSelect={(id) => setSelectedId(id)}
         />
         <div className="count-bar muted">
-          {points.length} {t.modelsShown} {t.ofTotal} {MODELS.length} · {t.clickHint}
+          {points.length} {t.modelsShown} {t.ofTotal} {ALL_ITEMS.length} · {t.clickHint}
         </div>
       </section>
 
@@ -486,7 +542,8 @@ export default function App() {
         />
       )}
 
-      <ComparePanel models={MODELS} compareIds={compareIds} costView={costView} taskInput={taskInput} taskOutput={taskOutput} t={t} onRemove={toggleCompare} onClear={() => setCompareIds([])} onExport={() => exportModelsCsv(MODELS.filter((m) => compareIds.includes(m.slug)), costView, taskInput, taskOutput, t, buildFilterSummary(), '-compare')} />
+      <ComparePanel models={ALL_ITEMS} compareIds={compareIds} costView={costView} taskInput={taskInput} taskOutput={taskOutput} t={t} onRemove={toggleCompare} onClear={() => setCompareIds([])} onExport={() => exportModelsCsv(ALL_ITEMS.filter((m: Model) => compareIds.includes(m.slug)), costView, taskInput, taskOutput, t, buildFilterSummary(), '-compare')} />
+
 
       <section className="table-section">
         <div className="table-head">

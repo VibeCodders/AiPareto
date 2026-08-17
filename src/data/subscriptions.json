@@ -1,0 +1,101 @@
+[
+  {
+    "id": "chatgpt-plus",
+    "name": "ChatGPT Plus",
+    "provider": "OpenAI",
+    "priceMonthly": 20,
+    "modelId": "openai/gpt-5.6-sol",
+    "modelSlug": "gpt-5-6-sol-high",
+    "estimatedTokensMonthly": 15000000,
+    "rateLimitDesc": "160 msg / 3h su GPT-5.6 Sol / GPT-4o, ~3000 msg/settimana",
+    "notes": "Stima a pieno carico con ~120 msg/gg e contesto medio di 4k token"
+  },
+  {
+    "id": "chatgpt-pro",
+    "name": "ChatGPT Pro",
+    "provider": "OpenAI",
+    "priceMonthly": 200,
+    "modelId": "openai/gpt-5.6-sol",
+    "modelSlug": "gpt-5-6-sol",
+    "estimatedTokensMonthly": 100000000,
+    "rateLimitDesc": "Accesso illimitato max reasoning (o1/o3/GPT-5.6 Sol max)",
+    "notes": "Pieno utilizzo computing prioritario ~3.3M token/giorno"
+  },
+  {
+    "id": "claude-pro",
+    "name": "Claude Pro",
+    "provider": "Anthropic",
+    "priceMonthly": 20,
+    "modelId": "anthropic/claude-sonnet-5",
+    "modelSlug": "claude-sonnet-5",
+    "estimatedTokensMonthly": 20000000,
+    "rateLimitDesc": "~45 prompt / 5h finestra mobile",
+    "notes": "Stima power user a rotazione costante ~650k token/giorno"
+  },
+  {
+    "id": "claude-max",
+    "name": "Claude Max (20x)",
+    "provider": "Anthropic",
+    "priceMonthly": 200,
+    "modelId": "anthropic/claude-opus-5",
+    "modelSlug": "claude-opus-5",
+    "estimatedTokensMonthly": 400000000,
+    "rateLimitDesc": "20x limiti rispetto al piano Pro",
+    "notes": "Pieno carico per heavy coding agents / prompt pesanti ~13M token/giorno"
+  },
+  {
+    "id": "cursor-pro",
+    "name": "Cursor Pro",
+    "provider": "Anysphere",
+    "priceMonthly": 20,
+    "modelId": "anthropic/claude-sonnet-5",
+    "modelSlug": "claude-sonnet-5",
+    "estimatedTokensMonthly": 12000000,
+    "rateLimitDesc": "$20 di crediti modello + auto models illimitati",
+    "notes": "Stima ~500 query agent al mese con indicizzazione codebase attiva"
+  },
+  {
+    "id": "copilot-pro",
+    "name": "GitHub Copilot Pro",
+    "provider": "GitHub",
+    "priceMonthly": 10,
+    "modelId": "anthropic/claude-sonnet-5",
+    "modelSlug": "claude-sonnet-5",
+    "estimatedTokensMonthly": 8000000,
+    "rateLimitDesc": "$10 AI credits/mese + autocompletamenti inline illimitati",
+    "notes": "Pieno utilizzo chat agent + completamento codice continuo"
+  },
+  {
+    "id": "copilot-pro-plus",
+    "name": "GitHub Copilot Pro+",
+    "provider": "GitHub",
+    "priceMonthly": 39,
+    "modelId": "openai/gpt-5.6-sol",
+    "modelSlug": "gpt-5-6-sol-high",
+    "estimatedTokensMonthly": 30000000,
+    "rateLimitDesc": "$39 AI credits/mese con supporto multi-agent",
+    "notes": "Stima coding intensivo con cloud agents"
+  },
+  {
+    "id": "gemini-advanced",
+    "name": "Google Gemini Advanced",
+    "provider": "Google",
+    "priceMonthly": 20,
+    "modelId": "google/gemini-3.7-flash",
+    "modelSlug": "gemini-3-7-flash",
+    "estimatedTokensMonthly": 35000000,
+    "rateLimitDesc": "1.000 req/giorno con 1M-2M context window",
+    "notes": "Pieno utilizzo contesto esteso e prompt complessi"
+  },
+  {
+    "id": "perplexity-pro",
+    "name": "Perplexity Pro",
+    "provider": "Perplexity",
+    "priceMonthly": 20,
+    "modelId": "anthropic/claude-sonnet-5",
+    "modelSlug": "claude-sonnet-5",
+    "estimatedTokensMonthly": 30000000,
+    "rateLimitDesc": "600 Pro Searches / giorno",
+    "notes": "Stima ricerca multi-step profonda con modelli flagship"
+  }
+]

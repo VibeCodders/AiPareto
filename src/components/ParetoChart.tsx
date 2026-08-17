@@ -32,7 +32,13 @@ function TooltipContent({ active, payload, t, costUnit, formatScore }: { active?
   if (!m) return null
   return (
     <div className="tooltip">
-      <div className="tooltip-title">{m.id}</div>
+      <div className="tooltip-title">{m.subscription ? `${m.subscription.name} (${m.name})` : m.id}</div>
+      {m.isSubscription && m.subscription && (
+        <div className="tooltip-row" style={{ color: '#eab308', fontWeight: 600 }}>
+          <span>{t.priceMonthly}:</span>
+          <b>${m.subscription.priceMonthly}/mo ({(m.subscription.estimatedTokensMonthly / 1e6).toFixed(1)}M tok/mo)</b>
+        </div>
+      )}
       {m.family && <div className="tooltip-row muted">{m.family}</div>}
       <div className="tooltip-row">
         <span>{t.cost}:</span>
@@ -42,6 +48,11 @@ function TooltipContent({ active, payload, t, costUnit, formatScore }: { active?
         <span>{t.score}:</span>
         <b>{p?.score != null ? formatScore(p.score) : '—'}</b>
       </div>
+      {m.subscription?.rateLimitDesc && (
+        <div className="tooltip-row muted" style={{ fontSize: 11, marginTop: 4 }}>
+          {m.subscription.rateLimitDesc}
+        </div>
+      )}
     </div>
   )
 }
@@ -56,7 +67,24 @@ interface ShapeProps {
 function ScatterShape(props: ShapeProps) {
   const cx = props.cx ?? 0
   const cy = props.cy ?? 0
+  const isSub = props.payload?.model?.isSubscription
   const select = () => props.payload?.model?.slug && onSelectRef.current?.(props.payload!.model!.slug)
+
+  if (isSub) {
+    // Render a prominent star/gem shape for subscriptions
+    return (
+      <polygon
+        points={`${cx},${cy - 8} ${cx + 2.5},${cy - 2.5} ${cx + 8},${cy - 2.5} ${cx + 3.5},${cy + 1.5} ${cx + 5.5},${cy + 7.5} ${cx},${cy + 4} ${cx - 5.5},${cy + 7.5} ${cx - 3.5},${cy + 1.5} ${cx - 8},${cy - 2.5} ${cx - 2.5},${cy - 2.5}`}
+        fill="#eab308"
+        stroke="#ffffff"
+        strokeWidth={1.2}
+        className="pt"
+        style={{ filter: 'drop-shadow(0 0 4px rgba(234,179,8,0.6))' }}
+        onClick={select}
+      />
+    )
+  }
+
   if (props.payload?.isFrontier) {
     return (
       <path
@@ -73,6 +101,7 @@ function ScatterShape(props: ShapeProps) {
     <circle cx={cx} cy={cy} r={5} fill={props.fill} stroke="var(--card)" strokeWidth={1.2} className="pt" onClick={select} />
   )
 }
+
 
 // late-bound so the shape function can call onSelect without re-creating series
 const onSelectRef: { current?: (id: string) => void } = {}

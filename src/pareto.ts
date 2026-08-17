@@ -1,6 +1,13 @@
 import type { CostView, MetricKey, Model, Point } from './types'
 
 export function costOf(m: Model, view: CostView, taskInput = 3000, taskOutput = 1000): number | null {
+  if (m.isSubscription && m.effectiveCostPerM != null) {
+    if (view === 'task') {
+      return ((taskInput + taskOutput) / 1e6) * m.effectiveCostPerM
+    }
+    return m.effectiveCostPerM
+  }
+
   switch (view) {
     case 'input':
       return m.inputPerM
@@ -22,6 +29,7 @@ export function costOf(m: Model, view: CostView, taskInput = 3000, taskOutput = 
     }
   }
 }
+
 
 /** Benchmark score per dollar. Defaults to Intelligence Index; pass another benchmark to get e.g. coding-per-$ or agentic-per-$. */
 export function valueScoreOf(

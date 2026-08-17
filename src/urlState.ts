@@ -25,7 +25,11 @@ export interface UrlState {
   compareIds: string[]
   minContext: number
   releasedFrom: string
+  showSubscriptions: boolean
+  usageFactor: number // 1.0 (100%), 0.5 (50%), 0.25 (25%)
+  subscriptionOnly: boolean
 }
+
 
 const METRICS: MetricKey[] = [
   'intelligenceIndex',
@@ -103,6 +107,9 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     compareIds,
     minContext: clampInt(p.get('ctxmin'), 0, 10_000_000, 0),
     releasedFrom: /^\d{4}-\d{2}-\d{2}$/.test(p.get('relfrom') ?? '') ? (p.get('relfrom') as string) : '',
+    showSubscriptions: p.get('subs') !== '0',
+    usageFactor: clampFloat(p.get('usage'), 0.1, 1.0, 1.0),
+    subscriptionOnly: p.get('subonly') === '1',
   }
 }
 
@@ -133,5 +140,9 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (s.compareIds.length > 0) p.set('cmp', s.compareIds.join(','))
   if (s.minContext > 0) p.set('ctxmin', String(s.minContext))
   if (s.releasedFrom) p.set('relfrom', s.releasedFrom)
+  if (!s.showSubscriptions) p.set('subs', '0')
+  if (s.usageFactor !== 1.0) p.set('usage', String(s.usageFactor))
+  if (s.subscriptionOnly) p.set('subonly', '1')
   return p.toString()
 }
+

@@ -4,11 +4,26 @@ import { computeMetric, formatMetric, formatTokens, formatUsd, costOf } from '..
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
 
-type SortKey = 'name' | 'family' | 'score' | 'inputPerM' | 'outputPerM' | 'cacheReadPerM' | 'blended' | 'contextTokens' | 'released' | 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex'
+type SortKey =
+  | 'name'
+  | 'family'
+  | 'score'
+  | 'inputPerM'
+  | 'outputPerM'
+  | 'cacheReadPerM'
+  | 'blended'
+  | 'contextTokens'
+  | 'released'
+  | 'outputSpeed'
+  | 'latencySeconds'
+  | 'codingIndex'
+  | 'agenticIndex'
+  | 'subscription'
 
-type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex'
+type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription'
 
-const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' }> = [
+const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' }> = [
+  { key: 'subscription', labelKey: 'subscriptions' },
   { key: 'codingIndex', labelKey: 'coding' },
   { key: 'agenticIndex', labelKey: 'agentic' },
   { key: 'outputSpeed', labelKey: 'outputSpeed' },
@@ -32,7 +47,7 @@ interface Props {
 export default function ModelTable({ models, metric, frontierIds, selectedId, costView, taskInput, taskOutput, t, onSelect, compareIds, onToggleCompare }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('score')
   const [desc, setDesc] = useState(() => !isLowerBetter(metric))
-  const [visibleCols, setVisibleCols] = useState<Set<OptionalCol>>(new Set())
+  const [visibleCols, setVisibleCols] = useState<Set<OptionalCol>>(new Set(['subscription']))
 
   // Reset to the metric-appropriate default direction when the metric changes.
   useEffect(() => {
@@ -52,12 +67,13 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, co
   const cols: Array<{ key: SortKey; label: string; num?: boolean }> = [
     { key: 'name', label: t.model },
     { key: 'family', label: t.family },
+    ...(visibleCols.has('subscription') ? [{ key: 'subscription' as SortKey, label: t.subscriptions, num: false }] : []),
     { key: 'score', label: t.score, num: true },
     { key: 'inputPerM', label: t.input, num: true },
     { key: 'outputPerM', label: t.output, num: true },
     { key: 'cacheReadPerM', label: t.cache, num: true },
     { key: 'blended', label: t.blended, num: true },
-    ...OPTIONAL_COLS.filter((c) => visibleCols.has(c.key)).map((c) => ({ key: c.key, label: t[c.labelKey], num: true })),
+    ...OPTIONAL_COLS.filter((c) => c.key !== 'subscription' && visibleCols.has(c.key)).map((c) => ({ key: c.key, label: t[c.labelKey], num: true })),
     { key: 'contextTokens', label: t.context, num: true },
     { key: 'released', label: t.release, num: true },
   ]
@@ -65,8 +81,9 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, co
   const valueOf = (m: Model): number | string | null => {
     if (sortKey === 'score') return computeMetric(m, metric, costView, taskInput, taskOutput)
     if (sortKey === 'blended') return costOf(m, costView)
-    if (sortKey === 'name') return m.aaName
+    if (sortKey === 'name') return m.isSubscription ? m.name : m.aaName
     if (sortKey === 'family') return m.family
+    if (sortKey === 'subscription') return m.subscription?.priceMonthly ?? (m.isSubscription ? 0 : 9999)
     return (m as unknown as Record<string, number | string | null>)[sortKey]
   }
 
@@ -100,53 +117,102 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, co
         ))}
       </div>
       <div className="table-wrap">
-        <table className="model-table">
+        <table className="tbl">
           <thead>
             <tr>
-              <th className="compare-col"></th>
+              <th style={{ width: 36 }}></th>
               {cols.map((c) => (
                 <th key={c.key} className={c.num ? 'num' : ''} onClick={() => toggle(c.key)}>
-                  {c.label}
-                  {sortKey === c.key ? (desc ? ' ↓' : ' ↑') : ''}
+                  <span className="th-in">
+                    {c.label}
+                    {sortKey === c.key && <span className="sort-arrow">{desc ? ' ↓' : ' ↑'}</span>}
+                  </span>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {sorted.map((m) => (
-              <tr
-                key={m.slug}
-                className={`${frontierIds.has(m.slug) ? 'frontier-row' : ''} ${selectedId === m.slug ? 'selected' : ''}`}
-              >
-                <td className="compare-col">
-                  <input
-                    type="checkbox"
-                    checked={compareIds.includes(m.slug)}
-                    title={compareIds.includes(m.slug) ? t.removeFromCompare : t.addToCompare}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => onToggleCompare(m.slug)}
-                  />
-                </td>
-                <td onClick={() => onSelect(m.slug)}>
-                  <span className="model-name">{m.aaName}</span>
-                  {m.effort && <span className="tag">{m.effort}</span>}
-                  {m.openWeights && <span className="tag tag-open">open</span>}
-                </td>
-                <td className="muted" onClick={() => onSelect(m.slug)}>{m.family}</td>
-                <td className="num" onClick={() => onSelect(m.slug)}>{formatMetric(metric, computeMetric(m, metric, costView, taskInput, taskOutput))}</td>
-                <td className="num" onClick={() => onSelect(m.slug)}>{formatUsd(m.inputPerM)}</td>
-                <td className="num" onClick={() => onSelect(m.slug)}>{formatUsd(m.outputPerM)}</td>
-                <td className="num" onClick={() => onSelect(m.slug)}>{formatUsd(m.cacheReadPerM)}</td>
-                <td className="num" onClick={() => onSelect(m.slug)}>{formatUsd(costOf(m, costView))}</td>
-                {OPTIONAL_COLS.filter((c) => visibleCols.has(c.key)).map((c) => (
-                  <td key={c.key} className="num muted" onClick={() => onSelect(m.slug)}>
-                    {formatMetric(c.key as MetricKey, m[c.key])}
+            {sorted.map((m) => {
+              const isFrontier = frontierIds.has(m.slug)
+              const isSel = selectedId === m.slug
+              const isComparing = compareIds.includes(m.slug)
+              const score = computeMetric(m, metric, costView, taskInput, taskOutput)
+              const blended = costOf(m, costView)
+              return (
+                <tr key={m.slug} className={`${isFrontier ? 'row-frontier' : ''} ${isSel ? 'row-sel' : ''} ${m.isSubscription ? 'row-sub' : ''}`}>
+                  <td className="center" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={isComparing}
+                      onChange={() => onToggleCompare(m.slug)}
+                      title={isComparing ? t.removeFromCompare : t.addToCompare}
+                    />
                   </td>
-                ))}
-                <td className="num muted" onClick={() => onSelect(m.slug)}>{formatTokens(m.contextTokens)}</td>
-                <td className="num muted" onClick={() => onSelect(m.slug)}>{m.released ?? '—'}</td>
-              </tr>
-            ))}
+                  <td className="bold" onClick={() => onSelect(m.slug)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {m.isSubscription && <span className="sub-badge" title={m.subscription?.rateLimitDesc}>★ PLAN</span>}
+                      <span>{m.isSubscription ? m.name : m.aaName}</span>
+                    </div>
+                  </td>
+                  <td className="muted" onClick={() => onSelect(m.slug)}>
+                    {m.family}
+                  </td>
+                  {visibleCols.has('subscription') && (
+                    <td onClick={() => onSelect(m.slug)}>
+                      {m.subscription ? (
+                        <div className="sub-plan-cell">
+                          <span className="sub-price">${m.subscription.priceMonthly}/mo</span>
+                          <span className="sub-tokens">~{(m.subscription.estimatedTokensMonthly / 1e6).toFixed(1)}M tok</span>
+                        </div>
+                      ) : (
+                        <span className="muted">Pay-as-you-go</span>
+                      )}
+                    </td>
+                  )}
+                  <td className="num bold" onClick={() => onSelect(m.slug)}>
+                    {formatMetric(metric, score)}
+                  </td>
+                  <td className="num" onClick={() => onSelect(m.slug)}>
+                    {m.isSubscription ? formatUsd(m.effectiveCostPerM) : formatUsd(m.inputPerM)}
+                  </td>
+                  <td className="num" onClick={() => onSelect(m.slug)}>
+                    {m.isSubscription ? '—' : formatUsd(m.outputPerM)}
+                  </td>
+                  <td className="num" onClick={() => onSelect(m.slug)}>
+                    {m.isSubscription ? '—' : formatUsd(m.cacheReadPerM)}
+                  </td>
+                  <td className="num bold" onClick={() => onSelect(m.slug)}>
+                    {formatUsd(blended)}
+                  </td>
+                  {visibleCols.has('codingIndex') && (
+                    <td className="num" onClick={() => onSelect(m.slug)}>
+                      {m.codingIndex != null ? m.codingIndex.toFixed(1) : '—'}
+                    </td>
+                  )}
+                  {visibleCols.has('agenticIndex') && (
+                    <td className="num" onClick={() => onSelect(m.slug)}>
+                      {m.agenticIndex != null ? m.agenticIndex.toFixed(1) : '—'}
+                    </td>
+                  )}
+                  {visibleCols.has('outputSpeed') && (
+                    <td className="num" onClick={() => onSelect(m.slug)}>
+                      {m.outputSpeed != null ? `${Math.round(m.outputSpeed)} tok/s` : '—'}
+                    </td>
+                  )}
+                  {visibleCols.has('latencySeconds') && (
+                    <td className="num" onClick={() => onSelect(m.slug)}>
+                      {m.latencySeconds != null ? `${m.latencySeconds.toFixed(1)}s` : '—'}
+                    </td>
+                  )}
+                  <td className="num" onClick={() => onSelect(m.slug)}>
+                    {formatTokens(m.contextTokens)}
+                  </td>
+                  <td className="num muted" onClick={() => onSelect(m.slug)}>
+                    {m.released ?? '—'}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

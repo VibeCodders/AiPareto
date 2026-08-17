@@ -1,3 +1,15 @@
+export interface SubscriptionPlan {
+  id: string
+  name: string
+  provider: string
+  priceMonthly: number
+  modelId: string
+  modelSlug: string
+  estimatedTokensMonthly: number
+  rateLimitDesc: string
+  notes: string
+}
+
 export interface Model {
   id: string
   name: string
@@ -22,6 +34,10 @@ export interface Model {
   cacheReadPerM: number | null
   cacheWritePerM: number | null
   valueScore: number | null
+  // Subscription metadata if this item represents a subscription plan
+  isSubscription?: boolean
+  subscription?: SubscriptionPlan
+  effectiveCostPerM?: number
 }
 
 export type MetricKey =
@@ -50,3 +66,4 @@ export interface Point {
   cost: number
   score: number
 }
+
