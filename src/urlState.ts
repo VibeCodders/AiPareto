@@ -1,4 +1,4 @@
-import type { CostView, MetricKey } from './types'
+import type { CostView, EfficiencyWeights, MetricKey, ValueScoreBase } from './types'
 import type { Lang } from './i18n'
 
 export interface UrlState {
@@ -28,6 +28,11 @@ export interface UrlState {
   showSubscriptions: boolean
   usageFactor: number // 1.0 (100%), 0.5 (50%), 0.25 (25%)
   subscriptionOnly: boolean
+  /** Which benchmark backs the Value Score metric. */
+  valueScoreBase: ValueScoreBase
+  /** Relative weights for the value/speed/context components of the Efficiency Score metric. */
+  efficiencyWeights: EfficiencyWeights
+  showTrend: boolean
 }
 
 
@@ -44,7 +49,9 @@ const METRICS: MetricKey[] = [
   'valueScore',
   'speedAdjustedScore',
   'contextValue',
+  'efficiencyScore',
 ]
+const VALUE_SCORE_BASES: ValueScoreBase[] = ['intelligenceIndex', 'codingIndex', 'agenticIndex']
 const COST_VIEWS: CostView[] = ['input', 'blended', 'cache', 'output', 'task']
 
 /** Metrics where a lower value is better (e.g. latency). */
@@ -110,6 +117,13 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     showSubscriptions: p.get('subs') !== '0',
     usageFactor: clampFloat(p.get('usage'), 0.1, 1.0, 1.0),
     subscriptionOnly: p.get('subonly') === '1',
+    valueScoreBase: VALUE_SCORE_BASES.includes(p.get('vbase') as ValueScoreBase) ? (p.get('vbase') as ValueScoreBase) : 'intelligenceIndex',
+    efficiencyWeights: {
+      value: clampFloat(p.get('ewv'), 0, 3, 1),
+      speed: clampFloat(p.get('ews'), 0, 3, 1),
+      context: clampFloat(p.get('ewc'), 0, 3, 1),
+    },
+    showTrend: p.get('trend') === '1',
   }
 }
 
@@ -143,6 +157,11 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (!s.showSubscriptions) p.set('subs', '0')
   if (s.usageFactor !== 1.0) p.set('usage', String(s.usageFactor))
   if (s.subscriptionOnly) p.set('subonly', '1')
+  if (s.valueScoreBase !== 'intelligenceIndex') p.set('vbase', s.valueScoreBase)
+  if (s.efficiencyWeights.value !== 1) p.set('ewv', String(s.efficiencyWeights.value))
+  if (s.efficiencyWeights.speed !== 1) p.set('ews', String(s.efficiencyWeights.speed))
+  if (s.efficiencyWeights.context !== 1) p.set('ewc', String(s.efficiencyWeights.context))
+  if (s.showTrend) p.set('trend', '1')
   return p.toString()
 }
 

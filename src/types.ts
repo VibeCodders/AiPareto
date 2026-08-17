@@ -8,6 +8,10 @@ export interface SubscriptionPlan {
   estimatedTokensMonthly: number
   rateLimitDesc: string
   notes: string
+  /** Short explanation of how estimatedTokensMonthly was derived, shown to the user for transparency. */
+  methodology?: string
+  /** True for team/business/enterprise tiers (as opposed to individual plans). */
+  isTeamTier?: boolean
 }
 
 export interface Model {
@@ -38,6 +42,8 @@ export interface Model {
   isSubscription?: boolean
   subscription?: SubscriptionPlan
   effectiveCostPerM?: number
+  /** For subscriptions: monthly cost of getting the same estimated usage from the underlying model pay-as-you-go, for comparison. */
+  paygoEquivalentMonthly?: number | null
 }
 
 export type MetricKey =
@@ -53,7 +59,15 @@ export type MetricKey =
   | 'valueScore'
   | 'speedAdjustedScore'
   | 'contextValue'
+  | 'efficiencyScore'
 export type CostView = 'input' | 'blended' | 'cache' | 'output' | 'task'
+export type ValueScoreBase = 'intelligenceIndex' | 'codingIndex' | 'agenticIndex'
+
+export interface EfficiencyWeights {
+  value: number
+  speed: number
+  context: number
+}
 
 export interface ComparisonModel {
   model: Model

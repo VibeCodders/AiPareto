@@ -1,4 +1,4 @@
-import type { CostView, MetricKey, Model, Point } from './types'
+import type { CostView, EfficiencyWeights, MetricKey, Model, Point, ValueScoreBase } from './types'
 
 export function costOf(m: Model, view: CostView, taskInput = 3000, taskOutput = 1000): number | null {
   if (m.isSubscription && m.effectiveCostPerM != null) {
@@ -62,18 +62,82 @@ export function contextValueOf(m: Model): number | null {
   return ctx / price
 }
 
+/** Normalization reference (the max each component can reach across the current dataset), used by efficiencyScoreOf. */
+export interface EfficiencyNorm {
+  value: number
+  speed: number
+  context: number
+}
+
+export interface EfficiencyOpts {
+  weights: EfficiencyWeights
+  norm: EfficiencyNorm
+}
+
+/**
+ * Blends value/$, speed-adjusted intelligence, and context/$ into a single 0-100 score.
+ * Each component is normalized against the best value reached in the current dataset (norm),
+ * then combined as a weighted average — components a model has no data for are simply excluded.
+ */
+export function efficiencyScoreOf(m: Model, costView: CostView, taskInput: number, taskOutput: number, opts: EfficiencyOpts): number | null {
+  const { weights, norm } = opts
+  const value = valueScoreOf(m, costView, taskInput, taskOutput)
+  const speed = speedAdjustedScoreOf(m)
+  const context = contextValueOf(m)
+  const parts: Array<[number, number]> = []
+  if (value != null && norm.value > 0 && weights.value > 0) parts.push([(value / norm.value) * 100, weights.value])
+  if (speed != null && norm.speed > 0 && weights.speed > 0) parts.push([(speed / norm.speed) * 100, weights.speed])
+  if (context != null && norm.context > 0 && weights.context > 0) parts.push([(context / norm.context) * 100, weights.context])
+  if (parts.length === 0) return null
+  const totalWeight = parts.reduce((s, [, w]) => s + w, 0)
+  if (totalWeight <= 0) return null
+  return parts.reduce((s, [v, w]) => s + v * w, 0) / totalWeight
+}
+
 /** Resolves any MetricKey to a number for a model, computing derived metrics on the fly. */
-export function computeMetric(m: Model, metric: MetricKey, costView: CostView, taskInput = 3000, taskOutput = 1000): number | null {
+export function computeMetric(
+  m: Model,
+  metric: MetricKey,
+  costView: CostView,
+  taskInput = 3000,
+  taskOutput = 1000,
+  valueScoreBase: ValueScoreBase = 'intelligenceIndex',
+  efficiencyOpts?: EfficiencyOpts,
+): number | null {
   switch (metric) {
     case 'valueScore':
-      return valueScoreOf(m, costView, taskInput, taskOutput)
+      return valueScoreOf(m, costView, taskInput, taskOutput, valueScoreBase)
     case 'speedAdjustedScore':
       return speedAdjustedScoreOf(m)
     case 'contextValue':
       return contextValueOf(m)
+    case 'efficiencyScore':
+      return efficiencyOpts ? efficiencyScoreOf(m, costView, taskInput, taskOutput, efficiencyOpts) : null
     default:
       return m[metric]
   }
+}
+
+/**
+ * How far a point sits behind the Pareto frontier at an equal-or-lower cost, as a percentage
+ * of the frontier's score. 0% means the point is on the frontier; higher means further behind.
+ * Returns null if no frontier point at an equal-or-lower cost exists (point is cheaper than the whole frontier).
+ */
+export function frontierDeltaOf(point: Point, frontierSortedByCost: Point[], lowerIsBetter: boolean): number | null {
+  let ref: Point | undefined
+  for (const f of frontierSortedByCost) {
+    if (f.cost <= point.cost) ref = f
+    else break
+  }
+  if (!ref || ref.score === 0) return null
+  if (ref.model.slug === point.model.slug) return 0
+  return lowerIsBetter ? ((point.score - ref.score) / ref.score) * 100 : ((ref.score - point.score) / ref.score) * 100
+}
+
+export function formatDelta(v: number | null | undefined): string {
+  if (v == null) return '—'
+  if (v <= 0.05) return '★ 0%'
+  return `-${v.toFixed(0)}%`
 }
 
 /**
@@ -131,6 +195,8 @@ export function formatMetric(metric: MetricKey, v: number | null | undefined): s
       return `${v.toFixed(1)}s`
     case 'contextValue':
       return `${formatTokens(v)}/$`
+    case 'efficiencyScore':
+      return v.toFixed(0)
     default:
       return v.toFixed(1)
   }

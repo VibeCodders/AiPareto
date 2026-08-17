@@ -8,7 +8,8 @@
     "modelSlug": "gpt-5-6-sol-high",
     "estimatedTokensMonthly": 15000000,
     "rateLimitDesc": "160 msg / 3h su GPT-5.6 Sol / GPT-4o, ~3000 msg/settimana",
-    "notes": "Stima a pieno carico con ~120 msg/gg e contesto medio di 4k token"
+    "notes": "Stima a pieno carico con ~120 msg/gg e contesto medio di 4k token",
+    "methodology": "160 msg/3h × 8 finestre/gg × 30gg × ~4k token/msg (prompt+risposta+contesto), scalato dallo Usage Factor selezionato"
   },
   {
     "id": "chatgpt-pro",
@@ -19,7 +20,21 @@
     "modelSlug": "gpt-5-6-sol",
     "estimatedTokensMonthly": 100000000,
     "rateLimitDesc": "Accesso illimitato max reasoning (o1/o3/GPT-5.6 Sol max)",
-    "notes": "Pieno utilizzo computing prioritario ~3.3M token/giorno"
+    "notes": "Pieno utilizzo computing prioritario ~3.3M token/giorno",
+    "methodology": "Nessun rate limit rigido pubblicato: stima da uso professionale continuativo (~3.3M token/gg, 8h/gg di sessioni reasoning lunghe)"
+  },
+  {
+    "id": "chatgpt-team",
+    "name": "ChatGPT Team",
+    "provider": "OpenAI",
+    "priceMonthly": 30,
+    "modelId": "openai/gpt-5.6-sol",
+    "modelSlug": "gpt-5-6-sol-high",
+    "estimatedTokensMonthly": 22000000,
+    "rateLimitDesc": "Limiti più alti di Plus per utente, minimo 2 posti",
+    "notes": "Prezzo per utente/mese (fatturazione annuale); stima ~1.5x l'utilizzo di ChatGPT Plus",
+    "methodology": "Stimato come 1.5× i token di ChatGPT Plus, coerente con i rate limit più alti dichiarati per i piani team",
+    "isTeamTier": true
   },
   {
     "id": "claude-pro",
@@ -30,7 +45,8 @@
     "modelSlug": "claude-sonnet-5",
     "estimatedTokensMonthly": 20000000,
     "rateLimitDesc": "~45 prompt / 5h finestra mobile",
-    "notes": "Stima power user a rotazione costante ~650k token/giorno"
+    "notes": "Stima power user a rotazione costante ~650k token/giorno",
+    "methodology": "~45 prompt/5h × ~4.8 finestre/gg × 30gg × ~3.2k token/prompt medio (contesto incluso)"
   },
   {
     "id": "claude-max",
@@ -41,7 +57,21 @@
     "modelSlug": "claude-opus-5",
     "estimatedTokensMonthly": 400000000,
     "rateLimitDesc": "20x limiti rispetto al piano Pro",
-    "notes": "Pieno carico per heavy coding agents / prompt pesanti ~13M token/giorno"
+    "notes": "Pieno carico per heavy coding agents / prompt pesanti ~13M token/giorno",
+    "methodology": "20× la stima di Claude Pro, come dichiarato dal moltiplicatore ufficiale del piano"
+  },
+  {
+    "id": "claude-team",
+    "name": "Claude Team",
+    "provider": "Anthropic",
+    "priceMonthly": 30,
+    "modelId": "anthropic/claude-sonnet-5",
+    "modelSlug": "claude-sonnet-5",
+    "estimatedTokensMonthly": 28000000,
+    "rateLimitDesc": "Limiti più alti di Pro per utente, minimo 5 posti, fatturazione annuale",
+    "notes": "Prezzo per utente/mese; stima ~1.4x l'utilizzo di Claude Pro",
+    "methodology": "Stimato come 1.4× i token di Claude Pro in linea con i rate limit team dichiarati da Anthropic",
+    "isTeamTier": true
   },
   {
     "id": "cursor-pro",
@@ -52,7 +82,20 @@
     "modelSlug": "claude-sonnet-5",
     "estimatedTokensMonthly": 12000000,
     "rateLimitDesc": "$20 di crediti modello + auto models illimitati",
-    "notes": "Stima ~500 query agent al mese con indicizzazione codebase attiva"
+    "notes": "Stima ~500 query agent al mese con indicizzazione codebase attiva",
+    "methodology": "$20 di crediti convertiti al prezzo API di Claude Sonnet 5 blended 80/20, più margine per richieste 'auto' incluse"
+  },
+  {
+    "id": "cursor-ultra",
+    "name": "Cursor Ultra",
+    "provider": "Anysphere",
+    "priceMonthly": 200,
+    "modelId": "anthropic/claude-opus-5",
+    "modelSlug": "claude-opus-5",
+    "estimatedTokensMonthly": 140000000,
+    "rateLimitDesc": "$400 di crediti modello inclusi (20x Pro) + priorità richieste",
+    "notes": "Stima heavy coding agent multi-file su modelli frontier per l'intera giornata lavorativa",
+    "methodology": "$400 di crediti dichiarati convertiti al prezzo API blended di Claude Opus 5, scenario 'pieno utilizzo'"
   },
   {
     "id": "copilot-pro",
@@ -63,7 +106,8 @@
     "modelSlug": "claude-sonnet-5",
     "estimatedTokensMonthly": 8000000,
     "rateLimitDesc": "$10 AI credits/mese + autocompletamenti inline illimitati",
-    "notes": "Pieno utilizzo chat agent + completamento codice continuo"
+    "notes": "Pieno utilizzo chat agent + completamento codice continuo",
+    "methodology": "$10 di crediti convertiti al prezzo API blended di Claude Sonnet 5, autocompletamento inline escluso (non a token)"
   },
   {
     "id": "copilot-pro-plus",
@@ -74,7 +118,34 @@
     "modelSlug": "gpt-5-6-sol-high",
     "estimatedTokensMonthly": 30000000,
     "rateLimitDesc": "$39 AI credits/mese con supporto multi-agent",
-    "notes": "Stima coding intensivo con cloud agents"
+    "notes": "Stima coding intensivo con cloud agents",
+    "methodology": "$39 di crediti convertiti al prezzo API blended di GPT-5.6 Sol high"
+  },
+  {
+    "id": "copilot-business",
+    "name": "GitHub Copilot Business",
+    "provider": "GitHub",
+    "priceMonthly": 19,
+    "modelId": "anthropic/claude-sonnet-5",
+    "modelSlug": "claude-sonnet-5",
+    "estimatedTokensMonthly": 15000000,
+    "rateLimitDesc": "$19 AI credits/utente/mese + policy org-wide",
+    "notes": "Prezzo per utente/mese; stima uso professionale continuativo",
+    "methodology": "$19 di crediti convertiti al prezzo API blended di Claude Sonnet 5, in linea con l'uso individuale di un developer full-time",
+    "isTeamTier": true
+  },
+  {
+    "id": "copilot-enterprise",
+    "name": "GitHub Copilot Enterprise",
+    "provider": "GitHub",
+    "priceMonthly": 39,
+    "modelId": "openai/gpt-5.6-sol",
+    "modelSlug": "gpt-5-6-sol-high",
+    "estimatedTokensMonthly": 32000000,
+    "rateLimitDesc": "$39 AI credits/utente/mese + knowledge base org + modelli premium",
+    "notes": "Prezzo per utente/mese; stima uso professionale intensivo con contesto organizzativo esteso",
+    "methodology": "$39 di crediti convertiti al prezzo API blended di GPT-5.6 Sol high, con markup per il contesto della knowledge base organizzativa",
+    "isTeamTier": true
   },
   {
     "id": "gemini-advanced",
@@ -85,7 +156,8 @@
     "modelSlug": "gemini-3-7-flash",
     "estimatedTokensMonthly": 35000000,
     "rateLimitDesc": "1.000 req/giorno con 1M-2M context window",
-    "notes": "Pieno utilizzo contesto esteso e prompt complessi"
+    "notes": "Pieno utilizzo contesto esteso e prompt complessi",
+    "methodology": "1.000 richieste/gg × 30gg × ~1.2k token medi per richiesta (prompt breve, contesto non sempre pieno)"
   },
   {
     "id": "perplexity-pro",
@@ -96,6 +168,7 @@
     "modelSlug": "claude-sonnet-5",
     "estimatedTokensMonthly": 30000000,
     "rateLimitDesc": "600 Pro Searches / giorno",
-    "notes": "Stima ricerca multi-step profonda con modelli flagship"
+    "notes": "Stima ricerca multi-step profonda con modelli flagship",
+    "methodology": "600 ricerche/gg × 30gg × ~1.7k token medi per ricerca multi-step (query + fonti + sintesi)"
   }
 ]

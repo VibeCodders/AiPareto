@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
-import type { CostView, MetricKey, Model, Point, SubscriptionPlan } from './types'
-import { computeFrontier, computeMetric, formatAxisTick, formatMetric, formatTokens, formatUsd, costOf } from './pareto'
+import type { CostView, EfficiencyWeights, MetricKey, Model, Point, SubscriptionPlan, ValueScoreBase } from './types'
+import { computeFrontier, computeMetric, formatAxisTick, formatDelta, formatMetric, formatTokens, formatUsd, costOf, frontierDeltaOf, type EfficiencyOpts } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
@@ -12,6 +12,7 @@ import { exportModelsCsv } from './csv'
 import ParetoChart from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
+import TrendChart from './components/TrendChart'
 
 const BASE_MODELS = modelsData as Model[]
 const SUBSCRIPTIONS = subscriptionsData as SubscriptionPlan[]
@@ -32,15 +33,25 @@ const METRIC_DEFS = [
   { key: 'valueScore', labelKey: 'valueScore', higherIsBetter: true },
   { key: 'speedAdjustedScore', labelKey: 'speedAdjustedScore', higherIsBetter: true },
   { key: 'contextValue', labelKey: 'contextValue', higherIsBetter: true },
+  { key: 'efficiencyScore', labelKey: 'efficiencyScore', higherIsBetter: true },
 ] as const
 
-function computeMetricMax(models: Model[], costView: CostView, taskInput: number, taskOutput: number): Record<MetricKey, number> {
-  return Object.fromEntries(
+const VALUE_SCORE_BASES: Array<{ key: ValueScoreBase; labelKey: 'intel' | 'coding' | 'agentic' }> = [
+  { key: 'intelligenceIndex', labelKey: 'intel' },
+  { key: 'codingIndex', labelKey: 'coding' },
+  { key: 'agenticIndex', labelKey: 'agentic' },
+]
+
+function computeMetricMax(models: Model[], costView: CostView, taskInput: number, taskOutput: number, valueScoreBase: ValueScoreBase = 'intelligenceIndex'): Record<MetricKey, number> {
+  const base = Object.fromEntries(
     METRIC_DEFS.map(({ key }) => {
-      const vals = models.map((m) => computeMetric(m, key, costView, taskInput, taskOutput)).filter((v): v is number => v != null)
+      const vals = models.map((m) => computeMetric(m, key, costView, taskInput, taskOutput, valueScoreBase)).filter((v): v is number => v != null)
       return [key, vals.length ? Math.ceil(Math.max(...vals)) : 1]
     }),
   ) as Record<MetricKey, number>
+  // Efficiency Score is a weighted average of components each normalized to <=100, so it is always bounded by 100.
+  base.efficiencyScore = 100
+  return base
 }
 
 // Only used to clamp minScore while parsing the initial URL, before costView is known from state.
@@ -61,7 +72,7 @@ function colorFor(family: string): string {
 
 const METRICS: Array<{
   key: MetricKey
-  labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' | 'outputSpeed' | 'latency' | 'context' | 'valueScore' | 'speedAdjustedScore' | 'contextValue'
+  labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' | 'outputSpeed' | 'latency' | 'context' | 'valueScore' | 'speedAdjustedScore' | 'contextValue' | 'efficiencyScore'
   higherIsBetter: boolean
 }> = METRIC_DEFS.map((d) => ({ key: d.key, labelKey: d.labelKey as never, higherIsBetter: d.higherIsBetter }))
 
@@ -102,6 +113,9 @@ export default function App() {
   const [showSubscriptions, setShowSubscriptions] = useState(INITIAL.showSubscriptions)
   const [usageFactor, setUsageFactor] = useState(INITIAL.usageFactor)
   const [subscriptionOnly, setSubscriptionOnly] = useState(INITIAL.subscriptionOnly)
+  const [valueScoreBase, setValueScoreBase] = useState<ValueScoreBase>(INITIAL.valueScoreBase)
+  const [efficiencyWeights, setEfficiencyWeights] = useState<EfficiencyWeights>(INITIAL.efficiencyWeights)
+  const [showTrend, setShowTrend] = useState(INITIAL.showTrend)
 
   const t = STRINGS[lang]
 
@@ -111,6 +125,9 @@ export default function App() {
       const baseModel = BASE_MODELS.find((m) => m.slug === sub.modelSlug || m.id === sub.modelId) || BASE_MODELS[0]
       const actualTokensMonthly = sub.estimatedTokensMonthly * usageFactor
       const effectiveCostPerM = (sub.priceMonthly / actualTokensMonthly) * 1e6
+      // What paying per-token for the underlying model would cost at the same estimated usage, for comparison.
+      const paygoBlended = baseModel.inputPerM != null && baseModel.outputPerM != null ? 0.8 * baseModel.inputPerM + 0.2 * baseModel.outputPerM : null
+      const paygoEquivalentMonthly = paygoBlended != null ? (paygoBlended * actualTokensMonthly) / 1e6 : null
       return {
         ...baseModel,
         id: `sub:${sub.id}`,
@@ -124,6 +141,7 @@ export default function App() {
           estimatedTokensMonthly: actualTokensMonthly,
         },
         effectiveCostPerM,
+        paygoEquivalentMonthly,
         inputPerM: effectiveCostPerM,
         outputPerM: null,
         cacheReadPerM: null,
@@ -133,8 +151,13 @@ export default function App() {
     return [...BASE_MODELS, ...subModels]
   }, [usageFactor])
 
-  // Reactive to costView/taskInput/taskOutput since valueScore's scale depends on the chosen cost basis.
-  const METRIC_MAX = useMemo(() => computeMetricMax(ALL_ITEMS, costView, taskInput, taskOutput), [ALL_ITEMS, costView, taskInput, taskOutput])
+  // Reactive to costView/taskInput/taskOutput/valueScoreBase since valueScore's scale depends on the chosen cost basis and benchmark.
+  const METRIC_MAX = useMemo(() => computeMetricMax(ALL_ITEMS, costView, taskInput, taskOutput, valueScoreBase), [ALL_ITEMS, costView, taskInput, taskOutput, valueScoreBase])
+
+  const efficiencyOpts = useMemo(
+    () => ({ weights: efficiencyWeights, norm: { value: METRIC_MAX.valueScore, speed: METRIC_MAX.speedAdjustedScore, context: METRIC_MAX.contextValue } }),
+    [efficiencyWeights, METRIC_MAX],
+  )
 
   useEffect(() => {
     setMinScore((prev) => Math.min(prev, METRIC_MAX[metric]))
@@ -172,13 +195,16 @@ export default function App() {
     showSubscriptions,
     usageFactor,
     subscriptionOnly,
+    valueScoreBase,
+    efficiencyWeights,
+    showTrend,
   }
 
   useEffect(() => {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -233,6 +259,9 @@ export default function App() {
     setShowSubscriptions(s.showSubscriptions)
     setUsageFactor(s.usageFactor)
     setSubscriptionOnly(s.subscriptionOnly)
+    setValueScoreBase(s.valueScoreBase)
+    setEfficiencyWeights(s.efficiencyWeights)
+    setShowTrend(s.showTrend)
   }
 
   const handleSavePreset = () => {
@@ -280,7 +309,7 @@ export default function App() {
       if (!families.has(m.family)) return false
       if (reasoningOnly && !m.isReasoning) return false
       if (openWeightsOnly && !m.openWeights) return false
-      const score = computeMetric(m, metric, costView, taskInput, taskOutput)
+      const score = computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
       if (score == null) return false
       // For lower-is-better metrics the slider caps the maximum shown value.
       if (lower ? score > minScore : score < minScore) return false
@@ -297,13 +326,17 @@ export default function App() {
       .map((m) => ({
         model: m,
         cost: costOf(m, costView)!,
-        score: computeMetric(m, metric, costView, taskInput, taskOutput)!,
+        score: computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)!,
       }))
       .sort((a, b) => a.cost - b.cost)
-  }, [ALL_ITEMS, showSubscriptions, subscriptionOnly, families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom])
+  }, [ALL_ITEMS, showSubscriptions, subscriptionOnly, families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom, valueScoreBase, efficiencyOpts])
 
   const frontier = useMemo(() => computeFrontier(points, isLowerBetter(metric)), [points, metric])
   const frontierSlugs = useMemo(() => new Set(frontier.map((p) => p.model.slug)), [frontier])
+  const frontierDeltas = useMemo(() => {
+    const lower = isLowerBetter(metric)
+    return new Map(points.map((p) => [p.model.slug, frontierDeltaOf(p, frontier, lower)]))
+  }, [points, frontier, metric])
 
   const selected = useMemo(() => (selectedId ? ALL_ITEMS.find((m) => m.slug === selectedId) ?? null : null), [selectedId, ALL_ITEMS])
 
@@ -358,6 +391,33 @@ export default function App() {
                 </button>
               ))}
             </div>
+            {metric === 'valueScore' && (
+              <div className="task-inputs">
+                <span className="control-label">{t.valueScoreBase}</span>
+                <select className="usage-select" value={valueScoreBase} onChange={(e) => setValueScoreBase(e.target.value as ValueScoreBase)}>
+                  {VALUE_SCORE_BASES.map((b) => (
+                    <option key={b.key} value={b.key}>{t[b.labelKey]}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {metric === 'efficiencyScore' && (
+              <div className="task-inputs">
+                <span className="control-label">{t.efficiencyWeights}</span>
+                <label>
+                  {t.weightValue} <b>{efficiencyWeights.value.toFixed(2)}</b>
+                  <input type="range" min={0} max={2} step={0.25} value={efficiencyWeights.value} onChange={(e) => setEfficiencyWeights((w) => ({ ...w, value: Number(e.target.value) }))} />
+                </label>
+                <label>
+                  {t.weightSpeed} <b>{efficiencyWeights.speed.toFixed(2)}</b>
+                  <input type="range" min={0} max={2} step={0.25} value={efficiencyWeights.speed} onChange={(e) => setEfficiencyWeights((w) => ({ ...w, speed: Number(e.target.value) }))} />
+                </label>
+                <label>
+                  {t.weightContext} <b>{efficiencyWeights.context.toFixed(2)}</b>
+                  <input type="range" min={0} max={2} step={0.25} value={efficiencyWeights.context} onChange={(e) => setEfficiencyWeights((w) => ({ ...w, context: Number(e.target.value) }))} />
+                </label>
+              </div>
+            )}
           </div>
           <div className="control-group">
             <span className="control-label">{t.cost}</span>
@@ -525,7 +585,11 @@ export default function App() {
         />
         <div className="count-bar muted">
           {points.length} {t.modelsShown} {t.ofTotal} {ALL_ITEMS.length} · {t.clickHint}
+          <button className="btn" onClick={() => setShowTrend((v) => !v)} style={{ marginLeft: 12 }}>
+            {showTrend ? `▲ ${t.hideTrend}` : `▼ ${t.showTrend}`}
+          </button>
         </div>
+        {showTrend && <TrendChart models={BASE_MODELS} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} t={t} />}
       </section>
 
       {selected && (
@@ -533,16 +597,19 @@ export default function App() {
           model={selected}
           metric={metric}
           frontier={frontierSlugs.has(selected.slug)}
+          frontierDelta={frontierDeltas.get(selected.slug) ?? null}
           costView={costView}
           taskInput={taskInput}
           taskOutput={taskOutput}
+          valueScoreBase={valueScoreBase}
+          efficiencyOpts={efficiencyOpts}
           t={t}
           inCompare={compareIds.includes(selected.slug)}
           onToggleCompare={() => toggleCompare(selected.slug)}
         />
       )}
 
-      <ComparePanel models={ALL_ITEMS} compareIds={compareIds} costView={costView} taskInput={taskInput} taskOutput={taskOutput} t={t} onRemove={toggleCompare} onClear={() => setCompareIds([])} onExport={() => exportModelsCsv(ALL_ITEMS.filter((m: Model) => compareIds.includes(m.slug)), costView, taskInput, taskOutput, t, buildFilterSummary(), '-compare')} />
+      <ComparePanel models={ALL_ITEMS} compareIds={compareIds} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} efficiencyOpts={efficiencyOpts} t={t} onRemove={toggleCompare} onClear={() => setCompareIds([])} onExport={() => exportModelsCsv(ALL_ITEMS.filter((m: Model) => compareIds.includes(m.slug)), costView, taskInput, taskOutput, t, buildFilterSummary(), '-compare')} />
 
 
       <section className="table-section">
@@ -556,10 +623,13 @@ export default function App() {
           models={visibleModels}
           metric={metric}
           frontierIds={frontierSlugs}
+          frontierDeltas={frontierDeltas}
           selectedId={selectedId}
           costView={costView}
           taskInput={taskInput}
           taskOutput={taskOutput}
+          valueScoreBase={valueScoreBase}
+          efficiencyOpts={efficiencyOpts}
           t={t}
           onSelect={setSelectedId}
           compareIds={compareIds}
@@ -582,9 +652,12 @@ function ModelCard({
   model,
   metric,
   frontier,
+  frontierDelta,
   costView,
   taskInput,
   taskOutput,
+  valueScoreBase,
+  efficiencyOpts,
   t,
   inCompare,
   onToggleCompare,
@@ -592,14 +665,17 @@ function ModelCard({
   model: Model
   metric: MetricKey
   frontier: boolean
+  frontierDelta: number | null
   costView: CostView
   taskInput: number
   taskOutput: number
+  valueScoreBase: ValueScoreBase
+  efficiencyOpts: EfficiencyOpts
   t: T
   inCompare: boolean
   onToggleCompare: () => void
 }) {
-  const score = computeMetric(model, metric, costView, taskInput, taskOutput)
+  const score = computeMetric(model, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
   const blended =
     model.inputPerM != null && model.outputPerM != null ? 0.8 * model.inputPerM + 0.2 * model.outputPerM : null
   return (
@@ -619,6 +695,7 @@ function ModelCard({
       <div className="mc-grid">
         <div><span className="muted">{t.family}</span><b>{model.family}</b></div>
         <div><span className="muted">{t[METRICS.find((m) => m.key === metric)!.labelKey]}</span><b>{formatMetric(metric, score)}</b></div>
+        <div><span className="muted">{t.vsFrontier}</span><b className={frontierDelta != null && frontierDelta > 0.05 ? 'delta-behind' : 'delta-ok'}>{formatDelta(frontierDelta)}</b></div>
         <div><span className="muted">{t.input}</span><b>{formatUsd(model.inputPerM)}/1M</b></div>
         <div><span className="muted">{t.output}</span><b>{formatUsd(model.outputPerM)}/1M</b></div>
         <div><span className="muted">{t.cache}</span><b>{formatUsd(model.cacheReadPerM)}/1M</b></div>
@@ -628,6 +705,26 @@ function ModelCard({
         <div><span className="muted">{t.context}</span><b>{formatTokens(model.contextTokens)}</b></div>
         <div><span className="muted">{t.release}</span><b>{model.released ?? '—'}</b></div>
       </div>
+      {model.isSubscription && model.subscription && (
+        <div className="mc-subscription">
+          {model.paygoEquivalentMonthly != null && (
+            <div className="mc-paygo">
+              <span className="muted">{t.paygoEquivalent}:</span>{' '}
+              <b>{formatUsd(model.paygoEquivalentMonthly)}/mo</b>{' '}
+              {model.paygoEquivalentMonthly < model.subscription.priceMonthly ? (
+                <span className="tag tag-open">{formatUsd(model.subscription.priceMonthly - model.paygoEquivalentMonthly)} {t.paygoCheaper}</span>
+              ) : (
+                <span className="tag">{formatUsd(model.paygoEquivalentMonthly - model.subscription.priceMonthly)} {t.paygoPricier}</span>
+              )}
+            </div>
+          )}
+          {model.subscription.methodology && (
+            <div className="mc-methodology muted">
+              <span className="muted">{t.methodology}:</span> {model.subscription.methodology}
+            </div>
+          )}
+        </div>
+      )}
       <div className="mc-links">
         <a href={`https://openrouter.ai/${model.id}`} target="_blank" rel="noreferrer">{t.openRouterLink} ↗</a>
         <a href={`https://artificialanalysis.ai/models/${model.slug}`} target="_blank" rel="noreferrer">{t.aaLink} ↗</a>

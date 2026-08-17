@@ -106,6 +106,24 @@ export interface Strings {
   rateLimits: string
   planNotes: string
   subscriptionOnly: string
+  efficiencyScore: string
+  efficiencyWeights: string
+  weightValue: string
+  weightSpeed: string
+  weightContext: string
+  valueScoreBase: string
+  vsFrontier: string
+  onFrontier: string
+  methodology: string
+  paygoEquivalent: string
+  paygoCheaper: string
+  paygoPricier: string
+  showTrend: string
+  hideTrend: string
+  trendTitle: string
+  trendHint: string
+  teamTier: string
+  individualTier: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -215,6 +233,24 @@ export const STRINGS: Record<Lang, Strings> = {
     rateLimits: 'Limiti & Finestre',
     planNotes: 'Note Piano',
     subscriptionOnly: 'Solo Abbonamenti',
+    efficiencyScore: 'Efficiency Score',
+    efficiencyWeights: 'Pesi Efficiency Score',
+    weightValue: 'Peso valore/$',
+    weightSpeed: 'Peso velocità',
+    weightContext: 'Peso contesto/$',
+    valueScoreBase: 'Base Value Score',
+    vsFrontier: 'Δ vs frontiera',
+    onFrontier: 'Sulla frontiera',
+    methodology: 'Metodologia stima',
+    paygoEquivalent: 'Equivalente a consumo',
+    paygoCheaper: 'più economico dell\'abbonamento',
+    paygoPricier: 'più caro dell\'abbonamento',
+    showTrend: 'Mostra andamento nel tempo',
+    hideTrend: 'Nascondi andamento',
+    trendTitle: 'Andamento del miglior Value Score nel tempo',
+    trendHint: 'Miglior Value Score cumulativo raggiunto da un modello rilasciato entro ciascuna data (frontiera nel tempo)',
+    teamTier: 'Team/Business',
+    individualTier: 'Individuale',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -322,6 +358,24 @@ export const STRINGS: Record<Lang, Strings> = {
     rateLimits: 'Limits & Windows',
     planNotes: 'Plan Notes',
     subscriptionOnly: 'Subscriptions Only',
+    efficiencyScore: 'Efficiency Score',
+    efficiencyWeights: 'Efficiency Score weights',
+    weightValue: 'Value/$ weight',
+    weightSpeed: 'Speed weight',
+    weightContext: 'Context/$ weight',
+    valueScoreBase: 'Value Score basis',
+    vsFrontier: 'Δ vs frontier',
+    onFrontier: 'On frontier',
+    methodology: 'Estimation methodology',
+    paygoEquivalent: 'Pay-as-you-go equivalent',
+    paygoCheaper: 'cheaper than the subscription',
+    paygoPricier: 'pricier than the subscription',
+    showTrend: 'Show trend over time',
+    hideTrend: 'Hide trend',
+    trendTitle: 'Best Value Score over time',
+    trendHint: 'Cumulative best Value Score reached by any model released by each date (frontier over time)',
+    teamTier: 'Team/Business',
+    individualTier: 'Individual',
   },
 }
 

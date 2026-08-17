@@ -1,5 +1,5 @@
-import type { CostView, Model } from '../types'
-import { computeMetric, formatMetric, formatTokens, formatUsd, costOf } from '../pareto'
+import type { CostView, Model, ValueScoreBase } from '../types'
+import { computeMetric, formatMetric, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
 import type { T } from '../i18n'
 
 interface Row {
@@ -27,13 +27,15 @@ interface Props {
   costView: CostView
   taskInput: number
   taskOutput: number
+  valueScoreBase: ValueScoreBase
+  efficiencyOpts: EfficiencyOpts
   t: T
   onRemove: (id: string) => void
   onClear: () => void
   onExport: () => void
 }
 
-export default function ComparePanel({ models, compareIds, costView, taskInput, taskOutput, t, onRemove, onClear, onExport }: Props) {
+export default function ComparePanel({ models, compareIds, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onRemove, onClear, onExport }: Props) {
   const compared = compareIds.map((slug) => models.find((m) => m.slug === slug)).filter((m): m is Model => m != null)
 
   const bestSlug = (row: Row): string | null => {
@@ -51,7 +53,10 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
     { labelKey: 'output', higherIsBetter: false, value: (m) => m.outputPerM, format: (v) => formatUsd(v) },
     { labelKey: 'cache', higherIsBetter: false, value: (m) => m.cacheReadPerM, format: (v) => formatUsd(v) },
     { labelKey: 'blended', higherIsBetter: false, value: (m) => costOf(m, costView, taskInput, taskOutput), format: (v) => formatUsd(v) },
-    { labelKey: 'valueScore', higherIsBetter: true, value: (m) => computeMetric(m, 'valueScore', costView, taskInput, taskOutput), format: (v) => formatMetric('valueScore', v) },
+    { labelKey: 'valueScore', higherIsBetter: true, value: (m) => computeMetric(m, 'valueScore', costView, taskInput, taskOutput, valueScoreBase), format: (v) => formatMetric('valueScore', v) },
+    { labelKey: 'speedAdjustedScore', higherIsBetter: true, value: (m) => computeMetric(m, 'speedAdjustedScore', costView, taskInput, taskOutput), format: (v) => formatMetric('speedAdjustedScore', v) },
+    { labelKey: 'contextValue', higherIsBetter: true, value: (m) => computeMetric(m, 'contextValue', costView, taskInput, taskOutput), format: (v) => formatMetric('contextValue', v) },
+    { labelKey: 'efficiencyScore', higherIsBetter: true, value: (m) => computeMetric(m, 'efficiencyScore', costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts), format: (v) => formatMetric('efficiencyScore', v) },
   ]
 
   return (

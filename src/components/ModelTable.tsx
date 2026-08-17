@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { CostView, Model, MetricKey } from '../types'
-import { computeMetric, formatMetric, formatTokens, formatUsd, costOf } from '../pareto'
+import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
+import { computeMetric, formatDelta, formatMetric, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
 
@@ -19,32 +19,37 @@ type SortKey =
   | 'codingIndex'
   | 'agenticIndex'
   | 'subscription'
+  | 'frontierDelta'
 
-type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription'
+type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta'
 
-const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' }> = [
+const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' }> = [
   { key: 'subscription', labelKey: 'subscriptions' },
   { key: 'codingIndex', labelKey: 'coding' },
   { key: 'agenticIndex', labelKey: 'agentic' },
   { key: 'outputSpeed', labelKey: 'outputSpeed' },
   { key: 'latencySeconds', labelKey: 'latency' },
+  { key: 'frontierDelta', labelKey: 'vsFrontier' },
 ]
 
 interface Props {
   models: Model[]
   metric: MetricKey
   frontierIds: Set<string>
+  frontierDeltas: Map<string, number | null>
   selectedId: string | null
   costView: CostView
   taskInput: number
   taskOutput: number
+  valueScoreBase: ValueScoreBase
+  efficiencyOpts: EfficiencyOpts
   t: T
   onSelect: (id: string) => void
   compareIds: string[]
   onToggleCompare: (id: string) => void
 }
 
-export default function ModelTable({ models, metric, frontierIds, selectedId, costView, taskInput, taskOutput, t, onSelect, compareIds, onToggleCompare }: Props) {
+export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('score')
   const [desc, setDesc] = useState(() => !isLowerBetter(metric))
   const [visibleCols, setVisibleCols] = useState<Set<OptionalCol>>(new Set(['subscription']))
@@ -79,11 +84,12 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, co
   ]
 
   const valueOf = (m: Model): number | string | null => {
-    if (sortKey === 'score') return computeMetric(m, metric, costView, taskInput, taskOutput)
+    if (sortKey === 'score') return computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
     if (sortKey === 'blended') return costOf(m, costView)
     if (sortKey === 'name') return m.isSubscription ? m.name : m.aaName
     if (sortKey === 'family') return m.family
     if (sortKey === 'subscription') return m.subscription?.priceMonthly ?? (m.isSubscription ? 0 : 9999)
+    if (sortKey === 'frontierDelta') return frontierDeltas.get(m.slug) ?? null
     return (m as unknown as Record<string, number | string | null>)[sortKey]
   }
 
@@ -136,8 +142,9 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, co
               const isFrontier = frontierIds.has(m.slug)
               const isSel = selectedId === m.slug
               const isComparing = compareIds.includes(m.slug)
-              const score = computeMetric(m, metric, costView, taskInput, taskOutput)
+              const score = computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
               const blended = costOf(m, costView)
+              const delta = frontierDeltas.get(m.slug) ?? null
               return (
                 <tr key={m.slug} className={`${isFrontier ? 'row-frontier' : ''} ${isSel ? 'row-sel' : ''} ${m.isSubscription ? 'row-sub' : ''}`}>
                   <td className="center" onClick={(e) => e.stopPropagation()}>
@@ -202,6 +209,11 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, co
                   {visibleCols.has('latencySeconds') && (
                     <td className="num" onClick={() => onSelect(m.slug)}>
                       {m.latencySeconds != null ? `${m.latencySeconds.toFixed(1)}s` : '—'}
+                    </td>
+                  )}
+                  {visibleCols.has('frontierDelta') && (
+                    <td className={`num ${delta != null && delta > 0.05 ? 'delta-behind' : 'delta-ok'}`} onClick={() => onSelect(m.slug)}>
+                      {formatDelta(delta)}
                     </td>
                   )}
                   <td className="num" onClick={() => onSelect(m.slug)}>

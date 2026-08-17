@@ -1,6 +1,6 @@
 import type { CostView, Model } from './types'
 import type { T } from './i18n'
-import { contextValueOf, costOf, speedAdjustedScoreOf, valueScoreOf } from './pareto'
+import { contextValueOf, costOf, efficiencyScoreOf, speedAdjustedScoreOf, valueScoreOf } from './pareto'
 
 function num(n: number | null | undefined): string {
   if (n == null) return ''
@@ -54,7 +54,16 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
     t.agenticValue,
     t.speedAdjustedScore,
     t.contextValue,
+    t.efficiencyScore,
   ]
+
+  // Self-contained normalization reference for the Efficiency Score, local to this export's model set.
+  const norm = {
+    value: Math.max(1, ...models.map((m) => valueScoreOf(m, costView, taskInput, taskOutput) ?? 0)),
+    speed: Math.max(1, ...models.map((m) => speedAdjustedScoreOf(m) ?? 0)),
+    context: Math.max(1, ...models.map((m) => contextValueOf(m) ?? 0)),
+  }
+  const weights = { value: 1, speed: 1, context: 1 }
 
   const rows = models.map((m) => {
     const blended = m.inputPerM != null && m.outputPerM != null ? 0.8 * m.inputPerM + 0.2 * m.outputPerM : null
@@ -87,6 +96,7 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
       num(valueScoreOf(m, costView, taskInput, taskOutput, 'agenticIndex')),
       num(speedAdjustedScoreOf(m)),
       num(contextValueOf(m)),
+      num(efficiencyScoreOf(m, costView, taskInput, taskOutput, { weights, norm })),
     ]
   })
 

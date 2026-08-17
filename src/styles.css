@@ -404,6 +404,35 @@ h1 {
   text-decoration: underline;
 }
 
+.mc-subscription {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.mc-methodology {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.delta-ok {
+  color: #34d399;
+}
+
+.delta-behind {
+  color: var(--text-muted);
+}
+
+.trend-wrap {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
 .tag {
   background: var(--card-2);
   border: 1px solid var(--border);
