@@ -131,10 +131,25 @@ export default function App() {
 
   const selectMetric = (key: MetricKey) => {
     // Keep the slider meaningful when switching between higher/lower-is-better metrics.
-    if (isLowerBetter(key)) setMinScore((prev) => (prev === 0 ? METRIC_MAX[key] : Math.min(prev, METRIC_MAX[key])))
-    else setMinScore((prev) => (prev >= METRIC_MAX[key] ? 0 : Math.min(prev, METRIC_MAX[key])))
+    if (key === 'valueScore') {
+      setMinScore(0)
+    } else if (isLowerBetter(key)) {
+      setMinScore((prev) => (prev === 0 ? METRIC_MAX[key] : Math.min(prev, METRIC_MAX[key])))
+    } else {
+      setMinScore((prev) => (prev >= METRIC_MAX[key] ? 0 : Math.min(prev, METRIC_MAX[key])))
+    }
     setMetric(key)
   }
+
+  const toggleCompare = (id: string) => {
+    setCompareIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id)
+      if (prev.length >= 5) return prev
+      return [...prev, id]
+    })
+  }
+
+  const compareModels = useMemo(() => compareIds.map((id) => MODELS.find((m) => m.id === id)).filter(Boolean) as Model[], [compareIds])
 
   const applyState = (s: UrlState) => {
     setLang(s.lang)
@@ -213,12 +228,22 @@ export default function App() {
     }
   }
 
+  const valueScoreOf = (m: Model): number | null => {
+    const cost = costOf(m, costView)
+    if (cost == null || cost <= 0) return null
+    const score = m.intelligenceIndex
+    if (score == null) return null
+    return score / cost
+  }
+
   const points: Point[] = useMemo(() => {
     const q = query.trim().toLowerCase()
     const lower = isLowerBetter(metric)
     return MODELS.filter((m) => {
       if (!families.has(m.family)) return false
-      const score = m[metric]
+      if (reasoningOnly && !m.isReasoning) return false
+      if (openWeightsOnly && !m.openWeights) return false
+      const score = metric === 'valueScore' ? valueScoreOf(m) : m[metric]
       if (score == null) return false
       // For lower-is-better metrics the slider caps the maximum shown value.
       if (lower ? score > minScore : score < minScore) return false
@@ -227,11 +252,16 @@ export default function App() {
       if (q && !`${m.aaName} ${m.name} ${m.id}`.toLowerCase().includes(q)) return false
       const cost = costOf(m, costView)
       if (cost == null || cost <= 0) return false
+      if (cost < minPrice || cost > maxPrice) return false
       return true
     })
-      .map((m) => ({ model: m, cost: costOf(m, costView)!, score: m[metric]! }))
+      .map((m) => ({
+        model: m,
+        cost: costOf(m, costView)!,
+        score: metric === 'valueScore' ? valueScoreOf(m)! : m[metric]!,
+      }))
       .sort((a, b) => a.cost - b.cost)
-  }, [families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput])
+  }, [families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice])
 
   const frontier = useMemo(() => computeFrontier(points, isLowerBetter(metric)), [points, metric])
   const frontierSlugs = useMemo(() => new Set(frontier.map((p) => p.model.slug)), [frontier])
