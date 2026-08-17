@@ -4,6 +4,15 @@ Progetto statico React + TypeScript (Vite) che mostra il **Pareto dei modelli AI
 sull'asse X il costo (prezzi OpenRouter, USD per 1M token), sull'asse Y il punteggio
 (Artificial Analysis Intelligence Index), con la **frontiera di Pareto** evidenziata.
 
+## Funzionalità
+
+- Scatter costo × punteggio con **frontiera di Pareto** (punti non dominati).
+- Metriche: Intelligence Index, Agentic Index, Omniscience. Costo: input, blended 80/20, cache, output, **task configurabile** (token in/out).
+- Scala log/lineare, filtri per famiglia, ricerca, soglia minima, varianti di effort.
+- **Stato dei filtri nell'URL** (`?metric=…&cost=…&tin=…`): copia l'URL per condividere una vista.
+- **Esportazione CSV** della tabella (separatore `;`, BOM UTF-8, compatibile con Excel).
+- Tema scuro/chiaro, lingua IT/EN.
+
 ## Sviluppo
 
 ```bash
