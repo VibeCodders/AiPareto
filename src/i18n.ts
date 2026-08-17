@@ -1,9 +1,57 @@
 export type Lang = 'it' | 'en'
 
-export const STRINGS = {
+export interface Strings {
+  title: string
+  subtitle: string
+  frontier: string
+  metric: string
+  cost: string
+  search: string
+  logScale: string
+  includeEfforts: string
+  maxEffortOnly: string
+  minScore: string
+  family: string
+  all: string
+  none: string
+  modelsShown: string
+  ofTotal: string
+  noResults: string
+  table: string
+  sortBy: string
+  model: string
+  score: string
+  input: string
+  output: string
+  cache: string
+  blended: string
+  context: string
+  openWeights: string
+  release: string
+  reasoning: string
+  details: string
+  openRouterLink: string
+  aaLink: string
+  effort: string
+  viewOn: string
+  costViewInput: string
+  costViewBlended: string
+  costViewCache: string
+  costViewOutput: string
+  intel: string
+  agentic: string
+  omniscience: string
+  fetchedAt: string
+  language: string
+  theme: string
+  frontierNote: string
+  clickHint: string
+}
+
+export const STRINGS: Record<Lang, Strings> = {
   it: {
     title: 'AI Pareto — costo vs intelligenza',
-    subtitle: 'Prezzi OpenRouter (USD/1M token) × Artificial Analysis Intelligence Index. Frontera di Pareto evidenziata.',
+    subtitle: 'Prezzi OpenRouter (USD/1M token) × Artificial Analysis Intelligence Index. Frontiera di Pareto evidenziata.',
     frontier: 'Frontiera di Pareto',
     metric: 'Punteggio',
     cost: 'Costo',
@@ -95,6 +143,6 @@ export const STRINGS = {
     frontierNote: 'Only non-dominated points (cost ≤ and score ≥ of every other)',
     clickHint: 'Click a point for details',
   },
-} as const
+}
 
-export type T = (typeof STRINGS)['it']
+export type T = Strings

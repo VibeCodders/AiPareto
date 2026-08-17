@@ -37,14 +37,17 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, t,
     { key: 'released', label: t.release, num: true },
   ]
 
+  const valueOf = (m: Model): number | string | null => {
+    if (sortKey === 'score') return m[metric]
+    if (sortKey === 'blended') return costOf(m)
+    if (sortKey === 'name') return m.aaName
+    if (sortKey === 'family') return m.family
+    return (m as unknown as Record<string, number | string | null>)[sortKey]
+  }
+
   const sorted = [...models].sort((a, b) => {
-    let va: number | string | null
-    let vb: number | string | null
-    if (sortKey === 'name') [va, vb] = [a.aaName, b.aaName]
-    else if (sortKey === 'family') [va, vb] = [a.family, b.family]
-    else if (sortKey === 'score') [va, vb] = [a[metric], b[metric]]
-    else if (sortKey === 'blended') [va, vb] = [costOf(a), costOf(b)]
-    else [va, vb] = [a[sortKey], b[sortKey]]
+    const va = valueOf(a)
+    const vb = valueOf(b)
     if (va == null && vb == null) return 0
     if (va == null) return 1
     if (vb == null) return -1

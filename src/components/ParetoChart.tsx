@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { CartesianGrid, Cell, ComposedChart, Line, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis } from 'recharts'
-import type { Point } from '../types'
+import type { Model, Point } from '../types'
 import { formatUsd } from '../pareto'
 import type { T } from '../i18n'
 
@@ -17,7 +17,11 @@ interface Props {
 
 const FRONTIER_COLOR = '#f59e0b'
 
-function TooltipContent({ active, payload, t }: { active?: boolean; payload?: Array<{ payload?: { model?: { id: string }; cost?: number; score?: number } }>; t: T }) {
+interface TooltipPayload {
+  payload?: { model?: Model; cost?: number; score?: number }
+}
+
+function TooltipContent({ active, payload, t }: { active?: boolean; payload?: TooltipPayload[]; t: T }) {
   if (!active || !payload?.length) return null
   const p = payload[0]?.payload
   const m = p?.model
