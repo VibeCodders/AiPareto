@@ -117,6 +117,7 @@ export default function App() {
   const [efficiencyWeights, setEfficiencyWeights] = useState<EfficiencyWeights>(INITIAL.efficiencyWeights)
   const [showTrend, setShowTrend] = useState(INITIAL.showTrend)
   const [paretoOnly, setParetoOnly] = useState(INITIAL.paretoOnly)
+  const [maxMonthlyCost, setMaxMonthlyCost] = useState(INITIAL.maxMonthlyCost)
 
   const t = STRINGS[lang]
 
@@ -200,13 +201,14 @@ export default function App() {
     efficiencyWeights,
     showTrend,
     paretoOnly,
+    maxMonthlyCost,
   }
 
   useEffect(() => {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -265,6 +267,7 @@ export default function App() {
     setEfficiencyWeights(s.efficiencyWeights)
     setShowTrend(s.showTrend)
     setParetoOnly(s.paretoOnly)
+    setMaxMonthlyCost(s.maxMonthlyCost)
   }
 
   const handleSavePreset = () => {
@@ -306,6 +309,7 @@ export default function App() {
     return ALL_ITEMS.filter((m) => {
       if (m.isSubscription) {
         if (!showSubscriptions) return false
+        if (maxMonthlyCost > 0 && (m.subscription?.priceMonthly ?? 0) > maxMonthlyCost) return false
       } else {
         if (subscriptionOnly) return false
       }
@@ -332,7 +336,7 @@ export default function App() {
         score: computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)!,
       }))
       .sort((a, b) => a.cost - b.cost)
-  }, [ALL_ITEMS, showSubscriptions, subscriptionOnly, families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom, valueScoreBase, efficiencyOpts])
+  }, [ALL_ITEMS, showSubscriptions, subscriptionOnly, maxMonthlyCost, families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom, valueScoreBase, efficiencyOpts])
 
   const frontier = useMemo(() => computeFrontier(points, isLowerBetter(metric)), [points, metric])
   const frontierSlugs = useMemo(() => new Set(frontier.map((p) => p.model.slug)), [frontier])
@@ -354,6 +358,7 @@ export default function App() {
     if (families.size !== ALL_FAMILIES.length) parts.push(`families=${[...families].join(',')}`)
     if (showSubscriptions) parts.push(`subscriptions=on (usage=${usageFactor * 100}%)`)
     if (subscriptionOnly) parts.push('subscriptionOnly')
+    if (maxMonthlyCost > 0) parts.push(`maxMonthlyCost=$${maxMonthlyCost}`)
     if (paretoOnly) parts.push('paretoOnly')
     if (reasoningOnly) parts.push('reasoningOnly')
     if (openWeightsOnly) parts.push('openWeightsOnly')
@@ -504,6 +509,19 @@ export default function App() {
               <option value={0.25}>{t.usageLight}</option>
             </select>
           </div>
+          <label className="task-inputs">
+            {t.maxMonthlyCost}
+            <input
+              type="number"
+              min={0}
+              step={5}
+              value={maxMonthlyCost || ''}
+              placeholder="∞"
+              onChange={(e) => setMaxMonthlyCost(Math.max(0, Number(e.target.value)))}
+              title={t.maxMonthlyCost}
+            />
+            {maxMonthlyCost > 0 && <button className="btn" onClick={() => setMaxMonthlyCost(0)}>✕</button>}
+          </label>
         </div>
 
         <div className="control-row wrap">

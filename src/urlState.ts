@@ -35,6 +35,8 @@ export interface UrlState {
   showTrend: boolean
   /** Restrict the chart/table/CSV to only the current Pareto frontier's points. */
   paretoOnly: boolean
+  /** Subscriptions-only filter: hide plans whose priceMonthly exceeds this. 0 = no limit. Ignored for pay-as-you-go models. */
+  maxMonthlyCost: number
 }
 
 
@@ -127,6 +129,7 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     },
     showTrend: p.get('trend') === '1',
     paretoOnly: p.get('paretoonly') === '1',
+    maxMonthlyCost: clampFloat(p.get('maxmo'), 0, 100000, 0),
   }
 }
 
@@ -166,6 +169,7 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (s.efficiencyWeights.context !== 1) p.set('ewc', String(s.efficiencyWeights.context))
   if (s.showTrend) p.set('trend', '1')
   if (s.paretoOnly) p.set('paretoonly', '1')
+  if (s.maxMonthlyCost > 0) p.set('maxmo', String(s.maxMonthlyCost))
   return p.toString()
 }
 

@@ -125,6 +125,7 @@ export interface Strings {
   teamTier: string
   individualTier: string
   paretoOnly: string
+  maxMonthlyCost: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -253,6 +254,7 @@ export const STRINGS: Record<Lang, Strings> = {
     teamTier: 'Team/Business',
     individualTier: 'Individuale',
     paretoOnly: 'Solo Pareto',
+    maxMonthlyCost: 'Costo mensile max',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -379,6 +381,7 @@ export const STRINGS: Record<Lang, Strings> = {
     teamTier: 'Team/Business',
     individualTier: 'Individual',
     paretoOnly: 'Pareto only',
+    maxMonthlyCost: 'Max monthly cost',
   },
 }
 
