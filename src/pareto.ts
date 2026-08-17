@@ -1,11 +1,12 @@
-import type { Point } from './types'
+import type { MetricKey, Point } from './types'
 
 /**
  * Pareto-optimal points: a point is on the frontier if no other point has
- * cost <= its cost AND score >= its score (with at least one strict).
- * Returns the frontier sorted by ascending cost (ascending score).
+ * cost <= its cost AND a better score (>= for higher-is-better metrics,
+ * <= for lower-is-better ones like latency), with at least one strict.
+ * Returns the frontier sorted by ascending cost.
  */
-export function computeFrontier(points: Point[]): Point[] {
+export function computeFrontier(points: Point[], lowerIsBetter = false): Point[] {
   // Drop exact duplicates (same cost and score)
   const seen = new Set<string>()
   const unique: Point[] = []
@@ -17,14 +18,39 @@ export function computeFrontier(points: Point[]): Point[] {
   }
   unique.sort((a, b) => a.cost - b.cost || b.score - a.score)
   const frontier: Point[] = []
-  let bestScore = -Infinity
+  let best = lowerIsBetter ? Infinity : -Infinity
   for (const p of unique) {
-    if (p.score > bestScore) {
+    const better = lowerIsBetter ? p.score < best : p.score > best
+    if (better) {
       frontier.push(p)
-      bestScore = p.score
+      best = p.score
     }
   }
   return frontier
+}
+
+/** Round up to a "nice" axis max (1/2/5 × 10^n) so ticks look clean. */
+export function niceCeil(v: number): number {
+  if (v <= 1) return 1
+  const exp = Math.floor(Math.log10(v))
+  const base = Math.pow(10, exp)
+  const m = v / base
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * base
+}
+
+/** Format a metric value depending on its kind (units / decimals). */
+export function formatMetric(metric: MetricKey, v: number | null | undefined): string {
+  if (v == null) return '—'
+  switch (metric) {
+    case 'contextTokens':
+      return formatTokens(v)
+    case 'outputSpeed':
+      return `${Math.round(v)} tok/s`
+    case 'latencySeconds':
+      return `${v.toFixed(1)}s`
+    default:
+      return v.toFixed(1)
+  }
 }
 
 export function formatUsd(value: number | null | undefined, digits = 2): string {

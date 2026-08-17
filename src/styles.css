@@ -389,7 +389,8 @@ h1 {
   margin: 0;
 }
 
-.csv-btn {
+.csv-btn,
+.btn {
   background: var(--card-2);
   border: 1px solid var(--border);
   color: var(--text);
@@ -399,9 +400,33 @@ h1 {
   cursor: pointer;
 }
 
-.csv-btn:hover {
+.csv-btn:hover,
+.btn:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.btn-danger:hover {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+.preset-row {
+  gap: 10px;
+}
+
+.preset-select,
+.preset-name {
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.preset-name {
+  min-width: 260px;
 }
 
 .table-wrap {

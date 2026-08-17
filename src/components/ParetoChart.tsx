@@ -86,6 +86,10 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
     [points, frontierSlugs],
   )
   const frontierSorted = useMemo(() => [...frontier].sort((a, b) => a.cost - b.cost), [frontier])
+  const yDomain: [number, number] = useMemo(() => {
+    const max = points.reduce((m, p) => Math.max(m, p.score), 0)
+    return [0, max <= 1 ? 1 : Math.ceil((max + 2) / 5) * 5]
+  }, [points])
 
   return (
     <div className="chart-wrap">
@@ -110,7 +114,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
           />
           <YAxis
             type="number"
-            domain={[0, (dataMax: number) => Math.ceil((dataMax + 2) / 5) * 5]}
+            domain={yDomain}
             tickFormatter={(v: number) => String(v)}
             stroke="var(--axis)"
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}

@@ -4,7 +4,8 @@ import metaData from './data/meta.json'
 import type { CostView, MetricKey, Model, Point } from './types'
 import { computeFrontier, formatTokens, formatUsd } from './pareto'
 import { STRINGS, type Lang, type T } from './i18n'
-import { parseUrl, toSearch } from './urlState'
+import { parseUrl, toSearch, type UrlState } from './urlState'
+import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
 import { exportModelsCsv } from './csv'
 import ParetoChart from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
@@ -28,9 +29,12 @@ function colorFor(family: string): string {
   return PALETTE[h % PALETTE.length]
 }
 
-const METRICS: Array<{ key: MetricKey; labelKey: 'intel' | 'agentic' | 'omniscience' }> = [
+const METRICS: Array<{ key: MetricKey; labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' }> = [
   { key: 'intelligenceIndex', labelKey: 'intel' },
+  { key: 'codingIndex', labelKey: 'coding' },
   { key: 'agenticIndex', labelKey: 'agentic' },
+  { key: 'tau2', labelKey: 'tau2' },
+  { key: 'hle', labelKey: 'hle' },
   { key: 'omniscience', labelKey: 'omniscience' },
 ]
 
@@ -58,6 +62,11 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     INITIAL.selectedId && MODELS.some((m) => m.id === INITIAL.selectedId) ? INITIAL.selectedId : null,
   )
+  const [presets, setPresets] = useState<Preset[]>(() => listPresets())
+  const [presetId, setPresetId] = useState<string | null>(() => (INITIAL.presetId && getPreset(INITIAL.presetId) ? INITIAL.presetId : null))
+  const [savingPreset, setSavingPreset] = useState(false)
+  const [presetName, setPresetName] = useState('')
+  const [copied, setCopied] = useState(false)
 
   const t = STRINGS[lang]
 
@@ -68,14 +77,28 @@ export default function App() {
   }, [theme, lang])
 
   // Mirror the current filter state into the URL so views are shareable.
+  const currentState: UrlState = {
+    lang,
+    theme,
+    metric,
+    costView,
+    taskInput,
+    taskOutput,
+    logScale,
+    includeEfforts,
+    maxEffortOnly,
+    minScore,
+    query,
+    families: [...families],
+    selectedId,
+    presetId: null,
+  }
+
   useEffect(() => {
     const url = new URL(window.location.href)
-    url.search = toSearch(
-      { lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families: [...families], selectedId },
-      ALL_FAMILIES,
-    )
+    url.search = toSearch(currentState, ALL_FAMILIES, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId])
 
   const toggleFamily = (f: string) => {
     setFamilies((prev) => {
@@ -84,6 +107,55 @@ export default function App() {
       else next.add(f)
       return next
     })
+  }
+
+  const applyState = (s: UrlState) => {
+    setLang(s.lang)
+    setTheme(s.theme)
+    setMetric(s.metric)
+    setCostView(s.costView)
+    setTaskInput(s.taskInput)
+    setTaskOutput(s.taskOutput)
+    setLogScale(s.logScale)
+    setIncludeEfforts(s.includeEfforts)
+    setMaxEffortOnly(s.maxEffortOnly)
+    setMinScore(s.minScore)
+    setQuery(s.query)
+    setFamilies(new Set(s.families?.filter((f) => ALL_FAMILIES.includes(f)) ?? ALL_FAMILIES))
+    setSelectedId(s.selectedId && MODELS.some((m) => m.id === s.selectedId) ? s.selectedId : null)
+  }
+
+  const handleSavePreset = () => {
+    const name = presetName.trim()
+    if (!name) return
+    const preset = savePreset(name, currentState)
+    setPresets(listPresets())
+    setPresetId(preset.id)
+    setSavingPreset(false)
+    setPresetName('')
+  }
+
+  const handleSelectPreset = (id: string) => {
+    const preset = getPreset(id)
+    if (!preset) return
+    applyState(preset.state)
+    setPresetId(preset.id)
+  }
+
+  const handleCopyLink = async () => {
+    const url = window.location.href
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = url
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      ta.remove()
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
   }
 
   const costOf = (m: Model, view: CostView): number | null => {
@@ -218,6 +290,48 @@ export default function App() {
           ))}
           <button className="chip subtle" onClick={() => setFamilies(new Set(ALL_FAMILIES))}>{t.all}</button>
           <button className="chip subtle" onClick={() => setFamilies(new Set())}>{t.none}</button>
+        </div>
+
+        <div className="control-row wrap preset-row">
+          <span className="control-label">{t.presets}</span>
+          <select
+            className="preset-select"
+            value={presetId ?? ''}
+            onChange={(e) => (e.target.value ? handleSelectPreset(e.target.value) : setPresetId(null))}
+          >
+            <option value="">{t.noPreset}</option>
+            {presets.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+          {savingPreset ? (
+            <>
+              <input
+                className="preset-name"
+                type="text"
+                autoFocus
+                placeholder={t.presetNamePlaceholder}
+                value={presetName}
+                onChange={(e) => setPresetName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSavePreset()
+                  if (e.key === 'Escape') setSavingPreset(false)
+                }}
+              />
+              <button className="btn" onClick={handleSavePreset}>{t.confirm}</button>
+              <button className="btn" onClick={() => setSavingPreset(false)}>{t.cancel}</button>
+            </>
+          ) : (
+            <button className="btn" onClick={() => setSavingPreset(true)}>＋ {t.savePreset}</button>
+          )}
+          <button className="btn" onClick={handleCopyLink} title={window.location.href}>
+            {copied ? `✓ ${t.copied}` : `🔗 ${t.copyLink}`}
+          </button>
+          {presetId && (
+            <button className="btn btn-danger" onClick={() => { deletePreset(presetId); setPresets(listPresets()); setPresetId(null) }}>
+              🗑 {t.deletePreset}
+            </button>
+          )}
         </div>
       </section>
 

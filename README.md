@@ -7,9 +7,10 @@ sull'asse X il costo (prezzi OpenRouter, USD per 1M token), sull'asse Y il punte
 ## Funzionalità
 
 - Scatter costo × punteggio con **frontiera di Pareto** (punti non dominati).
-- Metriche: Intelligence Index, Agentic Index, Omniscience. Costo: input, blended 80/20, cache, output, **task configurabile** (token in/out).
+- Metriche (Artificial Analysis): **Intelligence Index, Coding Index, Agentic Index, Tau2, HLE, Omniscience**. Costo: input, blended 80/20, cache, output, **task configurabile** (token in/out).
 - Scala log/lineare, filtri per famiglia, ricerca, soglia minima, varianti di effort.
 - **Stato dei filtri nell'URL** (`?metric=…&cost=…&tin=…`): copia l'URL per condividere una vista.
+- **Preset nominati** (localStorage): salva una combinazione di parametri, ricaricala dal dropdown, eliminala, e condividila via link (`?…&p=<id>`); il link è autosufficiente anche per chi non ha il preset.
 - **Esportazione CSV** della tabella (separatore `;`, BOM UTF-8, compatibile con Excel).
 - Tema scuro/chiaro, lingua IT/EN.
 
@@ -29,8 +30,7 @@ generati da:
 
 - **OpenRouter** — `https://openrouter.ai/api/v1/models` (endpoint pubblico, senza API key):
   prezzi input/output/cache read/cache write.
-- **Artificial Analysis** — pagina `/models` e pagine dettaglio dei modelli (senza API key):
-  Intelligence Index, Agentic Index, Omniscience.
+- **Artificial Analysis** — pagina `/models` (registry), `/leaderboards/models` (oggetti completi con Intelligence/Coding/Agentic Index, Tau2, HLE, Omniscience) e pagine dettaglio (senza API key).
 
 Per rigenerare i dati:
 
@@ -40,8 +40,8 @@ npm run fetch-data
 
 Lo script:
 
-1. scarica i modelli OpenRouter e la pagina Artificial Analysis;
-2. crawla le pagine dettaglio dei modelli selezionati (cache in `.tmp/aa_pages/`);
+1. scarica i modelli OpenRouter, la pagina Artificial Analysis e la pagina `/leaderboards/models`;
+2. usa le pagine dettaglio dei modelli (cache in `.tmp/aa_pages/`) per riempire i buchi;
 3. unisce le due fonti usando la mappa curata in `scripts/model-map.ts`
    (slug Artificial Analysis → id OpenRouter);
 4. scrive `src/data/models.json` e `src/data/meta.json`.
@@ -49,6 +49,21 @@ Lo script:
 **Nota:** il crawl di Artificial Analysis è uno snapshot non ufficiale; la mappa dei modelli
 va aggiornata a mano quando escono modelli nuovi (vedi `scripts/match-models.mts` per trovare
 i candidati OpenRouter).
+
+## Deploy su GitHub Pages
+
+Il repo include un workflow GitHub Actions (`.github/workflows/deploy.yml`) che builda e
+pubblica `dist/` su GitHub Pages a ogni push su `main` (o manualmente da
+Actions → *Deploy to GitHub Pages* → *Run workflow*).
+
+Configurazione una tantum su GitHub:
+
+1. **Repo → Settings → Pages → Build and deployment → Source: *GitHub Actions*** (il workflow
+   si occupa di tutto, non serve il branch `gh-pages`).
+2. Il sito sarà pubblicato su `https://<utente>.github.io/<repo>/`.
+
+Dettagli già gestiti: `base: './'` in `vite.config.ts` (asset relativi, funziona su subpath),
+`public/.nojekyll` (evita l'elaborazione Jekyll), stato dei filtri via URL.
 
 ## Attribuzione
 

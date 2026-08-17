@@ -8,8 +8,13 @@ export interface Model {
   released: string | null
   isReasoning: boolean
   intelligenceIndex: number | null
+  codingIndex: number | null
   agenticIndex: number | null
+  tau2: number | null
+  hle: number | null
   omniscience: number | null
+  outputSpeed: number | null
+  latencySeconds: number | null
   contextTokens: number | null
   openWeights: boolean
   inputPerM: number | null
@@ -18,7 +23,16 @@ export interface Model {
   cacheWritePerM: number | null
 }
 
-export type MetricKey = 'intelligenceIndex' | 'agenticIndex' | 'omniscience'
+export type MetricKey =
+  | 'intelligenceIndex'
+  | 'codingIndex'
+  | 'agenticIndex'
+  | 'tau2'
+  | 'hle'
+  | 'omniscience'
+  | 'outputSpeed'
+  | 'latencySeconds'
+  | 'contextTokens'
 export type CostView = 'input' | 'blended' | 'cache' | 'output' | 'task'
 
 export interface Point {

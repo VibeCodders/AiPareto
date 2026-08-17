@@ -11,7 +11,7 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { extractFlightChunks, extractModelObjects, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
+import { extractFlightChunks, extractModelObjects, extractObjectsContaining, extractPerfFromDetail, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
@@ -62,15 +62,29 @@ async function fetchAAModelsPage(): Promise<{ registry: AAModelMeta[]; scored: A
   return { registry, scored }
 }
 
-async function fetchAADetail(slug: string): Promise<AAModelData | null> {
-  const file = path.join(PAGES_DIR, `${slug}.html`)
+/** The /leaderboards/models page embeds every model's full benchmark object. */
+async function fetchAALeaderboards(): Promise<AAModelData[]> {
+  const file = path.join(TMP, 'aa_leaderboards.html')
   let html: string
   if (fs.existsSync(file)) {
     html = fs.readFileSync(file, 'utf8')
   } else {
-    html = await get(`https://artificialanalysis.ai/models/${slug}`)
+    html = await get('https://artificialanalysis.ai/leaderboards/models')
     fs.writeFileSync(file, html)
   }
+  return extractObjectsContaining(extractFlightChunks(html).join(''), '"codingIndex"')
+}
+
+async function getDetailHtml(slug: string): Promise<string> {
+  const file = path.join(PAGES_DIR, `${slug}.html`)
+  if (fs.existsSync(file)) return fs.readFileSync(file, 'utf8')
+  const html = await get(`https://artificialanalysis.ai/models/${slug}`)
+  fs.writeFileSync(file, html)
+  return html
+}
+
+async function fetchAADetail(slug: string): Promise<AAModelData | null> {
+  const html = await getDetailHtml(slug)
   const raw = extractFlightChunks(html).join('')
   const objs = extractModelObjects(raw)
   // The page's own model object is the one whose release.slug matches.
@@ -124,6 +138,10 @@ async function main() {
   const { registry, scored } = await fetchAAModelsPage()
   console.log(`  registry: ${registry.length} models, ${scored.length} scored on page`)
 
+  console.log('— fetching Artificial Analysis leaderboards page…')
+  const leaderboard = await fetchAALeaderboards()
+  console.log(`  ${leaderboard.length} full model objects (coding index etc.)`)
+
   const active = registry.filter((m) => !m.deprecated)
   const whitelisted = active.filter(
     (m) => m.creator && CREATOR_WHITELIST.some((c) => m.creator!.name.toLowerCase().includes(c.toLowerCase())),
@@ -132,7 +150,7 @@ async function main() {
   console.log(`  whitelisted active: ${whitelisted.length}, released >= 2025: ${recent.length}`)
 
   // Slugs we already have scores for from the models page
-  const haveSlugs = new Set(scored.map((o) => o.release?.slug).filter(Boolean))
+  const haveSlugs = new Set(scored.map((o) => o.release?.slug).filter((s): s is string => Boolean(s)))
   const topSlugs = [...haveSlugs]
 
   // Crawl list: recent whitelisted models + top-scored models from the page
@@ -141,10 +159,21 @@ async function main() {
   const details = await crawlDetails(crawlSlugs)
   console.log(`  got scores for ${details.size} detail pages`)
 
-  // Build score lookup: slug -> AAModelData
+  // Build score lookup: leaderboards first, detail pages fill gaps (e.g. agentic).
   const scoreBySlug = new Map<string, AAModelData>()
   for (const o of scored) if (o.release?.slug) scoreBySlug.set(o.release.slug, o)
-  for (const [slug, d] of details) scoreBySlug.set(slug, d)
+  for (const o of leaderboard) {
+    const key = o.slug ?? o.release?.slug
+    if (key) scoreBySlug.set(key, o)
+  }
+  for (const [slug, d] of details) {
+    const prev = scoreBySlug.get(slug)
+    if (!prev) {
+      scoreBySlug.set(slug, d)
+    } else {
+      scoreBySlug.set(slug, { ...d, ...prev, agenticIndex: prev.agenticIndex ?? d.agenticIndex })
+    }
+  }
 
   // Map AA slugs to OpenRouter model ids via the curated map
   const orById = new Map(orModels.map((m) => [m.id, m]))
@@ -172,16 +201,42 @@ async function main() {
       released: m.releaseDate,
       isReasoning: m.isReasoning,
       intelligenceIndex: round1(score),
+      codingIndex: data?.codingIndex != null ? round1(data.codingIndex) : null,
       agenticIndex: data?.agenticIndex != null ? round1(data.agenticIndex) : null,
+      tau2: data?.tau2 != null ? round1(data.tau2) : null,
+      hle: data?.hle != null ? round1(data.hle) : null,
       omniscience: data?.omniscience != null ? round1(data.omniscience) : null,
       contextTokens: data?.contextWindowTokens ?? or.context,
-      openWeights: data?.openSourceCategorization === 'open' || m.name.toLowerCase().includes('oss'),
+      openWeights: data?.isOpenWeights === true || data?.openSourceCategorization === 'open' || m.name.toLowerCase().includes('oss'),
       inputPerM: usd(or.pricing.prompt),
       outputPerM: usd(or.pricing.completion),
       cacheReadPerM: usd(or.pricing.input_cache_read),
       cacheWritePerM: usd(or.pricing.input_cache_write),
     })
   }
+  // Output speed / latency / context from each detail page's JSON-LD datasets.
+  let perfOk = 0
+  let perfMissing = 0
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i] as Record<string, unknown>
+    const slug = row.slug as string
+    try {
+      const html = await getDetailHtml(slug)
+      const perf = extractPerfFromDetail(html, slug)
+      row.outputSpeed = perf.outputSpeed != null ? round1(perf.outputSpeed) : null
+      row.latencySeconds = perf.latencySeconds != null ? round1(perf.latencySeconds) : null
+      if (row.contextTokens == null && perf.contextWindowTokens != null) row.contextTokens = perf.contextWindowTokens
+      if (perf.outputSpeed != null || perf.latencySeconds != null) perfOk++
+      else perfMissing++
+      console.log(`  [${i + 1}/${rows.length}] perf ${slug}: speed=${row.outputSpeed ?? '-'} lat=${row.latencySeconds ?? '-'}`)
+    } catch (e) {
+      perfMissing++
+      console.warn(`  [${i + 1}/${rows.length}] perf FAILED ${slug}: ${(e as Error).message}`)
+    }
+    await new Promise((r) => setTimeout(r, 200))
+  }
+  console.log(`  perf ok: ${perfOk}, missing both: ${perfMissing}`)
+
   rows.sort((a, b) => (b.intelligenceIndex as number) - (a.intelligenceIndex as number))
 
   const meta = {

@@ -14,15 +14,22 @@ export interface AAModelMeta {
 }
 
 export interface AAModelData {
-  release: { slug: string; name: string }
+  release?: { slug: string; name: string }
+  slug?: string
+  name?: string
   deprecated: boolean
   isReasoning: boolean
   intelligenceIndex: number | null
   intelligenceIndexIsEstimated?: boolean
   agenticIndex: number | null
+  codingIndex: number | null
+  tau2: number | null
+  hle: number | null
   omniscience: number | null
   contextWindowTokens: number | null
   openSourceCategorization?: string | null
+  isOpenWeights?: boolean | null
+  openrouterApiId?: string | null
 }
 
 /** Extract and unescape all self.__next_f.push([1,"..."]) chunks from a page. */
@@ -123,8 +130,71 @@ export function parseModelRegistry(raw: string): AAModelMeta[] {
 
 /** Extract full per-model data objects (keyed by "release":{...}) from a page's flight payload. */
 export function extractModelObjects(raw: string): AAModelData[] {
+  return extractObjectsContaining(raw, '"release":{"slug"')
+}
+
+/** Performance data pulled from a detail page's JSON-LD datasets. */
+export interface AADetailPerf {
+  outputSpeed: number | null
+  latencySeconds: number | null
+  contextWindowTokens: number | null
+}
+
+/** All JSON-LD benchmark datasets embedded in a page (rows keyed by detailsUrl). */
+export function extractJsonLdDatasets(html: string): Array<{ rows: Array<Record<string, unknown>> }> {
+  const out: Array<{ rows: Array<Record<string, unknown>> }> = []
+  let p = 0
+  while (true) {
+    const s = html.indexOf('"@type":"Dataset"', p)
+    if (s === -1) break
+    let start = s
+    while (start > 0 && html[start] !== '{') start--
+    const end = findObjectEnd(html, start)
+    if (end === -1) break
+    const block = html.slice(start, end)
+    const dIdx = block.indexOf('"data":[')
+    if (dIdx !== -1) {
+      const dataStr = block.slice(dIdx + 7, block.length - 1)
+      try {
+        out.push({ rows: JSON.parse(dataStr) as Array<Record<string, unknown>> })
+      } catch {
+        /* skip malformed */
+      }
+    }
+    p = end
+  }
+  return out
+}
+
+/**
+ * Pull output speed (tok/s), latency (seconds to first answer token, incl.
+ * reasoning time) and context window for slug from a cached detail page.
+ */
+export function extractPerfFromDetail(html: string, slug: string): AADetailPerf {
+  const wantUrl = `/models/${slug}`
+  const perf: AADetailPerf = { outputSpeed: null, latencySeconds: null, contextWindowTokens: null }
+  for (const d of extractJsonLdDatasets(html)) {
+    const row = d.rows.find((r) => r.detailsUrl === wantUrl)
+    if (!row) continue
+    if (typeof row.outputSpeed === 'number') perf.outputSpeed = row.outputSpeed as number
+    else if (typeof row.medianOutputSpeed === 'number' && perf.outputSpeed == null) {
+      perf.outputSpeed = row.medianOutputSpeed as number
+    }
+    if (typeof row.reasoningTime === 'number' && typeof row.inputTime === 'number') {
+      perf.latencySeconds = (row.inputTime as number) + (row.reasoningTime as number)
+    }
+    if (typeof row.contextWindowTokens === 'number') perf.contextWindowTokens = row.contextWindowTokens as number
+  }
+  return perf
+}
+
+/**
+ * Extract every distinct JSON object whose span contains the given marker
+ * (e.g. "codingIndex") from a flight payload, deduped by slug.
+ */
+export function extractObjectsContaining(raw: string, marker: string): AAModelData[] {
   const out: AAModelData[] = []
-  const marker = '"release":{"slug"'
+  const seen = new Set<string>()
   let from = 0
   while (true) {
     const m = raw.indexOf(marker, from)
@@ -138,7 +208,12 @@ export function extractModelObjects(raw: string): AAModelData[] {
     if (end === -1) break
     const slice = raw.slice(start, end)
     try {
-      out.push(JSON.parse(slice) as AAModelData)
+      const o = JSON.parse(slice) as AAModelData
+      const key = o.slug ?? o.release?.slug
+      if (key && !seen.has(key)) {
+        seen.add(key)
+        out.push(o)
+      }
     } catch {
       /* skip malformed */
     }

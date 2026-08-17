@@ -42,14 +42,30 @@ export interface Strings {
   taskIn: string
   taskOut: string
   intel: string
+  coding: string
   agentic: string
+  tau2: string
+  hle: string
   omniscience: string
+  outputSpeed: string
+  latency: string
+  maxLatency: string
   fetchedAt: string
   language: string
   theme: string
   frontierNote: string
   clickHint: string
   exportCsv: string
+  presets: string
+  noPreset: string
+  savePreset: string
+  saving: string
+  confirm: string
+  cancel: string
+  presetNamePlaceholder: string
+  copyLink: string
+  copied: string
+  deletePreset: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -95,14 +111,30 @@ export const STRINGS: Record<Lang, Strings> = {
     taskIn: 'Token input',
     taskOut: 'Token output',
     intel: 'Intelligence Index',
+    coding: 'Coding Index',
     agentic: 'Agentic Index',
+    tau2: 'Tau2',
+    hle: 'HLE',
     omniscience: 'Omniscience',
+    outputSpeed: 'Velocità output',
+    latency: 'Latenza',
+    maxLatency: 'Latenza max',
     fetchedAt: 'Dati aggiornati al',
     language: 'Lingua',
     theme: 'Tema',
     frontierNote: 'Solo i punti non dominati (costo ≤ e punteggio ≥ di ogni altro)',
     clickHint: 'Clicca un punto per i dettagli',
     exportCsv: 'Esporta CSV',
+    presets: 'Preset',
+    noPreset: '— Nessun preset —',
+    savePreset: 'Salva preset',
+    saving: 'Salva…',
+    confirm: 'Salva',
+    cancel: 'Annulla',
+    presetNamePlaceholder: 'Nome del preset (es. Coding a basso costo)',
+    copyLink: 'Copia link',
+    copied: 'Copiato!',
+    deletePreset: 'Elimina',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -146,14 +178,30 @@ export const STRINGS: Record<Lang, Strings> = {
     taskIn: 'Input tokens',
     taskOut: 'Output tokens',
     intel: 'Intelligence Index',
+    coding: 'Coding Index',
     agentic: 'Agentic Index',
+    tau2: 'Tau2',
+    hle: 'HLE',
     omniscience: 'Omniscience',
+    outputSpeed: 'Output speed',
+    latency: 'Latency',
+    maxLatency: 'Max latency',
     fetchedAt: 'Data as of',
     language: 'Language',
     theme: 'Theme',
     frontierNote: 'Only non-dominated points (cost ≤ and score ≥ of every other)',
     clickHint: 'Click a point for details',
     exportCsv: 'Export CSV',
+    presets: 'Presets',
+    noPreset: '— No preset —',
+    savePreset: 'Save preset',
+    saving: 'Save…',
+    confirm: 'Save',
+    cancel: 'Cancel',
+    presetNamePlaceholder: 'Preset name (e.g. cheap coding)',
+    copyLink: 'Copy link',
+    copied: 'Copied!',
+    deletePreset: 'Delete',
   },
 }
 

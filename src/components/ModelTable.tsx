@@ -95,7 +95,7 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, t,
               <td className="num">{formatUsd(m.cacheReadPerM)}</td>
               <td className="num">{formatUsd(costOf(m))}</td>
               <td className="num muted">{formatTokens(m.contextTokens)}</td>
-              <td className="num muted">{m.released?.slice(0, 4) ?? '—'}</td>
+              <td className="num muted">{m.released ?? '—'}</td>
             </tr>
           ))}
         </tbody>
