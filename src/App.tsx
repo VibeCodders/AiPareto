@@ -26,6 +26,7 @@ const METRIC_DEFS = [
   { key: 'outputSpeed', labelKey: 'outputSpeed', higherIsBetter: true },
   { key: 'latencySeconds', labelKey: 'latency', higherIsBetter: false },
   { key: 'contextTokens', labelKey: 'context', higherIsBetter: true },
+  { key: 'valueScore', labelKey: 'valueScore', higherIsBetter: true },
 ] as const
 
 const METRIC_MAX = Object.fromEntries(
@@ -45,7 +46,7 @@ function colorFor(family: string): string {
   return PALETTE[h % PALETTE.length]
 }
 
-const METRICS: Array<{ key: MetricKey; labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' | 'outputSpeed' | 'latency' | 'context'; higherIsBetter: boolean }> = METRIC_DEFS.map((d) => ({ key: d.key, labelKey: d.labelKey as never, higherIsBetter: d.higherIsBetter }))
+const METRICS: Array<{ key: MetricKey; labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' | 'outputSpeed' | 'latency' | 'context' | 'valueScore'; higherIsBetter: boolean }> = METRIC_DEFS.map((d) => ({ key: d.key, labelKey: d.labelKey as never, higherIsBetter: d.higherIsBetter }))
 
 const COST_VIEWS: Array<{ key: CostView; labelKey: 'costViewInput' | 'costViewBlended' | 'costViewCache' | 'costViewOutput' | 'costViewTask' }> = [
   { key: 'input', labelKey: 'costViewInput' },
@@ -76,6 +77,11 @@ export default function App() {
   const [savingPreset, setSavingPreset] = useState(false)
   const [presetName, setPresetName] = useState('')
   const [copied, setCopied] = useState(false)
+  const [reasoningOnly, setReasoningOnly] = useState(INITIAL.reasoningOnly)
+  const [openWeightsOnly, setOpenWeightsOnly] = useState(INITIAL.openWeightsOnly)
+  const [minPrice, setMinPrice] = useState(INITIAL.minPrice)
+  const [maxPrice, setMaxPrice] = useState(INITIAL.maxPrice)
+  const [compareIds, setCompareIds] = useState<string[]>(INITIAL.compareIds)
 
   const t = STRINGS[lang]
 
@@ -101,13 +107,18 @@ export default function App() {
     families: [...families],
     selectedId,
     presetId: null,
+    reasoningOnly,
+    openWeightsOnly,
+    minPrice,
+    maxPrice,
+    compareIds,
   }
 
   useEffect(() => {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds])
 
   const toggleFamily = (f: string) => {
     setFamilies((prev) => {

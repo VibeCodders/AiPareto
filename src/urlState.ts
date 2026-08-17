@@ -18,6 +18,11 @@ export interface UrlState {
   selectedId: string | null
   /** id of the named preset this view corresponds to (informational) */
   presetId: string | null
+  reasoningOnly: boolean
+  openWeightsOnly: boolean
+  minPrice: number
+  maxPrice: number
+  compareIds: string[]
 }
 
 const METRICS: MetricKey[] = ['intelligenceIndex', 'codingIndex', 'agenticIndex', 'tau2', 'hle', 'omniscience', 'outputSpeed', 'latencySeconds', 'contextTokens']
@@ -39,6 +44,12 @@ function clampInt(raw: string | null, min: number, max: number, fallback: number
   return Math.min(max, Math.max(min, Math.round(n)))
 }
 
+function clampFloat(raw: string | null, min: number, max: number, fallback: number): number {
+  const n = Number(raw)
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(max, Math.max(min, n))
+}
+
 export function parseUrl(search: string, allFamilies: string[], metricMax: Record<MetricKey, number>): UrlState {
   const p = new URLSearchParams(search)
   const metricRaw = p.get('metric')
@@ -51,6 +62,8 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
   }
   const metric: MetricKey = METRICS.includes(metricRaw as MetricKey) ? (metricRaw as MetricKey) : 'intelligenceIndex'
   const max = metricMax[metric] || 1
+  const compareRaw = p.get('cmp')
+  const compareIds = compareRaw ? compareRaw.split(',').filter(Boolean) : []
   return {
     lang: p.get('lang') === 'en' ? 'en' : 'it',
     theme: p.get('theme') === 'light' ? 'light' : 'dark',
@@ -66,6 +79,11 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     families,
     selectedId: p.get('sel') || null,
     presetId: p.get('p') || null,
+    reasoningOnly: p.get('reason') === '1',
+    openWeightsOnly: p.get('open') === '1',
+    minPrice: clampFloat(p.get('pmin'), 0, 1000, 0),
+    maxPrice: clampFloat(p.get('pmax'), 0, 1000, 1000),
+    compareIds,
   }
 }
 
@@ -89,5 +107,10 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   }
   if (s.selectedId) p.set('sel', s.selectedId)
   if (presetId) p.set('p', presetId)
+  if (s.reasoningOnly) p.set('reason', '1')
+  if (s.openWeightsOnly) p.set('open', '1')
+  if (s.minPrice > 0) p.set('pmin', String(s.minPrice))
+  if (s.maxPrice < 1000) p.set('pmax', String(s.maxPrice))
+  if (s.compareIds.length > 0) p.set('cmp', s.compareIds.join(','))
   return p.toString()
 }
