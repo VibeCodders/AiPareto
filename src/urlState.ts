@@ -39,12 +39,14 @@ export function defaultMinScore(metric: MetricKey, max: number): number {
 }
 
 function clampInt(raw: string | null, min: number, max: number, fallback: number): number {
+  if (raw === null) return fallback
   const n = Number(raw)
   if (!Number.isFinite(n)) return fallback
   return Math.min(max, Math.max(min, Math.round(n)))
 }
 
 function clampFloat(raw: string | null, min: number, max: number, fallback: number): number {
+  if (raw === null) return fallback
   const n = Number(raw)
   if (!Number.isFinite(n)) return fallback
   return Math.min(max, Math.max(min, n))
