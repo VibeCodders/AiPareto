@@ -66,6 +66,23 @@ export interface Strings {
   copyLink: string
   copied: string
   deletePreset: string
+  valueScore: string
+  reasoningOnly: string
+  openWeightsOnly: string
+  priceRange: string
+  minPrice: string
+  maxPrice: string
+  compare: string
+  addToCompare: string
+  removeFromCompare: string
+  clearCompare: string
+  compareTitle: string
+  rank: string
+  costEfficiency: string
+  benchmark: string
+  notReasoning: string
+  closedWeights: string
+  noComparison: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -135,6 +152,23 @@ export const STRINGS: Record<Lang, Strings> = {
     copyLink: 'Copia link',
     copied: 'Copiato!',
     deletePreset: 'Elimina',
+    valueScore: 'Value Score',
+    reasoningOnly: 'Solo reasoning',
+    openWeightsOnly: 'Solo open weights',
+    priceRange: 'Range prezzo',
+    minPrice: 'Prezzo min $',
+    maxPrice: 'Prezzo max $',
+    compare: 'Confronta',
+    addToCompare: 'Aggiungi al confronto',
+    removeFromCompare: 'Rimuovi dal confronto',
+    clearCompare: 'Svuota confronto',
+    compareTitle: 'Confronto Modelli',
+    rank: 'Rank',
+    costEfficiency: 'Efficienza costo',
+    benchmark: 'Benchmark',
+    notReasoning: 'Non reasoning',
+    closedWeights: 'Pesi chiusi',
+    noComparison: 'Nessun modello selezionato per il confronto',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -202,6 +236,23 @@ export const STRINGS: Record<Lang, Strings> = {
     copyLink: 'Copy link',
     copied: 'Copied!',
     deletePreset: 'Delete',
+    valueScore: 'Value Score',
+    reasoningOnly: 'Reasoning only',
+    openWeightsOnly: 'Open weights only',
+    priceRange: 'Price range',
+    minPrice: 'Min price $',
+    maxPrice: 'Max price $',
+    compare: 'Compare',
+    addToCompare: 'Add to compare',
+    removeFromCompare: 'Remove from compare',
+    clearCompare: 'Clear compare',
+    compareTitle: 'Model Comparison',
+    rank: 'Rank',
+    costEfficiency: 'Cost efficiency',
+    benchmark: 'Benchmark',
+    notReasoning: 'Not reasoning',
+    closedWeights: 'Closed weights',
+    noComparison: 'No models selected for comparison',
   },
 }
 
