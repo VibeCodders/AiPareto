@@ -149,16 +149,6 @@ export default function App() {
     setMetric(key)
   }
 
-  const toggleCompare = (id: string) => {
-    setCompareIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id)
-      if (prev.length >= 5) return prev
-      return [...prev, id]
-    })
-  }
-
-  const compareModels = useMemo(() => compareIds.map((id) => MODELS.find((m) => m.id === id)).filter(Boolean) as Model[], [compareIds])
-
   const applyState = (s: UrlState) => {
     setLang(s.lang)
     setTheme(s.theme)
