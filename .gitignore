@@ -1,4 +1,6 @@
-.freebuff/
-.tmp/
 node_modules/
 dist/
+.tmp/
+*.log
+.DS_Store
+.freebuff/
