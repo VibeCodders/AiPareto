@@ -14,6 +14,7 @@ interface Props {
   colorFor: (family: string) => string
   metricName: string
   costName: string
+  costUnit: string
   t: T
   onSelect: (modelId: string) => void
 }
@@ -22,7 +23,7 @@ interface TooltipPayload {
   payload?: { model?: Model; cost?: number; score?: number }
 }
 
-function TooltipContent({ active, payload, t }: { active?: boolean; payload?: TooltipPayload[]; t: T }) {
+function TooltipContent({ active, payload, t, costUnit }: { active?: boolean; payload?: TooltipPayload[]; t: T; costUnit: string }) {
   if (!active || !payload?.length) return null
   const p = payload[0]?.payload
   const m = p?.model
@@ -33,7 +34,7 @@ function TooltipContent({ active, payload, t }: { active?: boolean; payload?: To
       {m.family && <div className="tooltip-row muted">{m.family}</div>}
       <div className="tooltip-row">
         <span>{t.cost}:</span>
-        <b>{formatUsd(p?.cost)}/1M</b>
+        <b>{formatUsd(p?.cost)}{costUnit}</b>
       </div>
       <div className="tooltip-row">
         <span>{t.score}:</span>
@@ -74,7 +75,7 @@ function ScatterShape(props: ShapeProps) {
 // late-bound so the shape function can call onSelect without re-creating series
 const onSelectRef: { current?: (id: string) => void } = {}
 
-export default function ParetoChart({ points, frontier, frontierSlugs, logScale, colorFor, metricName, costName, t, onSelect }: Props) {
+export default function ParetoChart({ points, frontier, frontierSlugs, logScale, colorFor, metricName, costName, costUnit, t, onSelect }: Props) {
   onSelectRef.current = onSelect
 
   const data = useMemo(
@@ -102,7 +103,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
             scale={logScale ? 'log' : 'linear'}
             domain={logScale ? ['auto', 'auto'] : [0, 'auto']}
             allowDataOverflow
-            tickFormatter={(v: number) => formatUsd(v, v < 1 ? 3 : 1)}
+            tickFormatter={(v: number) => formatUsd(v, v < 0.01 ? 4 : v < 1 ? 3 : 1)}
             stroke="var(--axis)"
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
             label={{ value: costName, position: 'insideBottom', offset: -4, fill: 'var(--text-muted)', fontSize: 12 }}
@@ -115,7 +116,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
             label={{ value: metricName, angle: -90, position: 'insideLeft', offset: 10, fill: 'var(--text-muted)', fontSize: 12 }}
           />
-          <Tooltip content={<TooltipContent t={t} />} cursor={{ strokeDasharray: '4 4', stroke: 'var(--axis)' }} />
+          <Tooltip content={<TooltipContent t={t} costUnit={costUnit} />} cursor={{ strokeDasharray: '4 4', stroke: 'var(--axis)' }} />
           <Line dataKey="score" type="stepAfter" stroke={FRONTIER_COLOR} strokeWidth={2} dot={false} activeDot={false} isAnimationActive={false} />
           <Scatter name="models" data={data} isAnimationActive={false} shape={<ScatterShape />}>
             {data.map((p) => (

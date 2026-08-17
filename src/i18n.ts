@@ -38,6 +38,9 @@ export interface Strings {
   costViewBlended: string
   costViewCache: string
   costViewOutput: string
+  costViewTask: string
+  taskIn: string
+  taskOut: string
   intel: string
   agentic: string
   omniscience: string
@@ -46,6 +49,7 @@ export interface Strings {
   theme: string
   frontierNote: string
   clickHint: string
+  exportCsv: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -87,6 +91,9 @@ export const STRINGS: Record<Lang, Strings> = {
     costViewBlended: 'Blended 80/20 /1M',
     costViewCache: 'Input con cache /1M',
     costViewOutput: 'Output /1M',
+    costViewTask: 'Costo per task',
+    taskIn: 'Token input',
+    taskOut: 'Token output',
     intel: 'Intelligence Index',
     agentic: 'Agentic Index',
     omniscience: 'Omniscience',
@@ -95,6 +102,7 @@ export const STRINGS: Record<Lang, Strings> = {
     theme: 'Tema',
     frontierNote: 'Solo i punti non dominati (costo ≤ e punteggio ≥ di ogni altro)',
     clickHint: 'Clicca un punto per i dettagli',
+    exportCsv: 'Esporta CSV',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -134,6 +142,9 @@ export const STRINGS: Record<Lang, Strings> = {
     costViewBlended: 'Blended 80/20 /1M',
     costViewCache: 'Input w/ cache /1M',
     costViewOutput: 'Output /1M',
+    costViewTask: 'Cost per task',
+    taskIn: 'Input tokens',
+    taskOut: 'Output tokens',
     intel: 'Intelligence Index',
     agentic: 'Agentic Index',
     omniscience: 'Omniscience',
@@ -142,6 +153,7 @@ export const STRINGS: Record<Lang, Strings> = {
     theme: 'Theme',
     frontierNote: 'Only non-dominated points (cost ≤ and score ≥ of every other)',
     clickHint: 'Click a point for details',
+    exportCsv: 'Export CSV',
   },
 }
 

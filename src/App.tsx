@@ -4,11 +4,17 @@ import metaData from './data/meta.json'
 import type { CostView, MetricKey, Model, Point } from './types'
 import { computeFrontier, formatTokens, formatUsd } from './pareto'
 import { STRINGS, type Lang, type T } from './i18n'
+import { parseUrl, toSearch } from './urlState'
+import { exportModelsCsv } from './csv'
 import ParetoChart from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 
 const MODELS = modelsData as Model[]
 const META = metaData as { fetchedAt: string }
+
+const ALL_FAMILIES = [...new Set(MODELS.map((m) => m.family))].sort()
+const MAX_SCORE = Math.max(...MODELS.map((m) => m.intelligenceIndex ?? 0))
+const INITIAL = parseUrl(window.location.search, ALL_FAMILIES, MAX_SCORE)
 
 const PALETTE = [
   '#f472b6', '#a78bfa', '#34d399', '#fbbf24', '#60a5fa', '#fb7185',
@@ -28,42 +34,30 @@ const METRICS: Array<{ key: MetricKey; labelKey: 'intel' | 'agentic' | 'omniscie
   { key: 'omniscience', labelKey: 'omniscience' },
 ]
 
-const COST_VIEWS: Array<{ key: CostView; labelKey: 'costViewInput' | 'costViewBlended' | 'costViewCache' | 'costViewOutput' }> = [
+const COST_VIEWS: Array<{ key: CostView; labelKey: 'costViewInput' | 'costViewBlended' | 'costViewCache' | 'costViewOutput' | 'costViewTask' }> = [
   { key: 'input', labelKey: 'costViewInput' },
   { key: 'blended', labelKey: 'costViewBlended' },
   { key: 'cache', labelKey: 'costViewCache' },
   { key: 'output', labelKey: 'costViewOutput' },
+  { key: 'task', labelKey: 'costViewTask' },
 ]
 
-function costOf(model: Model, view: CostView): number | null {
-  switch (view) {
-    case 'input':
-      return model.inputPerM
-    case 'output':
-      return model.outputPerM
-    case 'cache':
-      return model.cacheReadPerM ?? model.inputPerM
-    case 'blended': {
-      const i = model.inputPerM
-      const o = model.outputPerM
-      if (i == null || o == null) return null
-      return 0.8 * i + 0.2 * o
-    }
-  }
-}
-
 export default function App() {
-  const [lang, setLang] = useState<Lang>('it')
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
-  const [metric, setMetric] = useState<MetricKey>('intelligenceIndex')
-  const [costView, setCostView] = useState<CostView>('input')
-  const [logScale, setLogScale] = useState(true)
-  const [families, setFamilies] = useState<Set<string>>(() => new Set([...new Set(MODELS.map((m) => m.family))]))
-  const [query, setQuery] = useState('')
-  const [minScore, setMinScore] = useState(0)
-  const [includeEfforts, setIncludeEfforts] = useState(true)
-  const [maxEffortOnly, setMaxEffortOnly] = useState(false)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [lang, setLang] = useState<Lang>(INITIAL.lang)
+  const [theme, setTheme] = useState<'dark' | 'light'>(INITIAL.theme)
+  const [metric, setMetric] = useState<MetricKey>(INITIAL.metric)
+  const [costView, setCostView] = useState<CostView>(INITIAL.costView)
+  const [taskInput, setTaskInput] = useState(INITIAL.taskInput)
+  const [taskOutput, setTaskOutput] = useState(INITIAL.taskOutput)
+  const [logScale, setLogScale] = useState(INITIAL.logScale)
+  const [families, setFamilies] = useState<Set<string>>(() => new Set(INITIAL.families ?? ALL_FAMILIES))
+  const [query, setQuery] = useState(INITIAL.query)
+  const [minScore, setMinScore] = useState(INITIAL.minScore)
+  const [includeEfforts, setIncludeEfforts] = useState(INITIAL.includeEfforts)
+  const [maxEffortOnly, setMaxEffortOnly] = useState(INITIAL.maxEffortOnly)
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    INITIAL.selectedId && MODELS.some((m) => m.id === INITIAL.selectedId) ? INITIAL.selectedId : null,
+  )
 
   const t = STRINGS[lang]
 
@@ -73,8 +67,15 @@ export default function App() {
     document.title = STRINGS[lang].title
   }, [theme, lang])
 
-  const allFamilies = useMemo(() => [...new Set(MODELS.map((m) => m.family))].sort(), [])
-  const maxII = useMemo(() => Math.max(...MODELS.map((m) => m.intelligenceIndex ?? 0)), [])
+  // Mirror the current filter state into the URL so views are shareable.
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    url.search = toSearch(
+      { lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families: [...families], selectedId },
+      ALL_FAMILIES,
+    )
+    window.history.replaceState(null, '', url.toString())
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId])
 
   const toggleFamily = (f: string) => {
     setFamilies((prev) => {
@@ -83,6 +84,29 @@ export default function App() {
       else next.add(f)
       return next
     })
+  }
+
+  const costOf = (m: Model, view: CostView): number | null => {
+    switch (view) {
+      case 'input':
+        return m.inputPerM
+      case 'output':
+        return m.outputPerM
+      case 'cache':
+        return m.cacheReadPerM ?? m.inputPerM
+      case 'blended': {
+        const i = m.inputPerM
+        const o = m.outputPerM
+        if (i == null || o == null) return null
+        return 0.8 * i + 0.2 * o
+      }
+      case 'task': {
+        const i = m.inputPerM
+        const o = m.outputPerM
+        if (i == null || o == null) return null
+        return (taskInput / 1e6) * i + (taskOutput / 1e6) * o
+      }
+    }
   }
 
   const points: Point[] = useMemo(() => {
@@ -100,12 +124,14 @@ export default function App() {
     })
       .map((m) => ({ model: m, cost: costOf(m, costView)!, score: m[metric]! }))
       .sort((a, b) => a.cost - b.cost)
-  }, [families, metric, minScore, maxEffortOnly, includeEfforts, query, costView])
+  }, [families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput])
 
   const frontier = useMemo(() => computeFrontier(points), [points])
   const frontierSlugs = useMemo(() => new Set(frontier.map((p) => p.model.slug)), [frontier])
 
   const selected = useMemo(() => (selectedId ? MODELS.find((m) => m.id === selectedId) ?? null : null), [selectedId])
+
+  const visibleModels = useMemo(() => MODELS.filter((m) => points.some((p) => p.model.id === m.id)), [points])
 
   return (
     <div className="app">
@@ -147,6 +173,18 @@ export default function App() {
                 </button>
               ))}
             </div>
+            {costView === 'task' && (
+              <div className="task-inputs">
+                <label>
+                  {t.taskIn}
+                  <input type="number" min={1} max={1000000} step={100} value={taskInput} onChange={(e) => setTaskInput(Math.max(1, Number(e.target.value)))} />
+                </label>
+                <label>
+                  {t.taskOut}
+                  <input type="number" min={1} max={1000000} step={100} value={taskOutput} onChange={(e) => setTaskOutput(Math.max(1, Number(e.target.value)))} />
+                </label>
+              </div>
+            )}
           </div>
         </div>
 
@@ -165,20 +203,20 @@ export default function App() {
           </label>
           <label className="range">
             {t.minScore}: <b>{minScore}</b>
-            <input type="range" min={0} max={maxII} step={1} value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} />
+            <input type="range" min={0} max={MAX_SCORE} step={1} value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} />
           </label>
           <input className="search" type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
 
         <div className="control-row wrap family-row">
           <span className="control-label">{t.family}</span>
-          {allFamilies.map((f) => (
+          {ALL_FAMILIES.map((f) => (
             <button key={f} className={`chip ${families.has(f) ? 'on' : ''}`} style={families.has(f) ? { borderColor: colorFor(f) } : undefined} onClick={() => toggleFamily(f)}>
               <span className="chip-dot" style={{ background: colorFor(f) }} />
               {f}
             </button>
           ))}
-          <button className="chip subtle" onClick={() => setFamilies(new Set(allFamilies))}>{t.all}</button>
+          <button className="chip subtle" onClick={() => setFamilies(new Set(ALL_FAMILIES))}>{t.all}</button>
           <button className="chip subtle" onClick={() => setFamilies(new Set())}>{t.none}</button>
         </div>
       </section>
@@ -191,7 +229,8 @@ export default function App() {
           logScale={logScale}
           colorFor={colorFor}
           metricName={t[METRICS.find((m) => m.key === metric)!.labelKey]}
-          costName={t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
+          costName={costView === 'task' ? `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})` : t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
+          costUnit={costView === 'task' ? '/task' : '/1M'}
           t={t}
           onSelect={(id) => setSelectedId(id)}
         />
@@ -203,9 +242,14 @@ export default function App() {
       {selected && <ModelCard model={selected} metric={metric} frontier={frontierSlugs.has(selected.slug)} t={t} />}
 
       <section className="table-section">
-        <h2>{t.table}</h2>
+        <div className="table-head">
+          <h2>{t.table}</h2>
+          <button className="csv-btn" onClick={() => exportModelsCsv(visibleModels, metric, t)}>
+            ⬇ {t.exportCsv}
+          </button>
+        </div>
         <ModelTable
-          models={MODELS.filter((m) => points.some((p) => p.model.id === m.id))}
+          models={visibleModels}
           metric={metric}
           frontierIds={frontierSlugs}
           selectedId={selectedId}
@@ -219,6 +263,10 @@ export default function App() {
       </footer>
     </div>
   )
+}
+
+function kTokens(n: number): string {
+  return n >= 1000 ? `${Math.round(n / 100) / 10}k` : String(n)
 }
 
 function ModelCard({ model, metric, frontier, t }: { model: Model; metric: MetricKey; frontier: boolean; t: T }) {

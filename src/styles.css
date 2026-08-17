@@ -181,6 +181,31 @@ h1 {
   min-width: 200px;
 }
 
+.task-inputs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.task-inputs label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.task-inputs input {
+  width: 88px;
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
 .search::placeholder {
   color: var(--text-muted);
 }
@@ -352,9 +377,31 @@ h1 {
   color: #34d399;
 }
 
+.table-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .table-section h2 {
   font-size: 16px;
-  margin: 0 0 10px;
+  margin: 0;
+}
+
+.csv-btn {
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.csv-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .table-wrap {

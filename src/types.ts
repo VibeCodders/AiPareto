@@ -19,7 +19,7 @@ export interface Model {
 }
 
 export type MetricKey = 'intelligenceIndex' | 'agenticIndex' | 'omniscience'
-export type CostView = 'input' | 'blended' | 'cache' | 'output'
+export type CostView = 'input' | 'blended' | 'cache' | 'output' | 'task'
 
 export interface Point {
   model: Model
