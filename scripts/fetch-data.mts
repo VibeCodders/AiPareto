@@ -239,6 +239,28 @@ async function main() {
 
   rows.sort((a, b) => (b.intelligenceIndex as number) - (a.intelligenceIndex as number))
 
+  const modelsPath = path.join(OUT_DIR, 'models.json')
+  const metaPath = path.join(OUT_DIR, 'meta.json')
+
+  // Safety net for unattended (cron) runs: if the fetch came back with far fewer models than
+  // last time, the site's markup or API likely changed shape and partially broke extraction —
+  // better to fail loudly than to silently auto-commit a gutted dataset.
+  const previous = fs.existsSync(modelsPath) ? (JSON.parse(fs.readFileSync(modelsPath, 'utf8')) as Array<Record<string, unknown>>) : []
+  const MIN_RETENTION = 0.7
+  if (previous.length > 0 && rows.length < previous.length * MIN_RETENTION) {
+    console.error(
+      `\n✗ Aborting: fetched ${rows.length} models, but src/data/models.json currently has ${previous.length} ` +
+        `(< ${Math.round(MIN_RETENTION * 100)}% retained). This usually means a source page changed shape. ` +
+        `Not overwriting existing data — investigate before re-running.`,
+    )
+    process.exit(1)
+  }
+
+  const prevKeys = new Set(previous.map((r) => `${r.slug}`))
+  const newKeys = new Set(rows.map((r) => r.slug as string))
+  const added = [...newKeys].filter((k) => !prevKeys.has(k))
+  const removed = [...prevKeys].filter((k) => !newKeys.has(k))
+
   const meta = {
     fetchedAt: new Date().toISOString(),
     sources: {
@@ -248,13 +270,36 @@ async function main() {
     note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends).',
   }
 
-  fs.writeFileSync(path.join(OUT_DIR, 'models.json'), JSON.stringify(rows, null, 2))
-  fs.writeFileSync(path.join(OUT_DIR, 'meta.json'), JSON.stringify(meta, null, 2))
+  fs.writeFileSync(modelsPath, JSON.stringify(rows, null, 2))
+  fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2))
 
-  console.log(`\n— wrote ${rows.length} models to src/data/models.json`)
+  console.log(`\n— wrote ${rows.length} models to src/data/models.json (+${added.length} / -${removed.length} vs previous run)`)
+  if (added.length) console.log(`  added:   ${added.slice(0, 30).join(', ')}${added.length > 30 ? ', …' : ''}`)
+  if (removed.length) console.log(`  removed: ${removed.slice(0, 30).join(', ')}${removed.length > 30 ? ', …' : ''}`)
   if (unmatched.length) {
     console.log(`\n${unmatched.length} AA models with scores but no OpenRouter match:`)
     for (const u of unmatched.slice(0, 60)) console.log('   ', u)
+  }
+
+  // Machine-readable outputs for CI (e.g. to build a commit message / job summary).
+  const summaryLines = [
+    `Fetched ${rows.length} models (+${added.length} / -${removed.length}).`,
+    added.length ? `Added: ${added.join(', ')}` : null,
+    removed.length ? `Removed: ${removed.join(', ')}` : null,
+  ].filter((l): l is string => l != null)
+
+  const githubOutput = process.env.GITHUB_OUTPUT
+  if (githubOutput) {
+    const changed = added.length > 0 || removed.length > 0 || rows.length !== previous.length
+    fs.appendFileSync(githubOutput, `changed=${changed}\n`)
+    fs.appendFileSync(githubOutput, `added_count=${added.length}\n`)
+    fs.appendFileSync(githubOutput, `removed_count=${removed.length}\n`)
+    fs.appendFileSync(githubOutput, `total_count=${rows.length}\n`)
+    fs.appendFileSync(githubOutput, `summary<<EOF\n${summaryLines.join('\n')}\nEOF\n`)
+  }
+  const githubStepSummary = process.env.GITHUB_STEP_SUMMARY
+  if (githubStepSummary) {
+    fs.appendFileSync(githubStepSummary, `## AI Pareto data refresh\n\n${summaryLines.map((l) => `- ${l}`).join('\n')}\n`)
   }
 }
 
