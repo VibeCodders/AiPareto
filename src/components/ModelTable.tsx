@@ -123,7 +123,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
         ))}
       </div>
       <div className="table-wrap">
-        <table className="tbl">
+        <table className="model-table">
           <thead>
             <tr>
               <th style={{ width: 36 }}></th>

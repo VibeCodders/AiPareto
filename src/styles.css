@@ -513,8 +513,10 @@ h1 {
 
 .model-table {
   width: 100%;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  table-layout: auto;
 }
 
 .model-table th {
@@ -553,12 +555,35 @@ h1 {
   background: var(--card-2);
 }
 
-.model-table tr.selected {
+.model-table tr.row-sel {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
-.model-table tr.frontier-row td:first-child {
+.model-table tr.row-sel:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.model-table tr.row-frontier td:first-child {
   box-shadow: inset 3px 0 0 #f59e0b;
+}
+
+.model-table td.bold {
+  font-weight: 600;
+}
+
+.model-table td.center,
+.model-table th.center {
+  text-align: center;
+}
+
+.model-table .th-in {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.model-table .sort-arrow {
+  color: var(--accent);
 }
 
 .model-name {
