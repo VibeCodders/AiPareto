@@ -3,15 +3,18 @@
  * to drive the curated mapping in scripts/model-map.ts.
  */
 import fs from 'node:fs'
+import path from 'node:path'
 
-const orModels = JSON.parse(fs.readFileSync('.tmp/openrouter.json', 'utf8')) as Array<{
+const ROOT = path.resolve(import.meta.dirname, '..')
+
+const orModels = JSON.parse(fs.readFileSync(path.join(ROOT, '.tmp/openrouter.json'), 'utf8')) as Array<{
   id: string
   name: string
   context: number | null
   pricing: Record<string, number | null>
 }>
 
-const aaActive = JSON.parse(fs.readFileSync('.tmp/aa_active.json', 'utf8')) as Array<{
+const aaActive = JSON.parse(fs.readFileSync(path.join(ROOT, '.tmp/aa_active.json'), 'utf8')) as Array<{
   slug: string
   name: string
   deprecated: boolean
@@ -20,7 +23,7 @@ const aaActive = JSON.parse(fs.readFileSync('.tmp/aa_active.json', 'utf8')) as A
 }>
 
 // AA scores from crawled detail pages
-const scoreFiles = fs.readdirSync('.tmp/aa_pages').filter((f) => f.endsWith('.html'))
+const scoreFiles = fs.readdirSync(path.join(ROOT, '.tmp/aa_pages')).filter((f) => f.endsWith('.html'))
 const scoredSlugs = new Set(scoreFiles.map((f) => f.replace(/\.html$/, '')))
 // plus the 28 from the models page
 for (const m of aaActive) {

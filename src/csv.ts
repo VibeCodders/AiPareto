@@ -1,5 +1,6 @@
-import type { MetricKey, Model } from './types'
+import type { CostView, MetricKey, Model } from './types'
 import type { T } from './i18n'
+import { valueScoreOf } from './pareto'
 
 function num(n: number | null | undefined): string {
   if (n == null) return ''
@@ -15,7 +16,7 @@ function cell(value: string): string {
  * Downloads the visible model list as a CSV file.
  * Semicolon-separated with a UTF-8 BOM so it opens correctly in Excel (it-IT).
  */
-export function exportModelsCsv(models: Model[], metric: MetricKey, t: T): void {
+export function exportModelsCsv(models: Model[], metric: MetricKey, costView: CostView, taskInput: number, taskOutput: number, t: T): void {
   const headers = ['id', t.model, t.family, t.effort, t.score, t.input, t.output, t.cache, t.blended, t.context, t.release, t.openWeights]
 
   const rows = models.map((m) => {
@@ -25,7 +26,7 @@ export function exportModelsCsv(models: Model[], metric: MetricKey, t: T): void 
       m.aaName,
       m.family,
       m.effort ?? '',
-      num(m[metric]),
+      metric === 'valueScore' ? num(valueScoreOf(m, costView, taskInput, taskOutput)) : num(m[metric]),
       num(m.inputPerM),
       num(m.outputPerM),
       num(m.cacheReadPerM),

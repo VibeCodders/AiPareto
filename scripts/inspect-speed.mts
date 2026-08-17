@@ -1,6 +1,8 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
-const html = fs.readFileSync('.tmp/aa_pages/claude-opus-5-high.html', 'utf8')
+const ROOT = path.resolve(import.meta.dirname, '..')
+const html = fs.readFileSync(path.join(ROOT, '.tmp/aa_pages/claude-opus-5-high.html'), 'utf8')
 
 function extractDatasets(h: string): Array<{ name: string; rows: Array<Record<string, unknown>> }> {
   const out: Array<{ name: string; rows: Array<Record<string, unknown>> }> = []

@@ -203,37 +203,6 @@ export default function App() {
     setTimeout(() => setCopied(false), 1500)
   }
 
-  const costOf = (m: Model, view: CostView): number | null => {
-    switch (view) {
-      case 'input':
-        return m.inputPerM
-      case 'output':
-        return m.outputPerM
-      case 'cache':
-        return m.cacheReadPerM ?? m.inputPerM
-      case 'blended': {
-        const i = m.inputPerM
-        const o = m.outputPerM
-        if (i == null || o == null) return null
-        return 0.8 * i + 0.2 * o
-      }
-      case 'task': {
-        const i = m.inputPerM
-        const o = m.outputPerM
-        if (i == null || o == null) return null
-        return (taskInput / 1e6) * i + (taskOutput / 1e6) * o
-      }
-    }
-  }
-
-  const valueScoreOf = (m: Model): number | null => {
-    const cost = costOf(m, costView)
-    if (cost == null || cost <= 0) return null
-    const score = m.intelligenceIndex
-    if (score == null) return null
-    return score / cost
-  }
-
   const points: Point[] = useMemo(() => {
     const q = query.trim().toLowerCase()
     const lower = isLowerBetter(metric)
@@ -241,7 +210,7 @@ export default function App() {
       if (!families.has(m.family)) return false
       if (reasoningOnly && !m.isReasoning) return false
       if (openWeightsOnly && !m.openWeights) return false
-      const score = metric === 'valueScore' ? valueScoreOf(m) : m[metric]
+      const score = metric === 'valueScore' ? valueScoreOf(m, costView, taskInput, taskOutput) : m[metric]
       if (score == null) return false
       // For lower-is-better metrics the slider caps the maximum shown value.
       if (lower ? score > minScore : score < minScore) return false
@@ -256,7 +225,7 @@ export default function App() {
       .map((m) => ({
         model: m,
         cost: costOf(m, costView)!,
-        score: metric === 'valueScore' ? valueScoreOf(m)! : m[metric]!,
+        score: metric === 'valueScore' ? valueScoreOf(m, costView, taskInput, taskOutput)! : m[metric]!,
       }))
       .sort((a, b) => a.cost - b.cost)
   }, [families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice])
@@ -418,12 +387,12 @@ export default function App() {
         </div>
       </section>
 
-      {selected && <ModelCard model={selected} metric={metric} frontier={frontierSlugs.has(selected.slug)} t={t} />}
+      {selected && <ModelCard model={selected} metric={metric} frontier={frontierSlugs.has(selected.slug)} costView={costView} taskInput={taskInput} taskOutput={taskOutput} t={t} />}
 
       <section className="table-section">
         <div className="table-head">
           <h2>{t.table}</h2>
-          <button className="csv-btn" onClick={() => exportModelsCsv(visibleModels, metric, t)}>
+          <button className="csv-btn" onClick={() => exportModelsCsv(visibleModels, metric, costView, taskInput, taskOutput, t)}>
             ⬇ {t.exportCsv}
           </button>
         </div>
@@ -432,6 +401,9 @@ export default function App() {
           metric={metric}
           frontierIds={frontierSlugs}
           selectedId={selectedId}
+          costView={costView}
+          taskInput={taskInput}
+          taskOutput={taskOutput}
           t={t}
           onSelect={setSelectedId}
         />
@@ -448,8 +420,8 @@ function kTokens(n: number): string {
   return n >= 1000 ? `${Math.round(n / 100) / 10}k` : String(n)
 }
 
-function ModelCard({ model, metric, frontier, t }: { model: Model; metric: MetricKey; frontier: boolean; t: T }) {
-  const score = model[metric]
+function ModelCard({ model, metric, frontier, costView, taskInput, taskOutput, t }: { model: Model; metric: MetricKey; frontier: boolean; costView: CostView; taskInput: number; taskOutput: number; t: T }) {
+  const score = metric === 'valueScore' ? valueScoreOf(model, costView, taskInput, taskOutput) : model[metric]
   const blended =
     model.inputPerM != null && model.outputPerM != null ? 0.8 * model.inputPerM + 0.2 * model.outputPerM : null
   return (

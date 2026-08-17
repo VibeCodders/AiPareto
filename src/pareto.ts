@@ -1,5 +1,3 @@
-import type { MetricKey, Point } from './types'
-
 import type { CostView, MetricKey, Model, Point } from './types'
 
 export function costOf(m: Model, view: CostView, taskInput = 3000, taskOutput = 1000): number | null {

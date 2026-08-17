@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { Model, MetricKey } from '../types'
-import { formatMetric, formatTokens, formatUsd } from '../pareto'
+import type { CostView, Model, MetricKey } from '../types'
+import { formatMetric, formatTokens, formatUsd, costOf, valueScoreOf } from '../pareto'
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
 
@@ -11,18 +11,14 @@ interface Props {
   metric: MetricKey
   frontierIds: Set<string>
   selectedId: string | null
+  costView: CostView
+  taskInput: number
+  taskOutput: number
   t: T
   onSelect: (id: string) => void
 }
 
-function costOf(m: Model): number | null {
-  const i = m.inputPerM
-  const o = m.outputPerM
-  if (i == null || o == null) return null
-  return 0.8 * i + 0.2 * o
-}
-
-export default function ModelTable({ models, metric, frontierIds, selectedId, t, onSelect }: Props) {
+export default function ModelTable({ models, metric, frontierIds, selectedId, costView, taskInput, taskOutput, t, onSelect }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('score')
   const [desc, setDesc] = useState(() => !isLowerBetter(metric))
 
@@ -45,8 +41,11 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, t,
   ]
 
   const valueOf = (m: Model): number | string | null => {
-    if (sortKey === 'score') return m[metric]
-    if (sortKey === 'blended') return costOf(m)
+    if (sortKey === 'score') {
+      if (metric === 'valueScore') return valueScoreOf(m, costView, taskInput, taskOutput)
+      return m[metric]
+    }
+    if (sortKey === 'blended') return costOf(m, costView)
     if (sortKey === 'name') return m.aaName
     if (sortKey === 'family') return m.family
     return (m as unknown as Record<string, number | string | null>)[sortKey]
@@ -96,11 +95,11 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, t,
                 {m.openWeights && <span className="tag tag-open">open</span>}
               </td>
               <td className="muted">{m.family}</td>
-              <td className="num">{formatMetric(metric, m[metric])}</td>
+              <td className="num">{metric === 'valueScore' ? formatMetric('valueScore', valueScoreOf(m, costView, taskInput, taskOutput)) : formatMetric(metric, m[metric])}</td>
               <td className="num">{formatUsd(m.inputPerM)}</td>
               <td className="num">{formatUsd(m.outputPerM)}</td>
               <td className="num">{formatUsd(m.cacheReadPerM)}</td>
-              <td className="num">{formatUsd(costOf(m))}</td>
+              <td className="num">{formatUsd(costOf(m, costView))}</td>
               <td className="num muted">{formatTokens(m.contextTokens)}</td>
               <td className="num muted">{m.released ?? '—'}</td>
             </tr>

@@ -1,8 +1,10 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import { extractFlightChunks, findObjectStart, findObjectEnd } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
 
-const raw = extractFlightChunks(fs.readFileSync('.tmp/aa_leaderboards.html', 'utf8')).join('')
+const ROOT = path.resolve(import.meta.dirname, '..')
+const raw = extractFlightChunks(fs.readFileSync(path.join(ROOT, '.tmp/aa_leaderboards.html'), 'utf8')).join('')
 
 // extract every object containing "codingIndex"
 const objs: Array<Record<string, unknown>> = []
