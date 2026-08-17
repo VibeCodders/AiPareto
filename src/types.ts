@@ -35,6 +35,8 @@ export type MetricKey =
   | 'latencySeconds'
   | 'contextTokens'
   | 'valueScore'
+  | 'speedAdjustedScore'
+  | 'contextValue'
 export type CostView = 'input' | 'blended' | 'cache' | 'output' | 'task'
 
 export interface ComparisonModel {

@@ -1,6 +1,6 @@
 import type { CostView, Model } from './types'
 import type { T } from './i18n'
-import { costOf, valueScoreOf } from './pareto'
+import { contextValueOf, costOf, speedAdjustedScoreOf, valueScoreOf } from './pareto'
 
 function num(n: number | null | undefined): string {
   if (n == null) return ''
@@ -22,8 +22,10 @@ function cell(value: string): string {
  * currently selected in the UI, so the file is self-contained and never needs
  * a re-export to get a column that happens to not be on screen.
  * Semicolon-separated with a UTF-8 BOM so it opens correctly in Excel (it-IT).
+ * `filterSummary`, if given, is written as a leading `#`-commented line so the file
+ * self-documents which filters were active when it was generated.
  */
-export function exportModelsCsv(models: Model[], costView: CostView, taskInput: number, taskOutput: number, t: T): void {
+export function exportModelsCsv(models: Model[], costView: CostView, taskInput: number, taskOutput: number, t: T, filterSummary?: string, filenameSuffix = ''): void {
   const headers = [
     'id',
     t.model,
@@ -48,6 +50,10 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
     t.blended,
     t.taskCost,
     t.valueScore,
+    t.codingValue,
+    t.agenticValue,
+    t.speedAdjustedScore,
+    t.contextValue,
   ]
 
   const rows = models.map((m) => {
@@ -77,15 +83,21 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
       num(blended),
       num(taskCost),
       num(valueScoreOf(m, costView, taskInput, taskOutput)),
+      num(valueScoreOf(m, costView, taskInput, taskOutput, 'codingIndex')),
+      num(valueScoreOf(m, costView, taskInput, taskOutput, 'agenticIndex')),
+      num(speedAdjustedScoreOf(m)),
+      num(contextValueOf(m)),
     ]
   })
 
-  const csv = [headers, ...rows].map((r) => r.map(cell).join(';')).join('\r\n')
+  const lines = [headers, ...rows].map((r) => r.map(cell).join(';'))
+  if (filterSummary) lines.unshift(`# ${filterSummary}`)
+  const csv = lines.join('\r\n')
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `ai-pareto-${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = `ai-pareto-${new Date().toISOString().slice(0, 10)}${filenameSuffix}.csv`
   document.body.appendChild(a)
   a.click()
   a.remove()

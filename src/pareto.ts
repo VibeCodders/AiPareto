@@ -23,12 +23,49 @@ export function costOf(m: Model, view: CostView, taskInput = 3000, taskOutput = 
   }
 }
 
-export function valueScoreOf(m: Model, costView: CostView, taskInput = 3000, taskOutput = 1000): number | null {
+/** Benchmark score per dollar. Defaults to Intelligence Index; pass another benchmark to get e.g. coding-per-$ or agentic-per-$. */
+export function valueScoreOf(
+  m: Model,
+  costView: CostView,
+  taskInput = 3000,
+  taskOutput = 1000,
+  baseMetric: 'intelligenceIndex' | 'codingIndex' | 'agenticIndex' = 'intelligenceIndex',
+): number | null {
   const cost = costOf(m, costView, taskInput, taskOutput)
   if (cost == null || cost <= 0) return null
-  const score = m.intelligenceIndex
+  const score = m[baseMetric]
   if (score == null) return null
   return score / cost
+}
+
+/** Intelligence per second of latency — rewards models that are both smart and responsive. */
+export function speedAdjustedScoreOf(m: Model): number | null {
+  const score = m.intelligenceIndex
+  const latency = m.latencySeconds
+  if (score == null || latency == null || latency <= 0) return null
+  return score / latency
+}
+
+/** Context tokens available per dollar of input price — rewards cheap, large context windows. */
+export function contextValueOf(m: Model): number | null {
+  const ctx = m.contextTokens
+  const price = m.inputPerM
+  if (ctx == null || price == null || price <= 0) return null
+  return ctx / price
+}
+
+/** Resolves any MetricKey to a number for a model, computing derived metrics on the fly. */
+export function computeMetric(m: Model, metric: MetricKey, costView: CostView, taskInput = 3000, taskOutput = 1000): number | null {
+  switch (metric) {
+    case 'valueScore':
+      return valueScoreOf(m, costView, taskInput, taskOutput)
+    case 'speedAdjustedScore':
+      return speedAdjustedScoreOf(m)
+    case 'contextValue':
+      return contextValueOf(m)
+    default:
+      return m[metric]
+  }
 }
 
 /**
@@ -84,6 +121,8 @@ export function formatMetric(metric: MetricKey, v: number | null | undefined): s
       return `${Math.round(v)} tok/s`
     case 'latencySeconds':
       return `${v.toFixed(1)}s`
+    case 'contextValue':
+      return `${formatTokens(v)}/$`
     default:
       return v.toFixed(1)
   }
@@ -98,6 +137,8 @@ export function formatAxisTick(metric: MetricKey, v: number): string {
       return String(Math.round(v))
     case 'latencySeconds':
       return v.toFixed(1)
+    case 'contextValue':
+      return formatTokens(v)
     default:
       return String(Math.round(v))
   }

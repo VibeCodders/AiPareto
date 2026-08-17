@@ -23,9 +23,24 @@ export interface UrlState {
   minPrice: number
   maxPrice: number
   compareIds: string[]
+  minContext: number
+  releasedFrom: string
 }
 
-const METRICS: MetricKey[] = ['intelligenceIndex', 'codingIndex', 'agenticIndex', 'tau2', 'hle', 'omniscience', 'outputSpeed', 'latencySeconds', 'contextTokens', 'valueScore']
+const METRICS: MetricKey[] = [
+  'intelligenceIndex',
+  'codingIndex',
+  'agenticIndex',
+  'tau2',
+  'hle',
+  'omniscience',
+  'outputSpeed',
+  'latencySeconds',
+  'contextTokens',
+  'valueScore',
+  'speedAdjustedScore',
+  'contextValue',
+]
 const COST_VIEWS: CostView[] = ['input', 'blended', 'cache', 'output', 'task']
 
 /** Metrics where a lower value is better (e.g. latency). */
@@ -86,6 +101,8 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     minPrice: clampFloat(p.get('pmin'), 0, 1000, 0),
     maxPrice: clampFloat(p.get('pmax'), 0, 1000, 1000),
     compareIds,
+    minContext: clampInt(p.get('ctxmin'), 0, 10_000_000, 0),
+    releasedFrom: /^\d{4}-\d{2}-\d{2}$/.test(p.get('relfrom') ?? '') ? (p.get('relfrom') as string) : '',
   }
 }
 
@@ -114,5 +131,7 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (s.minPrice > 0) p.set('pmin', String(s.minPrice))
   if (s.maxPrice < 1000) p.set('pmax', String(s.maxPrice))
   if (s.compareIds.length > 0) p.set('cmp', s.compareIds.join(','))
+  if (s.minContext > 0) p.set('ctxmin', String(s.minContext))
+  if (s.releasedFrom) p.set('relfrom', s.releasedFrom)
   return p.toString()
 }

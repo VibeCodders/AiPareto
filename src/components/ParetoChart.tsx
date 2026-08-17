@@ -56,7 +56,7 @@ interface ShapeProps {
 function ScatterShape(props: ShapeProps) {
   const cx = props.cx ?? 0
   const cy = props.cy ?? 0
-  const select = () => props.payload?.model?.id && onSelectRef.current?.(props.payload!.model!.id)
+  const select = () => props.payload?.model?.slug && onSelectRef.current?.(props.payload!.model!.slug)
   if (props.payload?.isFrontier) {
     return (
       <path

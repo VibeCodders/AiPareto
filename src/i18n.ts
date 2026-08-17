@@ -85,6 +85,14 @@ export interface Strings {
   noComparison: string
   cacheWrite: string
   taskCost: string
+  speedAdjustedScore: string
+  contextValue: string
+  codingValue: string
+  agenticValue: string
+  minContext: string
+  releasedFrom: string
+  columns: string
+  exportCompare: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -173,6 +181,14 @@ export const STRINGS: Record<Lang, Strings> = {
     noComparison: 'Nessun modello selezionato per il confronto',
     cacheWrite: 'Cache write',
     taskCost: 'Costo task selezionato',
+    speedAdjustedScore: 'Score/Latenza',
+    contextValue: 'Contesto/$',
+    codingValue: 'Coding/$',
+    agenticValue: 'Agentic/$',
+    minContext: 'Contesto minimo',
+    releasedFrom: 'Rilasciato dopo',
+    columns: 'Colonne',
+    exportCompare: 'Esporta confronto CSV',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -259,6 +275,14 @@ export const STRINGS: Record<Lang, Strings> = {
     noComparison: 'No models selected for comparison',
     cacheWrite: 'Cache write',
     taskCost: 'Selected task cost',
+    speedAdjustedScore: 'Score/Latency',
+    contextValue: 'Context/$',
+    codingValue: 'Coding/$',
+    agenticValue: 'Agentic/$',
+    minContext: 'Min context',
+    releasedFrom: 'Released after',
+    columns: 'Columns',
+    exportCompare: 'Export comparison CSV',
   },
 }
 

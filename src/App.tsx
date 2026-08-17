@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { computeFrontier, formatAxisTick, formatMetric, formatTokens, formatUsd, costOf, valueScoreOf } from './pareto'
+import { computeFrontier, computeMetric, formatAxisTick, formatMetric, formatTokens, formatUsd, costOf } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
@@ -10,6 +10,7 @@ import { deletePreset, getPreset, listPresets, savePreset, type Preset } from '.
 import { exportModelsCsv } from './csv'
 import ParetoChart from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
+import ComparePanel from './components/ComparePanel'
 
 const MODELS = modelsData as Model[]
 const META = metaData as { fetchedAt: string }
@@ -27,17 +28,14 @@ const METRIC_DEFS = [
   { key: 'latencySeconds', labelKey: 'latency', higherIsBetter: false },
   { key: 'contextTokens', labelKey: 'context', higherIsBetter: true },
   { key: 'valueScore', labelKey: 'valueScore', higherIsBetter: true },
+  { key: 'speedAdjustedScore', labelKey: 'speedAdjustedScore', higherIsBetter: true },
+  { key: 'contextValue', labelKey: 'contextValue', higherIsBetter: true },
 ] as const
 
 const METRIC_MAX = Object.fromEntries(
   METRIC_DEFS.map(({ key }) => {
-    if (key === 'valueScore') {
-      const costs = MODELS.flatMap((m) => [m.inputPerM, m.outputPerM, m.cacheReadPerM].filter((c): c is number => c != null && c > 0))
-      const minCost = costs.length ? Math.min(...costs) : 1
-      const maxInt = Math.max(...MODELS.map((m) => m.intelligenceIndex ?? 0))
-      return [key, Math.ceil(maxInt / minCost)]
-    }
-    return [key, Math.max(...MODELS.map((m) => (m[key] ?? 0)))]
+    const vals = MODELS.map((m) => computeMetric(m, key, 'blended')).filter((v): v is number => v != null)
+    return [key, vals.length ? Math.ceil(Math.max(...vals)) : 1]
   }),
 ) as Record<MetricKey, number>
 const INITIAL = parseUrl(window.location.search, ALL_FAMILIES, METRIC_MAX)
@@ -54,7 +52,11 @@ function colorFor(family: string): string {
   return PALETTE[h % PALETTE.length]
 }
 
-const METRICS: Array<{ key: MetricKey; labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' | 'outputSpeed' | 'latency' | 'context' | 'valueScore'; higherIsBetter: boolean }> = METRIC_DEFS.map((d) => ({ key: d.key, labelKey: d.labelKey as never, higherIsBetter: d.higherIsBetter }))
+const METRICS: Array<{
+  key: MetricKey
+  labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' | 'outputSpeed' | 'latency' | 'context' | 'valueScore' | 'speedAdjustedScore' | 'contextValue'
+  higherIsBetter: boolean
+}> = METRIC_DEFS.map((d) => ({ key: d.key, labelKey: d.labelKey as never, higherIsBetter: d.higherIsBetter }))
 
 const COST_VIEWS: Array<{ key: CostView; labelKey: 'costViewInput' | 'costViewBlended' | 'costViewCache' | 'costViewOutput' | 'costViewTask' }> = [
   { key: 'input', labelKey: 'costViewInput' },
@@ -78,7 +80,7 @@ export default function App() {
   const [includeEfforts, setIncludeEfforts] = useState(INITIAL.includeEfforts)
   const [maxEffortOnly, setMaxEffortOnly] = useState(INITIAL.maxEffortOnly)
   const [selectedId, setSelectedId] = useState<string | null>(() =>
-    INITIAL.selectedId && MODELS.some((m) => m.id === INITIAL.selectedId) ? INITIAL.selectedId : null,
+    INITIAL.selectedId && MODELS.some((m) => m.slug === INITIAL.selectedId) ? INITIAL.selectedId : null,
   )
   const [presets, setPresets] = useState<Preset[]>(() => listPresets())
   const [presetId, setPresetId] = useState<string | null>(() => (INITIAL.presetId && getPreset(INITIAL.presetId) ? INITIAL.presetId : null))
@@ -90,6 +92,8 @@ export default function App() {
   const [minPrice, setMinPrice] = useState(INITIAL.minPrice)
   const [maxPrice, setMaxPrice] = useState(INITIAL.maxPrice)
   const [compareIds, setCompareIds] = useState<string[]>(INITIAL.compareIds)
+  const [minContext, setMinContext] = useState(INITIAL.minContext)
+  const [releasedFrom, setReleasedFrom] = useState(INITIAL.releasedFrom)
 
   const t = STRINGS[lang]
 
@@ -120,13 +124,35 @@ export default function App() {
     minPrice,
     maxPrice,
     compareIds,
+    minContext,
+    releasedFrom,
   }
 
   useEffect(() => {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom])
+
+  const toggleCompare = (id: string) => {
+    setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  const buildFilterSummary = (): string => {
+    const parts: string[] = [`metric=${metric}`, `cost=${costView}`]
+    if (families.size !== ALL_FAMILIES.length) parts.push(`families=${[...families].join(',')}`)
+    if (reasoningOnly) parts.push('reasoningOnly')
+    if (openWeightsOnly) parts.push('openWeightsOnly')
+    if (minPrice > 0) parts.push(`minPrice=${minPrice}`)
+    if (maxPrice < 1000) parts.push(`maxPrice=${maxPrice}`)
+    if (minContext > 0) parts.push(`minContext=${minContext}`)
+    if (releasedFrom) parts.push(`releasedFrom=${releasedFrom}`)
+    if (query.trim()) parts.push(`query=${query.trim()}`)
+    if (minScore > 0) parts.push(`minScore=${minScore}`)
+    if (maxEffortOnly) parts.push('maxEffortOnly')
+    if (!includeEfforts) parts.push('noEfforts')
+    return parts.join('; ')
+  }
 
   const toggleFamily = (f: string) => {
     setFamilies((prev) => {
@@ -162,12 +188,14 @@ export default function App() {
     setMinScore(s.minScore)
     setQuery(s.query)
     setFamilies(new Set(s.families?.filter((f) => ALL_FAMILIES.includes(f)) ?? ALL_FAMILIES))
-    setSelectedId(s.selectedId && MODELS.some((m) => m.id === s.selectedId) ? s.selectedId : null)
+    setSelectedId(s.selectedId && MODELS.some((m) => m.slug === s.selectedId) ? s.selectedId : null)
     setReasoningOnly(s.reasoningOnly)
     setOpenWeightsOnly(s.openWeightsOnly)
     setMinPrice(s.minPrice)
     setMaxPrice(s.maxPrice)
-    setCompareIds(s.compareIds.filter((id) => MODELS.some((m) => m.id === id)))
+    setCompareIds(s.compareIds.filter((id) => MODELS.some((m) => m.slug === id)))
+    setMinContext(s.minContext)
+    setReleasedFrom(s.releasedFrom)
   }
 
   const handleSavePreset = () => {
@@ -210,7 +238,7 @@ export default function App() {
       if (!families.has(m.family)) return false
       if (reasoningOnly && !m.isReasoning) return false
       if (openWeightsOnly && !m.openWeights) return false
-      const score = metric === 'valueScore' ? valueScoreOf(m, costView, taskInput, taskOutput) : m[metric]
+      const score = computeMetric(m, metric, costView, taskInput, taskOutput)
       if (score == null) return false
       // For lower-is-better metrics the slider caps the maximum shown value.
       if (lower ? score > minScore : score < minScore) return false
@@ -220,22 +248,24 @@ export default function App() {
       const cost = costOf(m, costView)
       if (cost == null || cost <= 0) return false
       if (cost < minPrice || cost > maxPrice) return false
+      if (minContext > 0 && (m.contextTokens == null || m.contextTokens < minContext)) return false
+      if (releasedFrom && (m.released == null || m.released < releasedFrom)) return false
       return true
     })
       .map((m) => ({
         model: m,
         cost: costOf(m, costView)!,
-        score: metric === 'valueScore' ? valueScoreOf(m, costView, taskInput, taskOutput)! : m[metric]!,
+        score: computeMetric(m, metric, costView, taskInput, taskOutput)!,
       }))
       .sort((a, b) => a.cost - b.cost)
-  }, [families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice])
+  }, [families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom])
 
   const frontier = useMemo(() => computeFrontier(points, isLowerBetter(metric)), [points, metric])
   const frontierSlugs = useMemo(() => new Set(frontier.map((p) => p.model.slug)), [frontier])
 
-  const selected = useMemo(() => (selectedId ? MODELS.find((m) => m.id === selectedId) ?? null : null), [selectedId])
+  const selected = useMemo(() => (selectedId ? MODELS.find((m) => m.slug === selectedId) ?? null : null), [selectedId])
 
-  const visibleModels = useMemo(() => MODELS.filter((m) => points.some((p) => p.model.id === m.id)), [points])
+  const visibleModels = useMemo(() => points.map((p) => p.model), [points])
 
   return (
     <div className="app">
@@ -305,11 +335,37 @@ export default function App() {
             <input type="checkbox" checked={maxEffortOnly} onChange={(e) => setMaxEffortOnly(e.target.checked)} />
             {t.maxEffortOnly}
           </label>
+          <label className="check">
+            <input type="checkbox" checked={reasoningOnly} onChange={(e) => setReasoningOnly(e.target.checked)} />
+            {t.reasoningOnly}
+          </label>
+          <label className="check">
+            <input type="checkbox" checked={openWeightsOnly} onChange={(e) => setOpenWeightsOnly(e.target.checked)} />
+            {t.openWeightsOnly}
+          </label>
           <label className="range">
             {isLowerBetter(metric) ? t.maxLatency : t.minScore}: <b>{minScore}</b>
             <input type="range" min={0} max={Math.max(METRIC_MAX[metric], 1)} step={1} value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} />
           </label>
           <input className="search" type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+
+        <div className="control-row wrap">
+          <label className="task-inputs">
+            {t.priceRange}
+            <input type="number" min={0} step={0.1} value={minPrice} onChange={(e) => setMinPrice(Math.max(0, Number(e.target.value)))} title={t.minPrice} />
+            {' – '}
+            <input type="number" min={0} step={0.1} value={maxPrice} onChange={(e) => setMaxPrice(Math.max(0, Number(e.target.value)))} title={t.maxPrice} />
+          </label>
+          <label className="task-inputs">
+            {t.minContext}
+            <input type="number" min={0} step={1000} value={minContext} onChange={(e) => setMinContext(Math.max(0, Number(e.target.value)))} />
+          </label>
+          <label className="task-inputs">
+            {t.releasedFrom}
+            <input type="date" value={releasedFrom} onChange={(e) => setReleasedFrom(e.target.value)} />
+            {releasedFrom && <button className="btn" onClick={() => setReleasedFrom('')}>✕</button>}
+          </label>
         </div>
 
         <div className="control-row wrap family-row">
@@ -387,12 +443,26 @@ export default function App() {
         </div>
       </section>
 
-      {selected && <ModelCard model={selected} metric={metric} frontier={frontierSlugs.has(selected.slug)} costView={costView} taskInput={taskInput} taskOutput={taskOutput} t={t} />}
+      {selected && (
+        <ModelCard
+          model={selected}
+          metric={metric}
+          frontier={frontierSlugs.has(selected.slug)}
+          costView={costView}
+          taskInput={taskInput}
+          taskOutput={taskOutput}
+          t={t}
+          inCompare={compareIds.includes(selected.slug)}
+          onToggleCompare={() => toggleCompare(selected.slug)}
+        />
+      )}
+
+      <ComparePanel models={MODELS} compareIds={compareIds} costView={costView} taskInput={taskInput} taskOutput={taskOutput} t={t} onRemove={toggleCompare} onClear={() => setCompareIds([])} onExport={() => exportModelsCsv(MODELS.filter((m) => compareIds.includes(m.slug)), costView, taskInput, taskOutput, t, buildFilterSummary(), '-compare')} />
 
       <section className="table-section">
         <div className="table-head">
           <h2>{t.table}</h2>
-          <button className="csv-btn" onClick={() => exportModelsCsv(visibleModels, costView, taskInput, taskOutput, t)}>
+          <button className="csv-btn" onClick={() => exportModelsCsv(visibleModels, costView, taskInput, taskOutput, t, buildFilterSummary())}>
             ⬇ {t.exportCsv}
           </button>
         </div>
@@ -406,6 +476,8 @@ export default function App() {
           taskOutput={taskOutput}
           t={t}
           onSelect={setSelectedId}
+          compareIds={compareIds}
+          onToggleCompare={toggleCompare}
         />
       </section>
 
@@ -420,8 +492,28 @@ function kTokens(n: number): string {
   return n >= 1000 ? `${Math.round(n / 100) / 10}k` : String(n)
 }
 
-function ModelCard({ model, metric, frontier, costView, taskInput, taskOutput, t }: { model: Model; metric: MetricKey; frontier: boolean; costView: CostView; taskInput: number; taskOutput: number; t: T }) {
-  const score = metric === 'valueScore' ? valueScoreOf(model, costView, taskInput, taskOutput) : model[metric]
+function ModelCard({
+  model,
+  metric,
+  frontier,
+  costView,
+  taskInput,
+  taskOutput,
+  t,
+  inCompare,
+  onToggleCompare,
+}: {
+  model: Model
+  metric: MetricKey
+  frontier: boolean
+  costView: CostView
+  taskInput: number
+  taskOutput: number
+  t: T
+  inCompare: boolean
+  onToggleCompare: () => void
+}) {
+  const score = computeMetric(model, metric, costView, taskInput, taskOutput)
   const blended =
     model.inputPerM != null && model.outputPerM != null ? 0.8 * model.inputPerM + 0.2 * model.outputPerM : null
   return (
@@ -433,6 +525,9 @@ function ModelCard({ model, metric, frontier, costView, taskInput, taskOutput, t
           {model.effort && <span className="tag">{model.effort}</span>}
           {model.isReasoning && <span className="tag">reasoning</span>}
           {model.openWeights && <span className="tag tag-open">open weights</span>}
+          <button className={`btn compare-toggle ${inCompare ? 'on' : ''}`} onClick={onToggleCompare}>
+            {inCompare ? `✓ ${t.removeFromCompare}` : `+ ${t.addToCompare}`}
+          </button>
         </div>
       </div>
       <div className="mc-grid">
