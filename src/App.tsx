@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { computeFrontier, formatMetric, formatTokens, formatUsd } from './pareto'
+import { computeFrontier, formatAxisTick, formatMetric, formatTokens, formatUsd } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
@@ -365,6 +365,7 @@ export default function App() {
           costName={costView === 'task' ? `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})` : t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
           costUnit={costView === 'task' ? '/task' : '/1M'}
           formatScore={(v: number) => formatMetric(metric, v)}
+          formatTick={(v: number) => formatAxisTick(metric, v)}
           t={t}
           onSelect={(id) => setSelectedId(id)}
         />

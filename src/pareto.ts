@@ -29,13 +29,18 @@ export function computeFrontier(points: Point[], lowerIsBetter = false): Point[]
   return frontier
 }
 
-/** Round up to a "nice" axis max (1/2/5 × 10^n) so ticks look clean. */
+/** Round up to a "nice" axis max (1/2/2.5/5/7.5 × 10^n) so ticks look clean. */
 export function niceCeil(v: number): number {
   if (v <= 1) return 1
   const exp = Math.floor(Math.log10(v))
   const base = Math.pow(10, exp)
   const m = v / base
-  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * base
+  if (m <= 1) return base
+  if (m <= 2) return 2 * base
+  if (m <= 2.5) return 2.5 * base
+  if (m <= 5) return 5 * base
+  if (m <= 7.5) return 7.5 * base
+  return 10 * base
 }
 
 /** Format a metric value depending on its kind (units / decimals). */
@@ -50,6 +55,20 @@ export function formatMetric(metric: MetricKey, v: number | null | undefined): s
       return `${v.toFixed(1)}s`
     default:
       return v.toFixed(1)
+  }
+}
+
+/** Compact formatter for Y-axis ticks (no units, few decimals). */
+export function formatAxisTick(metric: MetricKey, v: number): string {
+  switch (metric) {
+    case 'contextTokens':
+      return formatTokens(v)
+    case 'outputSpeed':
+      return String(Math.round(v))
+    case 'latencySeconds':
+      return v.toFixed(1)
+    default:
+      return String(Math.round(v))
   }
 }
 

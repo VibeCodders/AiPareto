@@ -16,6 +16,7 @@ interface Props {
   costName: string
   costUnit: string
   formatScore: (v: number) => string
+  formatTick: (v: number) => string
   t: T
   onSelect: (modelId: string) => void
 }
@@ -76,7 +77,7 @@ function ScatterShape(props: ShapeProps) {
 // late-bound so the shape function can call onSelect without re-creating series
 const onSelectRef: { current?: (id: string) => void } = {}
 
-export default function ParetoChart({ points, frontier, frontierSlugs, logScale, colorFor, metricName, costName, costUnit, formatScore, t, onSelect }: Props) {
+export default function ParetoChart({ points, frontier, frontierSlugs, logScale, colorFor, metricName, costName, costUnit, formatScore, formatTick, t, onSelect }: Props) {
   onSelectRef.current = onSelect
 
   const data = useMemo(
@@ -116,7 +117,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
           <YAxis
             type="number"
             domain={yDomain}
-            tickFormatter={(v: number) => String(v)}
+            tickFormatter={(v: number) => formatTick(v)}
             stroke="var(--axis)"
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
             label={{ value: metricName, angle: -90, position: 'insideLeft', offset: 10, fill: 'var(--text-muted)', fontSize: 12 }}

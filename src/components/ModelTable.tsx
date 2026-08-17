@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Model, MetricKey } from '../types'
 import { formatMetric, formatTokens, formatUsd } from '../pareto'
+import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
 
 type SortKey = 'name' | 'family' | 'score' | 'inputPerM' | 'outputPerM' | 'cacheReadPerM' | 'blended' | 'contextTokens' | 'released'
@@ -23,7 +24,13 @@ function costOf(m: Model): number | null {
 
 export default function ModelTable({ models, metric, frontierIds, selectedId, t, onSelect }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('score')
-  const [desc, setDesc] = useState(true)
+  const [desc, setDesc] = useState(() => !isLowerBetter(metric))
+
+  // Reset to the metric-appropriate default direction when the metric changes.
+  useEffect(() => {
+    setSortKey('score')
+    setDesc(!isLowerBetter(metric))
+  }, [metric])
 
   const cols: Array<{ key: SortKey; label: string; num?: boolean }> = [
     { key: 'name', label: t.model },
