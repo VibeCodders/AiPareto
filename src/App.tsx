@@ -150,6 +150,11 @@ export default function App() {
     setQuery(s.query)
     setFamilies(new Set(s.families?.filter((f) => ALL_FAMILIES.includes(f)) ?? ALL_FAMILIES))
     setSelectedId(s.selectedId && MODELS.some((m) => m.id === s.selectedId) ? s.selectedId : null)
+    setReasoningOnly(s.reasoningOnly)
+    setOpenWeightsOnly(s.openWeightsOnly)
+    setMinPrice(s.minPrice)
+    setMaxPrice(s.maxPrice)
+    setCompareIds(s.compareIds.filter((id) => MODELS.some((m) => m.id === id)))
   }
 
   const handleSavePreset = () => {
