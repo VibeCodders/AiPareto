@@ -61,6 +61,10 @@ interface ShapeProps {
   cx?: number
   cy?: number
   fill?: string
+  // Recharts merges `isActive` into every point's props whenever the Scatter has an activeShape
+  // configured, regardless of which shape (active or not) ends up rendering — that's how we get
+  // real per-point hover state without any manual mouse-tracking of our own.
+  isActive?: boolean
   payload?: { model?: Model; isFrontier?: boolean }
 }
 
@@ -68,40 +72,53 @@ function ScatterShape(props: ShapeProps) {
   const cx = props.cx ?? 0
   const cy = props.cy ?? 0
   const isSub = props.payload?.model?.isSubscription
+  const isActive = props.isActive === true
   const select = () => props.payload?.model?.slug && onSelectRef.current?.(props.payload!.model!.slug)
 
   if (isSub) {
     // Render a prominent star/gem shape for subscriptions
+    const scale = isActive ? 1.3 : 1
     return (
       <polygon
-        points={`${cx},${cy - 8} ${cx + 2.5},${cy - 2.5} ${cx + 8},${cy - 2.5} ${cx + 3.5},${cy + 1.5} ${cx + 5.5},${cy + 7.5} ${cx},${cy + 4} ${cx - 5.5},${cy + 7.5} ${cx - 3.5},${cy + 1.5} ${cx - 8},${cy - 2.5} ${cx - 2.5},${cy - 2.5}`}
+        points={`${cx},${cy - 8 * scale} ${cx + 2.5 * scale},${cy - 2.5 * scale} ${cx + 8 * scale},${cy - 2.5 * scale} ${cx + 3.5 * scale},${cy + 1.5 * scale} ${cx + 5.5 * scale},${cy + 7.5 * scale} ${cx},${cy + 4 * scale} ${cx - 5.5 * scale},${cy + 7.5 * scale} ${cx - 3.5 * scale},${cy + 1.5 * scale} ${cx - 8 * scale},${cy - 2.5 * scale} ${cx - 2.5 * scale},${cy - 2.5 * scale}`}
         fill="#eab308"
         stroke="#ffffff"
-        strokeWidth={1.2}
+        strokeWidth={isActive ? 1.8 : 1.2}
         className="pt"
-        style={{ filter: 'drop-shadow(0 0 4px rgba(234,179,8,0.6))' }}
+        style={{ filter: isActive ? 'drop-shadow(0 0 7px rgba(234,179,8,0.9))' : 'drop-shadow(0 0 4px rgba(234,179,8,0.6))' }}
         onClick={select}
       />
     )
   }
 
   if (props.payload?.isFrontier) {
+    const r = isActive ? 9.5 : 7
     return (
       <path
-        d={`M ${cx - 7} ${cy} L ${cx} ${cy - 7} L ${cx + 7} ${cy} L ${cx} ${cy + 7} Z`}
+        d={`M ${cx - r} ${cy} L ${cx} ${cy - r} L ${cx + r} ${cy} L ${cx} ${cy + r} Z`}
         fill={props.fill}
-        stroke="var(--card)"
-        strokeWidth={1.2}
+        stroke={isActive ? '#ffffff' : 'var(--card)'}
+        strokeWidth={isActive ? 2 : 1.2}
         className="pt"
+        style={isActive ? { filter: `drop-shadow(0 0 6px ${props.fill})` } : undefined}
         onClick={select}
       />
     )
   }
   return (
-    <circle cx={cx} cy={cy} r={5} fill={props.fill} stroke="var(--card)" strokeWidth={1.2} className="pt" onClick={select} />
+    <circle
+      cx={cx}
+      cy={cy}
+      r={isActive ? 7.5 : 5}
+      fill={props.fill}
+      stroke={isActive ? '#ffffff' : 'var(--card)'}
+      strokeWidth={isActive ? 2 : 1.2}
+      className="pt"
+      style={isActive ? { filter: `drop-shadow(0 0 6px ${props.fill})` } : undefined}
+      onClick={select}
+    />
   )
 }
-
 
 // late-bound so the shape function can call onSelect without re-creating series
 const onSelectRef: { current?: (id: string) => void } = {}
@@ -130,7 +147,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
         <span className="legend-muted">— {t.frontierNote}</span>
       </div>
       <ResponsiveContainer width="100%" height={540}>
-        <ComposedChart data={frontierSorted} margin={{ top: 12, right: 18, bottom: 8, left: 4 }}>
+        <ComposedChart data={data} margin={{ top: 12, right: 18, bottom: 8, left: 4 }}>
           <CartesianGrid stroke="var(--grid)" strokeDasharray="3 3" />
           <XAxis
             dataKey="cost"
@@ -152,9 +169,17 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
             label={{ value: metricName, angle: -90, position: 'insideLeft', offset: 10, fill: 'var(--text-muted)', fontSize: 12 }}
           />
-          <Tooltip content={<TooltipContent t={t} costUnit={costUnit} formatScore={formatScore} />} cursor={{ strokeDasharray: '4 4', stroke: 'var(--axis)' }} />
-          <Line dataKey="score" type="stepAfter" stroke={FRONTIER_COLOR} strokeWidth={2} dot={false} activeDot={false} isAnimationActive={false} />
-          <Scatter name="models" data={data} isAnimationActive={false} shape={<ScatterShape />}>
+          <Tooltip
+            content={<TooltipContent t={t} costUnit={costUnit} formatScore={formatScore} />}
+            cursor={{ strokeDasharray: '4 4', stroke: 'var(--axis)' }}
+            isAnimationActive={false}
+          />
+          {/* Its own `data` so the frontier step-line only ever traces the frontier points,
+              even though the chart's shared data (above) is now the full point set. */}
+          <Line data={frontierSorted} dataKey="score" type="stepAfter" stroke={FRONTIER_COLOR} strokeWidth={2} dot={false} activeDot={false} isAnimationActive={false} />
+          {/* activeShape must be set (even to the same shape) for recharts to track real
+              per-point hover state at all — without it every point's `isActive` stays false. */}
+          <Scatter name="models" data={data} isAnimationActive={false} shape={<ScatterShape />} activeShape={<ScatterShape />}>
             {data.map((p) => (
               <Cell
                 key={p.key}
