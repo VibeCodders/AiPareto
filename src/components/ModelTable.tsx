@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Model, MetricKey } from '../types'
-import { formatTokens, formatUsd } from '../pareto'
+import { formatMetric, formatTokens, formatUsd } from '../pareto'
 import type { T } from '../i18n'
 
 type SortKey = 'name' | 'family' | 'score' | 'inputPerM' | 'outputPerM' | 'cacheReadPerM' | 'blended' | 'contextTokens' | 'released'
@@ -89,7 +89,7 @@ export default function ModelTable({ models, metric, frontierIds, selectedId, t,
                 {m.openWeights && <span className="tag tag-open">open</span>}
               </td>
               <td className="muted">{m.family}</td>
-              <td className="num">{m[metric]?.toFixed(1) ?? '—'}</td>
+              <td className="num">{formatMetric(metric, m[metric])}</td>
               <td className="num">{formatUsd(m.inputPerM)}</td>
               <td className="num">{formatUsd(m.outputPerM)}</td>
               <td className="num">{formatUsd(m.cacheReadPerM)}</td>
