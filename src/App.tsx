@@ -70,6 +70,7 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     document.documentElement.lang = lang
+    document.title = STRINGS[lang].title
   }, [theme, lang])
 
   const allFamilies = useMemo(() => [...new Set(MODELS.map((m) => m.family))].sort(), [])
@@ -186,6 +187,7 @@ export default function App() {
         <ParetoChart
           points={points}
           frontier={frontier}
+          frontierSlugs={frontierSlugs}
           logScale={logScale}
           colorFor={colorFor}
           metricName={t[METRICS.find((m) => m.key === metric)!.labelKey]}

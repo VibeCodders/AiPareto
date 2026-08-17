@@ -4,9 +4,12 @@ import type { Model, Point } from '../types'
 import { formatUsd } from '../pareto'
 import type { T } from '../i18n'
 
+export const FRONTIER_COLOR = '#f59e0b'
+
 interface Props {
   points: Point[]
   frontier: Point[]
+  frontierSlugs: Set<string>
   logScale: boolean
   colorFor: (family: string) => string
   metricName: string
@@ -14,8 +17,6 @@ interface Props {
   t: T
   onSelect: (modelId: string) => void
 }
-
-const FRONTIER_COLOR = '#f59e0b'
 
 interface TooltipPayload {
   payload?: { model?: Model; cost?: number; score?: number }
@@ -42,8 +43,47 @@ function TooltipContent({ active, payload, t }: { active?: boolean; payload?: To
   )
 }
 
-export default function ParetoChart({ points, frontier, logScale, colorFor, metricName, costName, t, onSelect }: Props) {
-  const sorted = useMemo(() => [...points].sort((a, b) => a.cost - b.cost), [points])
+interface ShapeProps {
+  cx?: number
+  cy?: number
+  fill?: string
+  payload?: { model?: Model; isFrontier?: boolean }
+}
+
+function ScatterShape(props: ShapeProps) {
+  const cx = props.cx ?? 0
+  const cy = props.cy ?? 0
+  const select = () => props.payload?.model?.id && onSelectRef.current?.(props.payload!.model!.id)
+  if (props.payload?.isFrontier) {
+    return (
+      <path
+        d={`M ${cx - 7} ${cy} L ${cx} ${cy - 7} L ${cx + 7} ${cy} L ${cx} ${cy + 7} Z`}
+        fill={props.fill}
+        stroke="var(--card)"
+        strokeWidth={1.2}
+        className="pt"
+        onClick={select}
+      />
+    )
+  }
+  return (
+    <circle cx={cx} cy={cy} r={5} fill={props.fill} stroke="var(--card)" strokeWidth={1.2} className="pt" onClick={select} />
+  )
+}
+
+// late-bound so the shape function can call onSelect without re-creating series
+const onSelectRef: { current?: (id: string) => void } = {}
+
+export default function ParetoChart({ points, frontier, frontierSlugs, logScale, colorFor, metricName, costName, t, onSelect }: Props) {
+  onSelectRef.current = onSelect
+
+  const data = useMemo(
+    () =>
+      [...points]
+        .sort((a, b) => a.cost - b.cost)
+        .map((p) => ({ ...p, key: `${p.model.id}:${p.model.slug}`, isFrontier: frontierSlugs.has(p.model.slug) })),
+    [points, frontierSlugs],
+  )
   const frontierSorted = useMemo(() => [...frontier].sort((a, b) => a.cost - b.cost), [frontier])
 
   return (
@@ -76,59 +116,15 @@ export default function ParetoChart({ points, frontier, logScale, colorFor, metr
             label={{ value: metricName, angle: -90, position: 'insideLeft', offset: 10, fill: 'var(--text-muted)', fontSize: 12 }}
           />
           <Tooltip content={<TooltipContent t={t} />} cursor={{ strokeDasharray: '4 4', stroke: 'var(--axis)' }} />
-          <Line
-            dataKey="score"
-            type="stepAfter"
-            stroke={FRONTIER_COLOR}
-            strokeWidth={2}
-            dot={false}
-            activeDot={false}
-            isAnimationActive={false}
-          />
-          <Scatter
-            name="models"
-            data={sorted}
-            isAnimationActive={false}
-            onClick={(e: unknown) => {
-              const ev = e as { payload?: { model?: { id: string } } }
-              if (ev?.payload?.model?.id) onSelect(ev.payload.model.id)
-            }}
-            shape={(props: { cx?: number; cy?: number; fill?: string; payload?: { model?: { id: string } } }) => (
-              <circle
-                cx={props.cx}
-                cy={props.cy}
-                r={5}
-                fill={props.fill}
-                stroke="var(--card)"
-                strokeWidth={1.2}
-                className="pt"
-                onClick={() => props.payload?.model?.id && onSelect(props.payload.model.id)}
+          <Line dataKey="score" type="stepAfter" stroke={FRONTIER_COLOR} strokeWidth={2} dot={false} activeDot={false} isAnimationActive={false} />
+          <Scatter name="models" data={data} isAnimationActive={false} shape={<ScatterShape />}>
+            {data.map((p) => (
+              <Cell
+                key={p.key}
+                fill={p.isFrontier ? FRONTIER_COLOR : colorFor(p.model.family)}
               />
-            )}
-          >
-            {sorted.map((p) => (
-              <Cell key={p.model.id} fill={colorFor(p.model.family)} />
             ))}
           </Scatter>
-          <Scatter
-            name="frontier"
-            data={frontierSorted}
-            isAnimationActive={false}
-            onClick={(e: unknown) => {
-              const ev = e as { payload?: { model?: { id: string } } }
-              if (ev?.payload?.model?.id) onSelect(ev.payload.model.id)
-            }}
-            shape={(props: { cx?: number; cy?: number; payload?: { model?: { id: string } } }) => (
-              <path
-                d={`M ${(props.cx ?? 0) - 7} ${props.cy} L ${props.cx} ${(props.cy ?? 0) - 7} L ${(props.cx ?? 0) + 7} ${props.cy} L ${props.cx} ${(props.cy ?? 0) + 7} Z`}
-                fill={FRONTIER_COLOR}
-                stroke="var(--card)"
-                strokeWidth={1.2}
-                className="pt"
-                onClick={() => props.payload?.model?.id && onSelect(props.payload.model.id)}
-              />
-            )}
-          />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
