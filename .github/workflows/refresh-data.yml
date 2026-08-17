@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  actions: write
 
 concurrency:
   group: refresh-data
@@ -18,17 +19,10 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      # The VibeCodders org disables write access for the default GITHUB_TOKEN (Settings ->
-      # Actions -> General -> Workflow permissions is locked to read-only org-wide), so pushing
-      # requires a personal access token instead. Add one as a repo secret named DATA_REFRESH_PAT
-      # (Settings -> Secrets and variables -> Actions -> New repository secret), scoped to just
-      # this repo's contents (fine-grained PAT) or with the classic "repo" scope. Until that
-      # secret exists, this job still fetches/typechecks/builds but the push step below fails.
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          token: ${{ secrets.DATA_REFRESH_PAT }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -52,9 +46,6 @@ jobs:
         if: steps.fetch.outputs.changed == 'true'
         run: npm run build
 
-      # A PAT-authenticated push is a normal user push as far as GitHub is concerned, so it
-      # triggers deploy.yml's `on: push` by itself — no need to invoke it explicitly (which is
-      # what you'd otherwise need `gh workflow run` + an actions:write token for).
       - name: Commit and push
         if: steps.fetch.outputs.changed == 'true'
         env:
@@ -65,3 +56,13 @@ jobs:
           git add src/data/models.json src/data/meta.json
           git commit -m "chore: daily model data refresh" -m "$SUMMARY"
           git push
+
+      # Pushes made with the default GITHUB_TOKEN don't trigger other workflows'
+      # `on: push` (GitHub's loop-prevention, independent of the token's permission level),
+      # so deploy.yml wouldn't fire on its own — kick it off explicitly instead of
+      # duplicating its build/deploy steps here.
+      - name: Trigger Pages deployment
+        if: steps.fetch.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref ${{ github.ref_name }}
