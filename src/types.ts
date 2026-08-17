@@ -21,6 +21,7 @@ export interface Model {
   outputPerM: number | null
   cacheReadPerM: number | null
   cacheWritePerM: number | null
+  valueScore: number | null
 }
 
 export type MetricKey =

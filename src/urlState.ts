@@ -25,7 +25,7 @@ export interface UrlState {
   compareIds: string[]
 }
 
-const METRICS: MetricKey[] = ['intelligenceIndex', 'codingIndex', 'agenticIndex', 'tau2', 'hle', 'omniscience', 'outputSpeed', 'latencySeconds', 'contextTokens']
+const METRICS: MetricKey[] = ['intelligenceIndex', 'codingIndex', 'agenticIndex', 'tau2', 'hle', 'omniscience', 'outputSpeed', 'latencySeconds', 'contextTokens', 'valueScore']
 const COST_VIEWS: CostView[] = ['input', 'blended', 'cache', 'output', 'task']
 
 /** Metrics where a lower value is better (e.g. latency). */

@@ -1,5 +1,38 @@
 import type { MetricKey, Point } from './types'
 
+import type { CostView, MetricKey, Model, Point } from './types'
+
+export function costOf(m: Model, view: CostView, taskInput = 3000, taskOutput = 1000): number | null {
+  switch (view) {
+    case 'input':
+      return m.inputPerM
+    case 'output':
+      return m.outputPerM
+    case 'cache':
+      return m.cacheReadPerM ?? m.inputPerM
+    case 'blended': {
+      const i = m.inputPerM
+      const o = m.outputPerM
+      if (i == null || o == null) return null
+      return 0.8 * i + 0.2 * o
+    }
+    case 'task': {
+      const i = m.inputPerM
+      const o = m.outputPerM
+      if (i == null || o == null) return null
+      return (taskInput / 1e6) * i + (taskOutput / 1e6) * o
+    }
+  }
+}
+
+export function valueScoreOf(m: Model, costView: CostView, taskInput = 3000, taskOutput = 1000): number | null {
+  const cost = costOf(m, costView, taskInput, taskOutput)
+  if (cost == null || cost <= 0) return null
+  const score = m.intelligenceIndex
+  if (score == null) return null
+  return score / cost
+}
+
 /**
  * Pareto-optimal points: a point is on the frontier if no other point has
  * cost <= its cost AND a better score (>= for higher-is-better metrics,
@@ -16,7 +49,7 @@ export function computeFrontier(points: Point[], lowerIsBetter = false): Point[]
     seen.add(key)
     unique.push(p)
   }
-  unique.sort((a, b) => a.cost - b.cost || b.score - a.score)
+  unique.sort((a, b) => a.cost - b.cost || (lowerIsBetter ? a.score - b.score : b.score - a.score))
   const frontier: Point[] = []
   let best = lowerIsBetter ? Infinity : -Infinity
   for (const p of unique) {

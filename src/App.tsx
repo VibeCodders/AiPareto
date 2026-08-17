@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { computeFrontier, formatAxisTick, formatMetric, formatTokens, formatUsd } from './pareto'
+import { computeFrontier, formatAxisTick, formatMetric, formatTokens, formatUsd, costOf, valueScoreOf } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
@@ -30,7 +30,15 @@ const METRIC_DEFS = [
 ] as const
 
 const METRIC_MAX = Object.fromEntries(
-  METRIC_DEFS.map(({ key }) => [key, Math.max(...MODELS.map((m) => (m[key] ?? 0)))]),
+  METRIC_DEFS.map(({ key }) => {
+    if (key === 'valueScore') {
+      const costs = MODELS.flatMap((m) => [m.inputPerM, m.outputPerM, m.cacheReadPerM].filter((c): c is number => c != null && c > 0))
+      const minCost = costs.length ? Math.min(...costs) : 1
+      const maxInt = Math.max(...MODELS.map((m) => m.intelligenceIndex ?? 0))
+      return [key, Math.ceil(maxInt / minCost)]
+    }
+    return [key, Math.max(...MODELS.map((m) => (m[key] ?? 0)))]
+  }),
 ) as Record<MetricKey, number>
 const INITIAL = parseUrl(window.location.search, ALL_FAMILIES, METRIC_MAX)
 
