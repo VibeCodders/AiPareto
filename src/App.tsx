@@ -116,6 +116,7 @@ export default function App() {
   const [valueScoreBase, setValueScoreBase] = useState<ValueScoreBase>(INITIAL.valueScoreBase)
   const [efficiencyWeights, setEfficiencyWeights] = useState<EfficiencyWeights>(INITIAL.efficiencyWeights)
   const [showTrend, setShowTrend] = useState(INITIAL.showTrend)
+  const [paretoOnly, setParetoOnly] = useState(INITIAL.paretoOnly)
 
   const t = STRINGS[lang]
 
@@ -198,13 +199,14 @@ export default function App() {
     valueScoreBase,
     efficiencyWeights,
     showTrend,
+    paretoOnly,
   }
 
   useEffect(() => {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -262,6 +264,7 @@ export default function App() {
     setValueScoreBase(s.valueScoreBase)
     setEfficiencyWeights(s.efficiencyWeights)
     setShowTrend(s.showTrend)
+    setParetoOnly(s.paretoOnly)
   }
 
   const handleSavePreset = () => {
@@ -340,13 +343,18 @@ export default function App() {
 
   const selected = useMemo(() => (selectedId ? ALL_ITEMS.find((m) => m.slug === selectedId) ?? null : null), [selectedId, ALL_ITEMS])
 
-  const visibleModels = useMemo(() => points.map((p) => p.model), [points])
+  // Frontier math above always runs against the full filtered set, regardless of paretoOnly —
+  // this only narrows what's actually displayed in the chart/table/CSV afterwards.
+  const displayedPoints = useMemo(() => (paretoOnly ? points.filter((p) => frontierSlugs.has(p.model.slug)) : points), [points, paretoOnly, frontierSlugs])
+
+  const visibleModels = useMemo(() => displayedPoints.map((p) => p.model), [displayedPoints])
 
   const buildFilterSummary = (): string => {
     const parts: string[] = [`metric=${metric}`, `cost=${costView}`]
     if (families.size !== ALL_FAMILIES.length) parts.push(`families=${[...families].join(',')}`)
     if (showSubscriptions) parts.push(`subscriptions=on (usage=${usageFactor * 100}%)`)
     if (subscriptionOnly) parts.push('subscriptionOnly')
+    if (paretoOnly) parts.push('paretoOnly')
     if (reasoningOnly) parts.push('reasoningOnly')
     if (openWeightsOnly) parts.push('openWeightsOnly')
     if (minPrice > 0) parts.push(`minPrice=${minPrice}`)
@@ -464,6 +472,10 @@ export default function App() {
             <input type="checkbox" checked={openWeightsOnly} onChange={(e) => setOpenWeightsOnly(e.target.checked)} />
             {t.openWeightsOnly}
           </label>
+          <label className="check">
+            <input type="checkbox" checked={paretoOnly} onChange={(e) => setParetoOnly(e.target.checked)} />
+            {t.paretoOnly}
+          </label>
           <label className="range">
             {isLowerBetter(metric) ? t.maxLatency : t.minScore}: <b>{minScore}</b>
             <input type="range" min={0} max={Math.max(METRIC_MAX[metric], 1)} step={1} value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} />
@@ -570,7 +582,7 @@ export default function App() {
 
       <section className="chart-section">
         <ParetoChart
-          points={points}
+          points={displayedPoints}
           frontier={frontier}
           frontierSlugs={frontierSlugs}
           logScale={logScale}
@@ -584,7 +596,7 @@ export default function App() {
           onSelect={(id) => setSelectedId(id)}
         />
         <div className="count-bar muted">
-          {points.length} {t.modelsShown} {t.ofTotal} {ALL_ITEMS.length} · {t.clickHint}
+          {displayedPoints.length} {t.modelsShown} {t.ofTotal} {ALL_ITEMS.length} · {t.clickHint}
           <button className="btn" onClick={() => setShowTrend((v) => !v)} style={{ marginLeft: 12 }}>
             {showTrend ? `▲ ${t.hideTrend}` : `▼ ${t.showTrend}`}
           </button>

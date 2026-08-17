@@ -33,6 +33,8 @@ export interface UrlState {
   /** Relative weights for the value/speed/context components of the Efficiency Score metric. */
   efficiencyWeights: EfficiencyWeights
   showTrend: boolean
+  /** Restrict the chart/table/CSV to only the current Pareto frontier's points. */
+  paretoOnly: boolean
 }
 
 
@@ -124,6 +126,7 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
       context: clampFloat(p.get('ewc'), 0, 3, 1),
     },
     showTrend: p.get('trend') === '1',
+    paretoOnly: p.get('paretoonly') === '1',
   }
 }
 
@@ -162,6 +165,7 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (s.efficiencyWeights.speed !== 1) p.set('ews', String(s.efficiencyWeights.speed))
   if (s.efficiencyWeights.context !== 1) p.set('ewc', String(s.efficiencyWeights.context))
   if (s.showTrend) p.set('trend', '1')
+  if (s.paretoOnly) p.set('paretoonly', '1')
   return p.toString()
 }
 

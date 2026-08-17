@@ -124,6 +124,7 @@ export interface Strings {
   trendHint: string
   teamTier: string
   individualTier: string
+  paretoOnly: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -251,6 +252,7 @@ export const STRINGS: Record<Lang, Strings> = {
     trendHint: 'Miglior Value Score cumulativo raggiunto da un modello rilasciato entro ciascuna data (frontiera nel tempo)',
     teamTier: 'Team/Business',
     individualTier: 'Individuale',
+    paretoOnly: 'Solo Pareto',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -376,6 +378,7 @@ export const STRINGS: Record<Lang, Strings> = {
     trendHint: 'Cumulative best Value Score reached by any model released by each date (frontier over time)',
     teamTier: 'Team/Business',
     individualTier: 'Individual',
+    paretoOnly: 'Pareto only',
   },
 }
 
