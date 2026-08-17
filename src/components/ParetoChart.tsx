@@ -144,6 +144,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
             label={{ value: costName, position: 'insideBottom', offset: -4, fill: 'var(--text-muted)', fontSize: 12 }}
           />
           <YAxis
+            dataKey="score"
             type="number"
             domain={yDomain}
             tickFormatter={(v: number) => formatTick(v)}
