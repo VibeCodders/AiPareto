@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { computeFrontier, formatTokens, formatUsd } from './pareto'
+import { computeFrontier, formatMetric, formatTokens, formatUsd } from './pareto'
+import { defaultMinScore, isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
 import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
@@ -14,8 +15,25 @@ const MODELS = modelsData as Model[]
 const META = metaData as { fetchedAt: string }
 
 const ALL_FAMILIES = [...new Set(MODELS.map((m) => m.family))].sort()
-const MAX_SCORE = Math.max(...MODELS.map((m) => m.intelligenceIndex ?? 0))
-const INITIAL = parseUrl(window.location.search, ALL_FAMILIES, MAX_SCORE)
+
+const METRIC_DEFS = [
+  { key: 'intelligenceIndex', labelKey: 'intel', higherIsBetter: true },
+  { key: 'codingIndex', labelKey: 'coding', higherIsBetter: true },
+  { key: 'agenticIndex', labelKey: 'agentic', higherIsBetter: true },
+  { key: 'tau2', labelKey: 'tau2', higherIsBetter: true },
+  { key: 'hle', labelKey: 'hle', higherIsBetter: true },
+  { key: 'omniscience', labelKey: 'omniscience', higherIsBetter: true },
+  { key: 'outputSpeed', labelKey: 'outputSpeed', higherIsBetter: true },
+  { key: 'latencySeconds', labelKey: 'latency', higherIsBetter: false },
+  { key: 'contextTokens', labelKey: 'context', higherIsBetter: true },
+] as const
+
+type MetricDef = (typeof METRIC_DEFS)[number]
+
+const METRIC_MAX = Object.fromEntries(
+  METRIC_DEFS.map(({ key }) => [key, Math.max(...MODELS.map((m) => (m[key] ?? 0)))]),
+) as Record<MetricKey, number>
+const INITIAL = parseUrl(window.location.search, ALL_FAMILIES, METRIC_MAX)
 
 const PALETTE = [
   '#f472b6', '#a78bfa', '#34d399', '#fbbf24', '#60a5fa', '#fb7185',
@@ -29,14 +47,7 @@ function colorFor(family: string): string {
   return PALETTE[h % PALETTE.length]
 }
 
-const METRICS: Array<{ key: MetricKey; labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' }> = [
-  { key: 'intelligenceIndex', labelKey: 'intel' },
-  { key: 'codingIndex', labelKey: 'coding' },
-  { key: 'agenticIndex', labelKey: 'agentic' },
-  { key: 'tau2', labelKey: 'tau2' },
-  { key: 'hle', labelKey: 'hle' },
-  { key: 'omniscience', labelKey: 'omniscience' },
-]
+const METRICS: Array<{ key: MetricKey; labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' | 'outputSpeed' | 'latency' | 'context'; higherIsBetter: boolean }> = METRIC_DEFS.map((d) => ({ key: d.key, labelKey: d.labelKey as never, higherIsBetter: d.higherIsBetter }))
 
 const COST_VIEWS: Array<{ key: CostView; labelKey: 'costViewInput' | 'costViewBlended' | 'costViewCache' | 'costViewOutput' | 'costViewTask' }> = [
   { key: 'input', labelKey: 'costViewInput' },
@@ -96,7 +107,7 @@ export default function App() {
 
   useEffect(() => {
     const url = new URL(window.location.href)
-    url.search = toSearch(currentState, ALL_FAMILIES, presetId)
+    url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
   }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId])
 
@@ -107,6 +118,13 @@ export default function App() {
       else next.add(f)
       return next
     })
+  }
+
+  const selectMetric = (key: MetricKey) => {
+    // Keep the slider meaningful when switching between higher/lower-is-better metrics.
+    if (isLowerBetter(key)) setMinScore((prev) => (prev === 0 ? METRIC_MAX[key] : Math.min(prev, METRIC_MAX[key])))
+    else setMinScore((prev) => (prev >= METRIC_MAX[key] ? 0 : Math.min(prev, METRIC_MAX[key])))
+    setMetric(key)
   }
 
   const applyState = (s: UrlState) => {
@@ -183,10 +201,13 @@ export default function App() {
 
   const points: Point[] = useMemo(() => {
     const q = query.trim().toLowerCase()
+    const lower = isLowerBetter(metric)
     return MODELS.filter((m) => {
       if (!families.has(m.family)) return false
       const score = m[metric]
-      if (score == null || score < minScore) return false
+      if (score == null) return false
+      // For lower-is-better metrics the slider caps the maximum shown value.
+      if (lower ? score > minScore : score < minScore) return false
       if (maxEffortOnly && m.effort != null && m.effort !== 'max') return false
       if (!includeEfforts && m.effort != null) return false
       if (q && !`${m.aaName} ${m.name} ${m.id}`.toLowerCase().includes(q)) return false
@@ -198,7 +219,7 @@ export default function App() {
       .sort((a, b) => a.cost - b.cost)
   }, [families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput])
 
-  const frontier = useMemo(() => computeFrontier(points), [points])
+  const frontier = useMemo(() => computeFrontier(points, isLowerBetter(metric)), [points, metric])
   const frontierSlugs = useMemo(() => new Set(frontier.map((p) => p.model.slug)), [frontier])
 
   const selected = useMemo(() => (selectedId ? MODELS.find((m) => m.id === selectedId) ?? null : null), [selectedId])
@@ -230,7 +251,7 @@ export default function App() {
             <span className="control-label">{t.metric}</span>
             <div className="badges" role="group">
               {METRICS.map((m) => (
-                <button key={m.key} className={`badge ${metric === m.key ? 'on' : ''}`} onClick={() => setMetric(m.key)}>
+                <button key={m.key} className={`badge ${metric === m.key ? 'on' : ''}`} onClick={() => selectMetric(m.key)}>
                   {t[m.labelKey]}
                 </button>
               ))}
@@ -274,8 +295,8 @@ export default function App() {
             {t.maxEffortOnly}
           </label>
           <label className="range">
-            {t.minScore}: <b>{minScore}</b>
-            <input type="range" min={0} max={MAX_SCORE} step={1} value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} />
+            {isLowerBetter(metric) ? t.maxLatency : t.minScore}: <b>{minScore}</b>
+            <input type="range" min={0} max={Math.max(METRIC_MAX[metric], 1)} step={1} value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} />
           </label>
           <input className="search" type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
@@ -345,6 +366,7 @@ export default function App() {
           metricName={t[METRICS.find((m) => m.key === metric)!.labelKey]}
           costName={costView === 'task' ? `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})` : t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
           costUnit={costView === 'task' ? '/task' : '/1M'}
+          formatScore={(v: number) => formatMetric(metric, v)}
           t={t}
           onSelect={(id) => setSelectedId(id)}
         />
@@ -400,11 +422,13 @@ function ModelCard({ model, metric, frontier, t }: { model: Model; metric: Metri
       </div>
       <div className="mc-grid">
         <div><span className="muted">{t.family}</span><b>{model.family}</b></div>
-        <div><span className="muted">{t[METRICS.find((m) => m.key === metric)!.labelKey]}</span><b>{score?.toFixed(1) ?? '—'}</b></div>
+        <div><span className="muted">{t[METRICS.find((m) => m.key === metric)!.labelKey]}</span><b>{formatMetric(metric, score)}</b></div>
         <div><span className="muted">{t.input}</span><b>{formatUsd(model.inputPerM)}/1M</b></div>
         <div><span className="muted">{t.output}</span><b>{formatUsd(model.outputPerM)}/1M</b></div>
         <div><span className="muted">{t.cache}</span><b>{formatUsd(model.cacheReadPerM)}/1M</b></div>
         <div><span className="muted">{t.blended}</span><b>{formatUsd(blended)}/1M</b></div>
+        <div><span className="muted">{t.outputSpeed}</span><b>{formatMetric('outputSpeed', model.outputSpeed)}</b></div>
+        <div><span className="muted">{t.latency}</span><b>{formatMetric('latencySeconds', model.latencySeconds)}</b></div>
         <div><span className="muted">{t.context}</span><b>{formatTokens(model.contextTokens)}</b></div>
         <div><span className="muted">{t.release}</span><b>{model.released ?? '—'}</b></div>
       </div>

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { CartesianGrid, Cell, ComposedChart, Line, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis } from 'recharts'
 import type { Model, Point } from '../types'
-import { formatUsd } from '../pareto'
+import { formatUsd, niceCeil } from '../pareto'
 import type { T } from '../i18n'
 
 export const FRONTIER_COLOR = '#f59e0b'
@@ -15,6 +15,7 @@ interface Props {
   metricName: string
   costName: string
   costUnit: string
+  formatScore: (v: number) => string
   t: T
   onSelect: (modelId: string) => void
 }
@@ -23,7 +24,7 @@ interface TooltipPayload {
   payload?: { model?: Model; cost?: number; score?: number }
 }
 
-function TooltipContent({ active, payload, t, costUnit }: { active?: boolean; payload?: TooltipPayload[]; t: T; costUnit: string }) {
+function TooltipContent({ active, payload, t, costUnit, formatScore }: { active?: boolean; payload?: TooltipPayload[]; t: T; costUnit: string; formatScore: (v: number) => string }) {
   if (!active || !payload?.length) return null
   const p = payload[0]?.payload
   const m = p?.model
@@ -38,7 +39,7 @@ function TooltipContent({ active, payload, t, costUnit }: { active?: boolean; pa
       </div>
       <div className="tooltip-row">
         <span>{t.score}:</span>
-        <b>{p?.score != null ? p.score.toFixed(1) : '—'}</b>
+        <b>{p?.score != null ? formatScore(p.score) : '—'}</b>
       </div>
     </div>
   )
@@ -75,7 +76,7 @@ function ScatterShape(props: ShapeProps) {
 // late-bound so the shape function can call onSelect without re-creating series
 const onSelectRef: { current?: (id: string) => void } = {}
 
-export default function ParetoChart({ points, frontier, frontierSlugs, logScale, colorFor, metricName, costName, costUnit, t, onSelect }: Props) {
+export default function ParetoChart({ points, frontier, frontierSlugs, logScale, colorFor, metricName, costName, costUnit, formatScore, t, onSelect }: Props) {
   onSelectRef.current = onSelect
 
   const data = useMemo(
@@ -88,7 +89,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
   const frontierSorted = useMemo(() => [...frontier].sort((a, b) => a.cost - b.cost), [frontier])
   const yDomain: [number, number] = useMemo(() => {
     const max = points.reduce((m, p) => Math.max(m, p.score), 0)
-    return [0, max <= 1 ? 1 : Math.ceil((max + 2) / 5) * 5]
+    return [0, niceCeil(max)]
   }, [points])
 
   return (
@@ -120,7 +121,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
             label={{ value: metricName, angle: -90, position: 'insideLeft', offset: 10, fill: 'var(--text-muted)', fontSize: 12 }}
           />
-          <Tooltip content={<TooltipContent t={t} costUnit={costUnit} />} cursor={{ strokeDasharray: '4 4', stroke: 'var(--axis)' }} />
+          <Tooltip content={<TooltipContent t={t} costUnit={costUnit} formatScore={formatScore} />} cursor={{ strokeDasharray: '4 4', stroke: 'var(--axis)' }} />
           <Line dataKey="score" type="stepAfter" stroke={FRONTIER_COLOR} strokeWidth={2} dot={false} activeDot={false} isAnimationActive={false} />
           <Scatter name="models" data={data} isAnimationActive={false} shape={<ScatterShape />}>
             {data.map((p) => (
