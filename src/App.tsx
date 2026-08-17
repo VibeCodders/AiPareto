@@ -3,7 +3,7 @@ import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import type { CostView, MetricKey, Model, Point } from './types'
 import { computeFrontier, formatMetric, formatTokens, formatUsd } from './pareto'
-import { defaultMinScore, isLowerBetter } from './urlState'
+import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
 import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
@@ -27,8 +27,6 @@ const METRIC_DEFS = [
   { key: 'latencySeconds', labelKey: 'latency', higherIsBetter: false },
   { key: 'contextTokens', labelKey: 'context', higherIsBetter: true },
 ] as const
-
-type MetricDef = (typeof METRIC_DEFS)[number]
 
 const METRIC_MAX = Object.fromEntries(
   METRIC_DEFS.map(({ key }) => [key, Math.max(...MODELS.map((m) => (m[key] ?? 0)))]),
