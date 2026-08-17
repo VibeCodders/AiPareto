@@ -12,6 +12,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { extractFlightChunks, extractModelObjects, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
+import { AA_TO_OR } from './model-map.ts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
 const TMP = path.join(ROOT, '.tmp')
@@ -99,14 +100,16 @@ async function crawlDetails(slugs: string[], concurrency = 4, delayMs = 400): Pr
   return results
 }
 
-function normalize(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-}
-
-function slugifyModelId(orId: string): string {
-  // "anthropic/claude-sonnet-4-5" -> "claude-sonnet-4-5"
-  const short = orId.includes('/') ? orId.split('/').slice(1).join('/') : orId
-  return normalize(short)
+function parseEffort(name: string): string | null {
+  const n = name.toLowerCase()
+  if (n.includes('non-reasoning')) return 'non-reasoning'
+  if (n.includes('xhigh')) return 'xhigh'
+  if (n.includes('max effort') || n.includes('(max)')) return 'max'
+  if (n.includes('high')) return 'high'
+  if (n.includes('medium')) return 'medium'
+  if (n.includes('low')) return 'low'
+  if (n.includes('minimal')) return 'minimal'
+  return null
 }
 
 async function main() {
@@ -143,9 +146,8 @@ async function main() {
   for (const o of scored) if (o.release?.slug) scoreBySlug.set(o.release.slug, o)
   for (const [slug, d] of details) scoreBySlug.set(slug, d)
 
-  // Map AA slugs to OpenRouter model ids
-  const orByNorm = new Map<string, ORModel>()
-  for (const m of orModels) orByNorm.set(slugifyModelId(m.id), m)
+  // Map AA slugs to OpenRouter model ids via the curated map
+  const orById = new Map(orModels.map((m) => [m.id, m]))
 
   const rows: Array<Record<string, unknown>> = []
   const unmatched: string[] = []
@@ -153,18 +155,20 @@ async function main() {
     const data = scoreBySlug.get(m.slug)
     const score = data?.intelligenceIndex
     if (score == null) continue
-    const or = orByNorm.get(normalize(m.slug))
+    const orId = AA_TO_OR[m.slug]
+    if (!orId) continue
+    const or = orById.get(orId)
     if (!or) {
-      unmatched.push(`${m.slug} (${m.name})`)
+      unmatched.push(`${m.slug} -> ${orId}`)
       continue
     }
-    const pricing = or.pricing
     rows.push({
       id: or.id,
       name: or.name,
       family: m.creator?.name ?? null,
       slug: m.slug,
       aaName: m.name,
+      effort: parseEffort(m.name),
       released: m.releaseDate,
       isReasoning: m.isReasoning,
       intelligenceIndex: round1(score),

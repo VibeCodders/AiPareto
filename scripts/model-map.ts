@@ -59,12 +59,6 @@ export const AA_TO_OR: Record<string, string> = {
   'gemma-4-31b-non-reasoning': 'google/gemma-4-31b-it',
   'gemma-4-26b-a4b': 'google/gemma-4-26b-a4b-it',
   'gemma-4-26b-a4b-non-reasoning': 'google/gemma-4-26b-a4b-it',
-  'gemma-4-12b': 'google/gemma-4-12b-it',
-  'gemma-4-12b-non-reasoning': 'google/gemma-4-12b-it',
-  'gemma-4-e4b': 'google/gemma-4-e4b-it',
-  'gemma-4-e4b-non-reasoning': 'google/gemma-4-e4b-it',
-  'gemma-4-e2b': 'google/gemma-4-e2b-it',
-  'gemma-4-e2b-non-reasoning': 'google/gemma-4-e2b-it',
 
   // DeepSeek
   'deepseek-v4-pro-0424': 'deepseek/deepseek-v4-pro',
