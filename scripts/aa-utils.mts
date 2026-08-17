@@ -49,22 +49,70 @@ export function extractFlightChunks(html: string): string[] {
   return chunks.map((c) => JSON.parse(`"${c}"`))
 }
 
+/**
+ * Find the index of the opening brace of the JSON object containing pos,
+ * walking back. Skips string contents (distinguishing opening vs closing
+ * quotes by the following character) and tracks both { } and [ ] nesting.
+ */
+export function findObjectStart(raw: string, pos: number): number {
+  let inStr = false
+  let depth = 0
+  for (let i = pos; i >= 0; i--) {
+    const ch = raw[i]
+    if (inStr) {
+      if (ch === '\\') i-- // skip escaped char (walking back)
+      else if (ch === '"') inStr = false
+    } else if (ch === '"') {
+      // A quote is an OPENING quote (string extends forward) unless the next
+      // non-space char is a JSON structure character.
+      let j = i + 1
+      while (raw[j] === ' ' || raw[j] === '\t') j++
+      const next = raw[j]
+      // Closing quote (string extends backward) iff followed by a structure char.
+      inStr = next === ':' || next === ',' || next === '}' || next === ']' || next === undefined
+    } else if (ch === '}' || ch === ']') {
+      depth++
+    } else if (ch === '{' || ch === '[') {
+      if (depth === 0) return i
+      depth--
+    }
+  }
+  return -1
+}
+
+/**
+ * Find the index just past the matching close bracket of the JSON value
+ * starting at start. Skips string contents; tracks both { } and [ ] nesting.
+ */
+export function findObjectEnd(raw: string, start: number): number {
+  let inStr = false
+  let depth = 0
+  for (let i = start; i < raw.length; i++) {
+    const ch = raw[i]
+    if (inStr) {
+      if (ch === '\\') i++ // skip escaped char
+      else if (ch === '"') inStr = false
+    } else if (ch === '"') {
+      inStr = true
+    } else if (ch === '{' || ch === '[') {
+      depth++
+    } else if (ch === '}' || ch === ']') {
+      depth--
+      if (depth === 0) return i + 1
+    }
+  }
+  return -1
+}
+
 /** Find the brace-matched JSON value for a key like "models":[ ... ] inside raw flight text. */
 export function extractJsonValue(raw: string, key: string, hintPos: number): string {
   const keyStr = `"${key}":`
   const s = raw.indexOf(keyStr, hintPos)
   if (s === -1) throw new Error(`key "${key}" not found in flight payload`)
   const start = s + keyStr.length
-  let depth = 0
-  for (let i = start; i < raw.length; i++) {
-    const ch = raw[i]
-    if (ch === '{' || ch === '[') depth++
-    else if (ch === '}' || ch === ']') {
-      depth--
-      if (depth === 0) return raw.slice(start, i + 1).replace(/[\r\n]/g, '')
-    }
-  }
-  throw new Error(`unterminated value for key "${key}"`)
+  const end = findObjectEnd(raw, start)
+  if (end === -1) throw new Error(`unterminated value for key "${key}"`)
+  return raw.slice(start, end).replace(/[\r\n]/g, '')
 }
 
 /** Parse the full model registry array from the /models page flight payload. */
@@ -81,37 +129,12 @@ export function extractModelObjects(raw: string): AAModelData[] {
   while (true) {
     const m = raw.indexOf(marker, from)
     if (m === -1) break
-    let depth = 0
-    let start = -1
-    const backLimit = Math.max(0, m - 6000)
-    for (let i = m; i >= backLimit; i--) {
-      const ch = raw[i]
-      if (ch === '}') depth++
-      else if (ch === '{') {
-        depth--
-        if (depth === 0) {
-          start = i
-          break
-        }
-      }
-    }
+    const start = findObjectStart(raw, m)
     if (start === -1) {
       from = m + marker.length
       continue
     }
-    depth = 0
-    let end = -1
-    for (let i = start; i < raw.length; i++) {
-      const ch = raw[i]
-      if (ch === '{') depth++
-      else if (ch === '}') {
-        depth--
-        if (depth === 0) {
-          end = i + 1
-          break
-        }
-      }
-    }
+    const end = findObjectEnd(raw, start)
     if (end === -1) break
     const slice = raw.slice(start, end)
     try {
@@ -119,7 +142,7 @@ export function extractModelObjects(raw: string): AAModelData[] {
     } catch {
       /* skip malformed */
     }
-    from = end
+    from = Math.max(end, m + marker.length)
   }
   return out
 }
