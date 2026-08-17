@@ -32,13 +32,25 @@ const METRIC_DEFS = [
   { key: 'contextValue', labelKey: 'contextValue', higherIsBetter: true },
 ] as const
 
-const METRIC_MAX = Object.fromEntries(
-  METRIC_DEFS.map(({ key }) => {
-    const vals = MODELS.map((m) => computeMetric(m, key, 'blended')).filter((v): v is number => v != null)
-    return [key, vals.length ? Math.ceil(Math.max(...vals)) : 1]
-  }),
-) as Record<MetricKey, number>
-const INITIAL = parseUrl(window.location.search, ALL_FAMILIES, METRIC_MAX)
+/**
+ * Per-metric upper bound for the range slider. Most metrics are plain model
+ * fields and don't depend on cost view, but valueScore (score/cost) does —
+ * e.g. cost-per-task is ~1000x smaller than cost-per-1M-tokens, so its
+ * value-score max is ~1000x larger. Must be recomputed whenever costView or
+ * the task token counts change, or the slider range goes stale.
+ */
+function computeMetricMax(costView: CostView, taskInput: number, taskOutput: number): Record<MetricKey, number> {
+  return Object.fromEntries(
+    METRIC_DEFS.map(({ key }) => {
+      const vals = MODELS.map((m) => computeMetric(m, key, costView, taskInput, taskOutput)).filter((v): v is number => v != null)
+      return [key, vals.length ? Math.ceil(Math.max(...vals)) : 1]
+    }),
+  ) as Record<MetricKey, number>
+}
+
+// Only used to clamp minScore while parsing the initial URL, before costView is known from state.
+const STATIC_METRIC_MAX = computeMetricMax('blended', 3000, 1000)
+const INITIAL = parseUrl(window.location.search, ALL_FAMILIES, STATIC_METRIC_MAX)
 
 const PALETTE = [
   '#f472b6', '#a78bfa', '#34d399', '#fbbf24', '#60a5fa', '#fb7185',
@@ -97,6 +109,15 @@ export default function App() {
 
   const t = STRINGS[lang]
 
+  // Reactive to costView/taskInput/taskOutput since valueScore's scale depends on the chosen cost basis.
+  const METRIC_MAX = useMemo(() => computeMetricMax(costView, taskInput, taskOutput), [costView, taskInput, taskOutput])
+
+  // Keep the slider's value in range if the scale shrinks (e.g. task token counts change
+  // while metric is valueScore), so the range input never holds a now-impossible value.
+  useEffect(() => {
+    setMinScore((prev) => Math.min(prev, METRIC_MAX[metric]))
+  }, [METRIC_MAX, metric])
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     document.documentElement.lang = lang
@@ -152,6 +173,14 @@ export default function App() {
     if (maxEffortOnly) parts.push('maxEffortOnly')
     if (!includeEfforts) parts.push('noEfforts')
     return parts.join('; ')
+  }
+
+  const selectCostView = (view: CostView) => {
+    // valueScore = score/cost, so its scale shifts drastically between cost bases
+    // (e.g. per-task cost is ~1000x smaller than per-1M-token cost). Reset the
+    // slider so it doesn't keep an old threshold that's now meaningless.
+    if (metric === 'valueScore') setMinScore(0)
+    setCostView(view)
   }
 
   const toggleFamily = (f: string) => {
@@ -302,7 +331,7 @@ export default function App() {
             <span className="control-label">{t.cost}</span>
             <div className="badges" role="group">
               {COST_VIEWS.map((v) => (
-                <button key={v.key} className={`badge ${costView === v.key ? 'on' : ''}`} onClick={() => setCostView(v.key)}>
+                <button key={v.key} className={`badge ${costView === v.key ? 'on' : ''}`} onClick={() => selectCostView(v.key)}>
                   {t[v.labelKey]}
                 </button>
               ))}
