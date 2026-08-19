@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
 import { computeMetric, formatDelta, formatMetric, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
+import { isEstimated } from '../estimation'
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
 
@@ -193,8 +194,8 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                       )}
                     </td>
                   )}
-                  <td className="num bold" onClick={() => onSelect(m.slug)}>
-                    {formatMetric(metric, score)}
+                  <td className={`num bold ${isEstimated(m, metric, valueScoreBase) ? 'est' : ''}`} title={isEstimated(m, metric, valueScoreBase) ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                    {isEstimated(m, metric, valueScoreBase) ? '≈ ' : ''}{formatMetric(metric, score)}
                   </td>
                   <td className="num" onClick={() => onSelect(m.slug)}>
                     {m.isSubscription ? formatUsd(m.effectiveCostPerM) : formatUsd(m.inputPerM)}
@@ -209,23 +210,23 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                     {formatUsd(blended)}
                   </td>
                   {visibleCols.has('codingIndex') && (
-                    <td className="num" onClick={() => onSelect(m.slug)}>
-                      {m.codingIndex != null ? m.codingIndex.toFixed(1) : '—'}
+                    <td className={`num ${isEstimated(m, 'codingIndex') ? 'est' : ''}`} title={isEstimated(m, 'codingIndex') ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {m.codingIndex != null ? `${isEstimated(m, 'codingIndex') ? '≈ ' : ''}${m.codingIndex.toFixed(1)}` : '—'}
                     </td>
                   )}
                   {visibleCols.has('agenticIndex') && (
-                    <td className="num" onClick={() => onSelect(m.slug)}>
-                      {m.agenticIndex != null ? m.agenticIndex.toFixed(1) : '—'}
+                    <td className={`num ${isEstimated(m, 'agenticIndex') ? 'est' : ''}`} title={isEstimated(m, 'agenticIndex') ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {m.agenticIndex != null ? `${isEstimated(m, 'agenticIndex') ? '≈ ' : ''}${m.agenticIndex.toFixed(1)}` : '—'}
                     </td>
                   )}
                   {visibleCols.has('outputSpeed') && (
-                    <td className="num" onClick={() => onSelect(m.slug)}>
-                      {m.outputSpeed != null ? `${Math.round(m.outputSpeed)} tok/s` : '—'}
+                    <td className={`num ${isEstimated(m, 'outputSpeed') ? 'est' : ''}`} title={isEstimated(m, 'outputSpeed') ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {m.outputSpeed != null ? `${isEstimated(m, 'outputSpeed') ? '≈ ' : ''}${Math.round(m.outputSpeed)} tok/s` : '—'}
                     </td>
                   )}
                   {visibleCols.has('latencySeconds') && (
-                    <td className="num" onClick={() => onSelect(m.slug)}>
-                      {m.latencySeconds != null ? `${m.latencySeconds.toFixed(1)}s` : '—'}
+                    <td className={`num ${isEstimated(m, 'latencySeconds') ? 'est' : ''}`} title={isEstimated(m, 'latencySeconds') ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {m.latencySeconds != null ? `${isEstimated(m, 'latencySeconds') ? '≈ ' : ''}${m.latencySeconds.toFixed(1)}s` : '—'}
                     </td>
                   )}
                   {visibleCols.has('frontierDelta') && (

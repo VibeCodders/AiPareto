@@ -1,5 +1,6 @@
-import type { CostView, Model, ValueScoreBase } from '../types'
+import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
 import { computeMetric, formatMetric, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
+import { isEstimated } from '../estimation'
 import type { T } from '../i18n'
 
 interface Row {
@@ -7,18 +8,20 @@ interface Row {
   higherIsBetter: boolean
   value: (m: Model) => number | null
   format: (v: number | null) => string
+  /** Metric key used to check whether the shown value is an estimate. */
+  estMetric?: MetricKey
 }
 
 const BENCHMARK_ROWS: Row[] = [
-  { labelKey: 'intel', higherIsBetter: true, value: (m) => m.intelligenceIndex, format: (v) => formatMetric('intelligenceIndex', v) },
-  { labelKey: 'coding', higherIsBetter: true, value: (m) => m.codingIndex, format: (v) => formatMetric('codingIndex', v) },
-  { labelKey: 'agentic', higherIsBetter: true, value: (m) => m.agenticIndex, format: (v) => formatMetric('agenticIndex', v) },
-  { labelKey: 'tau2', higherIsBetter: true, value: (m) => m.tau2, format: (v) => formatMetric('tau2', v) },
-  { labelKey: 'hle', higherIsBetter: true, value: (m) => m.hle, format: (v) => formatMetric('hle', v) },
-  { labelKey: 'omniscience', higherIsBetter: true, value: (m) => m.omniscience, format: (v) => formatMetric('omniscience', v) },
-  { labelKey: 'outputSpeed', higherIsBetter: true, value: (m) => m.outputSpeed, format: (v) => formatMetric('outputSpeed', v) },
-  { labelKey: 'latency', higherIsBetter: false, value: (m) => m.latencySeconds, format: (v) => formatMetric('latencySeconds', v) },
-  { labelKey: 'context', higherIsBetter: true, value: (m) => m.contextTokens, format: (v) => formatTokens(v) },
+  { labelKey: 'intel', higherIsBetter: true, value: (m) => m.intelligenceIndex, format: (v) => formatMetric('intelligenceIndex', v), estMetric: 'intelligenceIndex' },
+  { labelKey: 'coding', higherIsBetter: true, value: (m) => m.codingIndex, format: (v) => formatMetric('codingIndex', v), estMetric: 'codingIndex' },
+  { labelKey: 'agentic', higherIsBetter: true, value: (m) => m.agenticIndex, format: (v) => formatMetric('agenticIndex', v), estMetric: 'agenticIndex' },
+  { labelKey: 'tau2', higherIsBetter: true, value: (m) => m.tau2, format: (v) => formatMetric('tau2', v), estMetric: 'tau2' },
+  { labelKey: 'hle', higherIsBetter: true, value: (m) => m.hle, format: (v) => formatMetric('hle', v), estMetric: 'hle' },
+  { labelKey: 'omniscience', higherIsBetter: true, value: (m) => m.omniscience, format: (v) => formatMetric('omniscience', v), estMetric: 'omniscience' },
+  { labelKey: 'outputSpeed', higherIsBetter: true, value: (m) => m.outputSpeed, format: (v) => formatMetric('outputSpeed', v), estMetric: 'outputSpeed' },
+  { labelKey: 'latency', higherIsBetter: false, value: (m) => m.latencySeconds, format: (v) => formatMetric('latencySeconds', v), estMetric: 'latencySeconds' },
+  { labelKey: 'context', higherIsBetter: true, value: (m) => m.contextTokens, format: (v) => formatTokens(v), estMetric: 'contextTokens' },
 ]
 
 interface Props {
@@ -53,10 +56,10 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
     { labelKey: 'output', higherIsBetter: false, value: (m) => m.outputPerM, format: (v) => formatUsd(v) },
     { labelKey: 'cache', higherIsBetter: false, value: (m) => m.cacheReadPerM, format: (v) => formatUsd(v) },
     { labelKey: 'blended', higherIsBetter: false, value: (m) => costOf(m, costView, taskInput, taskOutput), format: (v) => formatUsd(v) },
-    { labelKey: 'valueScore', higherIsBetter: true, value: (m) => computeMetric(m, 'valueScore', costView, taskInput, taskOutput, valueScoreBase), format: (v) => formatMetric('valueScore', v) },
-    { labelKey: 'speedAdjustedScore', higherIsBetter: true, value: (m) => computeMetric(m, 'speedAdjustedScore', costView, taskInput, taskOutput), format: (v) => formatMetric('speedAdjustedScore', v) },
-    { labelKey: 'contextValue', higherIsBetter: true, value: (m) => computeMetric(m, 'contextValue', costView, taskInput, taskOutput), format: (v) => formatMetric('contextValue', v) },
-    { labelKey: 'efficiencyScore', higherIsBetter: true, value: (m) => computeMetric(m, 'efficiencyScore', costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts), format: (v) => formatMetric('efficiencyScore', v) },
+    { labelKey: 'valueScore', higherIsBetter: true, value: (m) => computeMetric(m, 'valueScore', costView, taskInput, taskOutput, valueScoreBase), format: (v) => formatMetric('valueScore', v), estMetric: 'valueScore' },
+    { labelKey: 'speedAdjustedScore', higherIsBetter: true, value: (m) => computeMetric(m, 'speedAdjustedScore', costView, taskInput, taskOutput), format: (v) => formatMetric('speedAdjustedScore', v), estMetric: 'speedAdjustedScore' },
+    { labelKey: 'contextValue', higherIsBetter: true, value: (m) => computeMetric(m, 'contextValue', costView, taskInput, taskOutput), format: (v) => formatMetric('contextValue', v), estMetric: 'contextValue' },
+    { labelKey: 'efficiencyScore', higherIsBetter: true, value: (m) => computeMetric(m, 'efficiencyScore', costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts), format: (v) => formatMetric('efficiencyScore', v), estMetric: 'efficiencyScore' },
   ]
 
   return (
@@ -107,11 +110,14 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
                 return (
                   <tr key={String(row.labelKey)}>
                     <td className="muted">{t[row.labelKey] as string}</td>
-                    {compared.map((m) => (
-                      <td key={m.slug} className={winner === m.slug ? 'compare-best' : ''} title={winner === m.slug ? t.rank : undefined}>
-                        {row.format(row.value(m))}
-                      </td>
-                    ))}
+                    {compared.map((m) => {
+                      const est = row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false
+                      return (
+                        <td key={m.slug} className={`${winner === m.slug ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={winner === m.slug ? t.rank : est ? t.estimated : undefined}>
+                          {est ? '≈ ' : ''}{row.format(row.value(m))}
+                        </td>
+                      )
+                    })}
                   </tr>
                 )
               })}
@@ -121,11 +127,14 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
                 return (
                   <tr key={String(row.labelKey)}>
                     <td className="muted">{t[row.labelKey] as string}</td>
-                    {compared.map((m) => (
-                      <td key={m.slug} className={winner === m.slug ? 'compare-best' : ''} title={winner === m.slug ? t.rank : undefined}>
-                        {row.format(row.value(m))}
-                      </td>
-                    ))}
+                    {compared.map((m) => {
+                      const est = row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false
+                      return (
+                        <td key={m.slug} className={`${winner === m.slug ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={winner === m.slug ? t.rank : est ? t.estimated : undefined}>
+                          {est ? '≈ ' : ''}{row.format(row.value(m))}
+                        </td>
+                      )
+                    })}
                   </tr>
                 )
               })}

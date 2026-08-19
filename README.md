@@ -6,7 +6,11 @@ sull'asse X il costo (prezzi OpenRouter, USD per 1M token), sull'asse Y il punte
 
 ## Funzionalità
 
-- Scatter costo × punteggio con **frontiera di Pareto** (punti non dominati).
+- Scatter costo × punteggio con **frontiera di Pareto** (punti non dominati), area ombreggiata sotto la frontiera e **etichette dei modelli** sui punti di frontiera (attivabili/disattivabili).
+- **Terza dimensione sul grafico**: dimensione dei punti proporzionale a finestra di contesto o velocità di output (con legenda), oppure uniforme.
+- **Anello di evidenziazione** sul grafico per i modelli selezionati e per quelli nel confronto.
+- **Esportazione del grafico in PNG** (2×, colori risolti dal tema corrente).
+- **Stima dei valori mancanti**: quando attivo, i benchmark/spec senza dato (Coding/Agentic Index, Tau2, velocità, latenza) vengono riempiti con un **k-NN pesato per similarità** (famiglia + punteggi normalizzati), deterministico e clampato ai range osservati. Le stime sono marcate con **≈** in tutta l'interfaccia (punti tratteggiati sul grafico, celle in corsivo in tabella/confronto, tag nella scheda modello, colonna `estimated` nel CSV). I prezzi non vengono mai stimati.
 - Metriche (Artificial Analysis): **Intelligence Index, Coding Index, Agentic Index, Tau2, HLE, Omniscience**. Costo: input, blended 80/20, cache, output, **task configurabile** (token in/out).
 - Scala log/lineare, filtri per famiglia, ricerca, soglia minima, varianti di effort.
 - **Stato dei filtri nell'URL** (`?metric=…&cost=…&tin=…`): copia l'URL per condividere una vista.

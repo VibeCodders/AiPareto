@@ -127,6 +127,16 @@ export interface Strings {
   paretoOnly: string
   maxMonthlyCost: string
   resetFilters: string
+  pointSize: string
+  sizeNone: string
+  sizeContext: string
+  sizeSpeed: string
+  frontierLabels: string
+  downloadPng: string
+  pngSaved: string
+  estimateMissing: string
+  estimated: string
+  estimatedHint: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -257,6 +267,16 @@ export const STRINGS: Record<Lang, Strings> = {
     paretoOnly: 'Solo Pareto',
     maxMonthlyCost: 'Costo mensile max',
     resetFilters: 'Azzera filtri',
+    pointSize: 'Dimensione punti',
+    sizeNone: 'Uniforme',
+    sizeContext: 'Contesto',
+    sizeSpeed: 'Velocità',
+    frontierLabels: 'Etichette frontiera',
+    downloadPng: 'Scarica PNG',
+    pngSaved: 'PNG scaricato!',
+    estimateMissing: 'Stima valori mancanti',
+    estimated: 'stimato',
+    estimatedHint: 'I valori mancanti sono stimati da modelli simili (k-NN: famiglia + punteggi); ≈ indica una stima',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -385,6 +405,16 @@ export const STRINGS: Record<Lang, Strings> = {
     paretoOnly: 'Pareto only',
     maxMonthlyCost: 'Max monthly cost',
     resetFilters: 'Reset filters',
+    pointSize: 'Point size',
+    sizeNone: 'Uniform',
+    sizeContext: 'Context',
+    sizeSpeed: 'Speed',
+    frontierLabels: 'Frontier labels',
+    downloadPng: 'Download PNG',
+    pngSaved: 'PNG downloaded!',
+    estimateMissing: 'Estimate missing values',
+    estimated: 'estimated',
+    estimatedHint: 'Missing values are estimated from similar models (k-NN: family + scores); ≈ marks an estimate',
   },
 }
 

@@ -79,4 +79,6 @@ export interface Point {
   model: Model
   cost: number
   score: number
+  /** True when the plotted score was estimated because the raw value was missing. */
+  scoreEstimated?: boolean
 }

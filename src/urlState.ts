@@ -37,6 +37,12 @@ export interface UrlState {
   paretoOnly: boolean
   /** Subscriptions-only filter: hide plans whose priceMonthly exceeds this. 0 = no limit. Ignored for pay-as-you-go models. */
   maxMonthlyCost: number
+  /** Third dimension encoded as point size: context window, output speed, or uniform. */
+  sizeBy: 'none' | 'context' | 'speed'
+  /** Show model names next to the Pareto frontier points. */
+  showLabels: boolean
+  /** Fill missing benchmark/spec values with similarity-based estimates (marked ≈). */
+  estimateMissing: boolean
 }
 
 
@@ -57,6 +63,7 @@ const METRICS: MetricKey[] = [
 ]
 const VALUE_SCORE_BASES: ValueScoreBase[] = ['intelligenceIndex', 'codingIndex', 'agenticIndex']
 const COST_VIEWS: CostView[] = ['input', 'blended', 'cache', 'output', 'task']
+const SIZE_BYS: Array<'none' | 'context' | 'speed'> = ['none', 'context', 'speed']
 
 /** Metrics where a lower value is better (e.g. latency). */
 export function isLowerBetter(metric: MetricKey): boolean {
@@ -130,6 +137,9 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     showTrend: p.get('trend') === '1',
     paretoOnly: p.get('paretoonly') === '1',
     maxMonthlyCost: clampFloat(p.get('maxmo'), 0, 100000, 0),
+    sizeBy: SIZE_BYS.includes(p.get('size') as 'none' | 'context' | 'speed') ? (p.get('size') as 'none' | 'context' | 'speed') : 'none',
+    showLabels: p.get('labels') !== '0',
+    estimateMissing: p.get('est') !== '0',
   }
 }
 
@@ -170,6 +180,9 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (s.showTrend) p.set('trend', '1')
   if (s.paretoOnly) p.set('paretoonly', '1')
   if (s.maxMonthlyCost > 0) p.set('maxmo', String(s.maxMonthlyCost))
+  if (s.sizeBy !== 'none') p.set('size', s.sizeBy)
+  if (!s.showLabels) p.set('labels', '0')
+  if (!s.estimateMissing) p.set('est', '0')
   return p.toString()
 }
 

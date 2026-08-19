@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
@@ -9,7 +9,9 @@ import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
 import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
 import { exportModelsCsv } from './csv'
-import ParetoChart from './components/ParetoChart'
+import { downloadChartPng } from './chartExport'
+import { estimateModels, isEstimated } from './estimation'
+import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
 import TrendChart from './components/TrendChart'
@@ -134,13 +136,22 @@ export default function App() {
   const [showTrend, setShowTrend] = useState(INITIAL.showTrend)
   const [paretoOnly, setParetoOnly] = useState(INITIAL.paretoOnly)
   const [maxMonthlyCost, setMaxMonthlyCost] = useState(INITIAL.maxMonthlyCost)
+  const [sizeBy, setSizeBy] = useState<SizeBy>(INITIAL.sizeBy)
+  const [showLabels, setShowLabels] = useState(INITIAL.showLabels)
+  const [estimateMissing, setEstimateMissing] = useState(INITIAL.estimateMissing)
+  const chartSvgRef = useRef<SVGSVGElement | null>(null)
+  const [svgReady, setSvgReady] = useState(false)
+  const [pngSaved, setPngSaved] = useState(false)
 
   const t = STRINGS[lang]
+
+  // Fills missing benchmark/spec values (flagged as estimates) when the user opts in.
+  const DISPLAY_BASE: Model[] = useMemo(() => (estimateMissing ? estimateModels(BASE_MODELS) : BASE_MODELS), [estimateMissing])
 
   // Synthesize combined Model items with subscriptions calculated dynamically based on usageFactor
   const ALL_ITEMS = useMemo(() => {
     const subModels: Model[] = SUBSCRIPTIONS.map((sub) => {
-      const baseModel = BASE_MODELS.find((m) => m.slug === sub.modelSlug || m.id === sub.modelId) || BASE_MODELS[0]
+      const baseModel = DISPLAY_BASE.find((m) => m.slug === sub.modelSlug || m.id === sub.modelId) || DISPLAY_BASE[0]
       const actualTokensMonthly = sub.estimatedTokensMonthly * usageFactor
       const effectiveCostPerM = (sub.priceMonthly / actualTokensMonthly) * 1e6
       // What paying per-token for the underlying model would cost at the same estimated usage, for comparison.
@@ -166,8 +177,8 @@ export default function App() {
         cacheWritePerM: null,
       }
     })
-    return [...BASE_MODELS, ...subModels]
-  }, [usageFactor])
+    return [...DISPLAY_BASE, ...subModels]
+  }, [usageFactor, DISPLAY_BASE])
 
   // Reactive to costView/taskInput/taskOutput/valueScoreBase since valueScore's scale depends on the chosen cost basis and benchmark.
   const METRIC_MAX = useMemo(() => computeMetricMax(ALL_ITEMS, costView, taskInput, taskOutput, valueScoreBase), [ALL_ITEMS, costView, taskInput, taskOutput, valueScoreBase])
@@ -218,6 +229,9 @@ export default function App() {
     showTrend,
     paretoOnly,
     maxMonthlyCost,
+    sizeBy,
+    showLabels,
+    estimateMissing,
   }
 
   useEffect(() => {
@@ -226,7 +240,7 @@ export default function App() {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -286,6 +300,9 @@ export default function App() {
     setShowTrend(s.showTrend)
     setParetoOnly(s.paretoOnly)
     setMaxMonthlyCost(s.maxMonthlyCost)
+    setSizeBy(s.sizeBy)
+    setShowLabels(s.showLabels)
+    setEstimateMissing(s.estimateMissing)
   }
 
   const handleSavePreset = () => {
@@ -348,6 +365,9 @@ export default function App() {
     setShowTrend(false)
     setParetoOnly(false)
     setMaxMonthlyCost(0)
+    setSizeBy('none')
+    setShowLabels(true)
+    setEstimateMissing(true)
   }
 
   const points: Point[] = useMemo(() => {
@@ -381,6 +401,7 @@ export default function App() {
         model: m,
         cost: costOf(m, costView)!,
         score: computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)!,
+        scoreEstimated: isEstimated(m, metric, valueScoreBase),
       }))
       .sort((a, b) => a.cost - b.cost)
   }, [ALL_ITEMS, showSubscriptions, subscriptionOnly, maxMonthlyCost, families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom, valueScoreBase, efficiencyOpts])
@@ -407,6 +428,7 @@ export default function App() {
     if (subscriptionOnly) parts.push('subscriptionOnly')
     if (maxMonthlyCost > 0) parts.push(`maxMonthlyCost=$${maxMonthlyCost}`)
     if (paretoOnly) parts.push('paretoOnly')
+    if (estimateMissing) parts.push('estimates=on')
     if (reasoningOnly) parts.push('reasoningOnly')
     if (openWeightsOnly) parts.push('openWeightsOnly')
     if (minPrice > 0) parts.push(`minPrice=${minPrice}`)
@@ -524,6 +546,10 @@ export default function App() {
             <input type="checkbox" checked={openWeightsOnly} onChange={(e) => setOpenWeightsOnly(e.target.checked)} />
             {t.openWeightsOnly}
           </label>
+          <label className="check" title={t.estimatedHint}>
+            <input type="checkbox" checked={estimateMissing} onChange={(e) => setEstimateMissing(e.target.checked)} />
+            {t.estimateMissing}
+          </label>
           <label className="check">
             <input type="checkbox" checked={paretoOnly} onChange={(e) => setParetoOnly(e.target.checked)} />
             {t.paretoOnly}
@@ -586,6 +612,21 @@ export default function App() {
             {t.releasedFrom}
             <input type="date" value={releasedFrom} onChange={(e) => setReleasedFrom(e.target.value)} />
             {releasedFrom && <button className="btn" onClick={() => setReleasedFrom('')}>✕</button>}
+          </label>
+        </div>
+
+        <div className="control-row wrap">
+          <div className="control-group">
+            <span className="control-label">{t.pointSize}</span>
+            <div className="badges" role="group" aria-label={t.pointSize}>
+              <button className={`badge ${sizeBy === 'none' ? 'on' : ''}`} onClick={() => setSizeBy('none')}>{t.sizeNone}</button>
+              <button className={`badge ${sizeBy === 'context' ? 'on' : ''}`} onClick={() => setSizeBy('context')}>{t.sizeContext}</button>
+              <button className={`badge ${sizeBy === 'speed' ? 'on' : ''}`} onClick={() => setSizeBy('speed')}>{t.sizeSpeed}</button>
+            </div>
+          </div>
+          <label className="check">
+            <input type="checkbox" checked={showLabels} onChange={(e) => setShowLabels(e.target.checked)} />
+            {t.frontierLabels}
           </label>
         </div>
 
@@ -665,12 +706,32 @@ export default function App() {
             formatTick={(v: number) => formatAxisTick(metric, v)}
             t={t}
             onSelect={(id) => setSelectedId(id)}
+            sizeBy={sizeBy}
+            showLabels={showLabels}
+            highlightedSlugs={new Set([...(selectedId ? [selectedId] : []), ...compareIds])}
+            estimatedSlugs={new Set(displayedPoints.filter((p) => p.scoreEstimated).map((p) => p.model.slug))}
+            estimatesActive={estimateMissing}
+            onSvgReady={(svg) => { chartSvgRef.current = svg; setSvgReady(Boolean(svg)) }}
           />
         )}
         <div className="count-bar muted">
           {displayedPoints.length} {t.modelsShown} {t.ofTotal} {ALL_ITEMS.length} · {t.clickHint}
           <button className="btn" onClick={() => setShowTrend((v) => !v)} style={{ marginLeft: 12 }}>
             {showTrend ? `▲ ${t.hideTrend}` : `▼ ${t.showTrend}`}
+          </button>
+          <button
+            className="btn"
+            style={{ marginLeft: 8 }}
+            disabled={!svgReady}
+            title={t.downloadPng}
+            onClick={async () => {
+              if (!chartSvgRef.current) return
+              await downloadChartPng(chartSvgRef.current, `ai-pareto-${metric}-${costView}-${new Date().toISOString().slice(0, 10)}.png`)
+              setPngSaved(true)
+              setTimeout(() => setPngSaved(false), 1500)
+            }}
+          >
+            {pngSaved ? `✓ ${t.pngSaved}` : `⬇ ${t.downloadPng}`}
           </button>
         </div>
         {showTrend && <TrendChart models={BASE_MODELS} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} t={t} />}
@@ -764,6 +825,7 @@ function ModelCard({
   onToggleCompare: () => void
 }) {
   const score = computeMetric(model, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
+  const scoreEstimated = isEstimated(model, metric, valueScoreBase)
   const blended =
     model.inputPerM != null && model.outputPerM != null ? 0.8 * model.inputPerM + 0.2 * model.outputPerM : null
   // Subscriptions are synthesized items (id = "sub:…") that don't exist on OpenRouter/AA —
@@ -779,6 +841,7 @@ function ModelCard({
           {model.effort && <span className="tag">{model.effort}</span>}
           {model.isReasoning && <span className="tag">reasoning</span>}
           {model.openWeights && <span className="tag tag-open">open weights</span>}
+          {scoreEstimated && <span className="tag tag-est">≈ {t.estimated}</span>}
           <button className={`btn compare-toggle ${inCompare ? 'on' : ''}`} onClick={onToggleCompare}>
             {inCompare ? `✓ ${t.removeFromCompare}` : `+ ${t.addToCompare}`}
           </button>
@@ -786,14 +849,14 @@ function ModelCard({
       </div>
       <div className="mc-grid">
         <div><span className="muted">{t.family}</span><b>{model.family}</b></div>
-        <div><span className="muted">{t[METRICS.find((m) => m.key === metric)!.labelKey]}</span><b>{formatMetric(metric, score)}</b></div>
+        <div><span className="muted">{t[METRICS.find((m) => m.key === metric)!.labelKey]}</span><b className={scoreEstimated ? 'est' : ''}>{scoreEstimated ? '≈ ' : ''}{formatMetric(metric, score)}</b></div>
         <div><span className="muted">{t.vsFrontier}</span><b className={frontierDelta != null && frontierDelta > 0.05 ? 'delta-behind' : 'delta-ok'}>{formatDelta(frontierDelta)}</b></div>
         <div><span className="muted">{t.input}</span><b>{formatUsd(model.inputPerM)}/1M</b></div>
         <div><span className="muted">{t.output}</span><b>{formatUsd(model.outputPerM)}/1M</b></div>
         <div><span className="muted">{t.cache}</span><b>{formatUsd(model.cacheReadPerM)}/1M</b></div>
         <div><span className="muted">{t.blended}</span><b>{formatUsd(blended)}/1M</b></div>
-        <div><span className="muted">{t.outputSpeed}</span><b>{formatMetric('outputSpeed', model.outputSpeed)}</b></div>
-        <div><span className="muted">{t.latency}</span><b>{formatMetric('latencySeconds', model.latencySeconds)}</b></div>
+        <div><span className="muted">{t.outputSpeed}</span><b className={isEstimated(model, 'outputSpeed') ? 'est' : ''}>{isEstimated(model, 'outputSpeed') ? '≈ ' : ''}{formatMetric('outputSpeed', model.outputSpeed)}</b></div>
+        <div><span className="muted">{t.latency}</span><b className={isEstimated(model, 'latencySeconds') ? 'est' : ''}>{isEstimated(model, 'latencySeconds') ? '≈ ' : ''}{formatMetric('latencySeconds', model.latencySeconds)}</b></div>
         <div><span className="muted">{t.context}</span><b>{formatTokens(model.contextTokens)}</b></div>
         <div><span className="muted">{t.release}</span><b>{model.released ?? '—'}</b></div>
       </div>
