@@ -12,6 +12,7 @@ sull'asse X il costo (prezzi OpenRouter, USD per 1M token), sull'asse Y il punte
 - **Esportazione del grafico in PNG** (2×, colori risolti dal tema corrente).
 - **Stima dei valori mancanti**: quando attivo, i benchmark/spec senza dato (Coding/Agentic Index, Tau2, velocità, latenza) vengono riempiti con un **k-NN pesato per similarità** (famiglia + punteggi normalizzati), deterministico e clampato ai range osservati. Le stime sono marcate con **≈** in tutta l'interfaccia (punti tratteggiati sul grafico, celle in corsivo in tabella/confronto, tag nella scheda modello, colonna `estimated` nel CSV). I prezzi non vengono mai stimati.
 - **Asse X libero**: costo (input, blended 80/20, cache, output, task configurabile) oppure **qualunque metrica** (es. Coding vs Agentic, Contesto vs Intelligenza); la frontiera di Pareto si adatta automaticamente alla direzione "meglio se più alto/basso" di entrambi gli assi. La scala logaritmica si applica agli assi costo.
+- **Zoom e pan sul grafico**: rotella per zoomare (centrato sul puntatore), trascinamento per spostare la vista, doppio clic o pulsante ↺ per azzerare; lo zoom si azzera automaticamente quando cambiano i filtri o gli assi.
 - Metriche (Artificial Analysis): **Intelligence Index, Coding Index, Agentic Index, Tau2, HLE, Omniscience**. Costo: input, blended 80/20, cache, output, **task configurabile** (token in/out).
 - Scala log/lineare, filtri per famiglia, ricerca, soglia minima, varianti di effort.
 - **Stato dei filtri nell'URL** (`?metric=…&cost=…&tin=…`): copia l'URL per condividere una vista.

@@ -364,6 +364,35 @@ h1 {
   cursor: not-allowed;
 }
 
+.chart-wrap {
+  position: relative;
+  user-select: none;
+}
+
+.chart-wrap .pt {
+  cursor: pointer;
+}
+
+.zoom-reset {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 5;
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.zoom-reset:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .count-bar {
   text-align: center;
   font-size: 12px;

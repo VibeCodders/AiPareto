@@ -748,7 +748,7 @@ export default function App() {
           />
         )}
         <div className="count-bar muted">
-          {displayedPoints.length} {t.modelsShown} {t.ofTotal} {ALL_ITEMS.length} · {t.clickHint}
+          {displayedPoints.length} {t.modelsShown} {t.ofTotal} {ALL_ITEMS.length} · {t.clickHint} · {t.zoomHint}
           <button className="btn" onClick={() => setShowTrend((v) => !v)} style={{ marginLeft: 12 }}>
             {showTrend ? `▲ ${t.hideTrend}` : `▼ ${t.showTrend}`}
           </button>

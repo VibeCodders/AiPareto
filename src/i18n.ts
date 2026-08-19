@@ -141,6 +141,8 @@ export interface Strings {
   xAxisCost: string
   xAxisMetrics: string
   logScaleOnlyCost: string
+  resetZoom: string
+  zoomHint: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -285,6 +287,8 @@ export const STRINGS: Record<Lang, Strings> = {
     xAxisCost: 'Costo',
     xAxisMetrics: 'Metriche',
     logScaleOnlyCost: 'La scala logaritmica si applica solo agli assi costo',
+    resetZoom: 'Azzera zoom',
+    zoomHint: 'Rotella: zoom · Trascina: pan · Doppio clic: azzera',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -427,6 +431,8 @@ export const STRINGS: Record<Lang, Strings> = {
     xAxisCost: 'Cost',
     xAxisMetrics: 'Metrics',
     logScaleOnlyCost: 'Log scale only applies to cost axes',
+    resetZoom: 'Reset zoom',
+    zoomHint: 'Wheel: zoom · Drag: pan · Double-click: reset',
   },
 }
 

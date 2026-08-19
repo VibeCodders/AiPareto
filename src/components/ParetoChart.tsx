@@ -264,6 +264,131 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
   onSvgReadyRef.current = onSvgReady
   chartStateRef.current = { sizeBy, showLabels, highlighted: highlightedSlugs, estimated: estimatedSlugs, width: wrapWidth }
 
+  // ---- Zoom & pan -------------------------------------------------------------
+  // null domains mean "full view"; once zoomed they hold the visible data-space range.
+  const [zoom, setZoom] = useState<{ x: [number, number] | null; y: [number, number] | null }>({ x: null, y: null })
+  const [dragging, setDragging] = useState(false)
+  const dragRef = useRef<{ clientX: number; clientY: number; x0: [number, number]; y0: [number, number] } | null>(null)
+
+  const xFull = useMemo<[number, number]>(() => {
+    if (points.length === 0) return [0, 1]
+    let min = Infinity
+    let max = -Infinity
+    for (const p of points) {
+      if (p.x < min) min = p.x
+      if (p.x > max) max = p.x
+    }
+    if (!xIsMetric && logScale) return [min, max]
+    return [0, niceCeil(max)]
+  }, [points, xIsMetric, logScale])
+
+  const yFull = useMemo<[number, number]>(() => {
+    const max = points.reduce((m, p) => Math.max(m, p.score), 0)
+    return [0, niceCeil(max)]
+  }, [points])
+
+  const resetZoom = () => setZoom({ x: null, y: null })
+  const zoomed = zoom.x != null || zoom.y != null
+
+  // Reset automatically whenever the underlying data or axes change (filters, metric, scale…).
+  useEffect(() => {
+    resetZoom()
+  }, [points, xIsMetric, logScale])
+
+  const clampDomain = (d: [number, number], full: [number, number]): [number, number] => {
+    const [lo, hi] = d
+    const [flo, fhi] = full
+    if (hi - lo >= fhi - flo) return [flo, fhi]
+    if (lo < flo) return [flo, flo + (hi - lo)]
+    if (hi > fhi) return [fhi - (hi - lo), fhi]
+    return [lo, hi]
+  }
+
+  const pxToDataX = (px: number, domain: [number, number], width: number): number => {
+    const t = px / width
+    if (!xIsMetric && logScale) {
+      const [lo, hi] = domain
+      return Math.pow(10, Math.log10(lo) + t * (Math.log10(hi) - Math.log10(lo)))
+    }
+    return domain[0] + t * (domain[1] - domain[0])
+  }
+
+  const pxToDataY = (py: number, domain: [number, number], height: number): number => domain[1] - (py / height) * (domain[1] - domain[0])
+
+  // The recharts grid group's bounding box is exactly the plot area, so pixel↔data
+  // conversions stay exact regardless of axis widths or margins.
+  const getPlotRect = () => {
+    const grid = wrapRef.current?.querySelector('.recharts-cartesian-grid') as SVGGraphicsElement | null
+    if (!grid) return null
+    const r = grid.getBoundingClientRect()
+    return { left: r.left, top: r.top, width: r.width, height: r.height }
+  }
+
+  const handleWheel = (e: WheelEvent) => {
+    const rect = getPlotRect()
+    if (!rect) return
+    const px = e.clientX - rect.left
+    const py = e.clientY - rect.top
+    if (px < 0 || px > rect.width || py < 0 || py > rect.height) return
+    const curX = zoom.x ?? xFull
+    const curY = zoom.y ?? yFull
+    const factor = e.deltaY < 0 ? 1 / 1.25 : 1.25
+    // Stop zooming in once the view is extremely narrow.
+    const minSpan = (full: [number, number]) => (full[1] - full[0]) * 0.01
+    if (factor < 1 && (curX[1] - curX[0] <= minSpan(xFull) || curY[1] - curY[0] <= minSpan(yFull))) return
+    const cx = pxToDataX(px, curX, rect.width)
+    const cy = pxToDataY(py, curY, rect.height)
+    const nx: [number, number] = [cx - (cx - curX[0]) * factor, cx + (curX[1] - cx) * factor]
+    const ny: [number, number] = [cy - (cy - curY[0]) * factor, cy + (curY[1] - cy) * factor]
+    setZoom({ x: clampDomain(nx, xFull), y: clampDomain(ny, yFull) })
+  }
+
+  // Native non-passive listener so we can preventDefault() and stop the page from
+  // scrolling while zooming over the chart (React's synthetic wheel is passive).
+  const wheelRef = useRef<(e: WheelEvent) => void>(() => {})
+  wheelRef.current = handleWheel
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => wheelRef.current(e)
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return
+    dragRef.current = { clientX: e.clientX, clientY: e.clientY, x0: zoom.x ?? xFull, y0: zoom.y ?? yFull }
+    setDragging(true)
+    e.preventDefault()
+  }
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    const d = dragRef.current
+    if (!d) return
+    const rect = getPlotRect()
+    if (!rect) return
+    const dxPx = e.clientX - d.clientX
+    const dyPx = e.clientY - d.clientY
+    let nx: [number, number]
+    if (!xIsMetric && logScale) {
+      const [lo, hi] = d.x0
+      const shift = (dxPx / rect.width) * (Math.log10(hi) - Math.log10(lo))
+      nx = [Math.pow(10, Math.log10(lo) - shift), Math.pow(10, Math.log10(hi) - shift)]
+    } else {
+      const shift = (dxPx / rect.width) * (d.x0[1] - d.x0[0])
+      nx = [d.x0[0] - shift, d.x0[1] - shift]
+    }
+    const yShift = (dyPx / rect.height) * (d.y0[1] - d.y0[0])
+    const ny: [number, number] = [d.y0[0] + yShift, d.y0[1] + yShift]
+    setZoom({ x: clampDomain(nx, xFull), y: clampDomain(ny, yFull) })
+  }
+
+  const endDrag = () => {
+    dragRef.current = null
+    setDragging(false)
+  }
+  // ----------------------------------------------------------------------------
+
   // Track the wrapper's pixel width so labels near the right edge can flip to anchor-end.
   useEffect(() => {
     const wrap = wrapRef.current
@@ -299,13 +424,23 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
   )
   const frontierSorted = useMemo(() => [...frontier].sort((a, b) => a.x - b.x), [frontier])
   const xTickFormatter = (v: number) => (xIsMetric ? formatTick(v) : formatUsd(v, v < 0.01 ? 4 : v < 1 ? 3 : 1))
-  const yDomain: [number, number] = useMemo(() => {
-    const max = points.reduce((m, p) => Math.max(m, p.score), 0)
-    return [0, niceCeil(max)]
-  }, [points])
 
   return (
-    <div className="chart-wrap" ref={wrapRef}>
+    <div
+      className={`chart-wrap${dragging ? ' dragging' : ''}`}
+      ref={wrapRef}
+      style={{ cursor: dragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={endDrag}
+      onMouseLeave={endDrag}
+      onDoubleClick={resetZoom}
+    >
+      {zoomed && (
+        <button className="zoom-reset" onClick={resetZoom} title={t.resetZoom}>
+          ↺ {t.resetZoom}
+        </button>
+      )}
       <div className="chart-legend">
         <span className="legend-dot" style={{ background: FRONTIER_COLOR }} />
         {t.frontier}
@@ -324,7 +459,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
             dataKey="x"
             type="number"
             scale={xIsMetric ? 'linear' : logScale ? 'log' : 'linear'}
-            domain={xIsMetric ? [0, 'auto'] : logScale ? ['auto', 'auto'] : [0, 'auto']}
+            domain={zoom.x ?? xFull}
             allowDataOverflow
             tickFormatter={xTickFormatter}
             stroke="var(--axis)"
@@ -334,7 +469,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
           <YAxis
             dataKey="score"
             type="number"
-            domain={yDomain}
+            domain={zoom.y ?? yFull}
             tickFormatter={(v: number) => formatTick(v)}
             stroke="var(--axis)"
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
