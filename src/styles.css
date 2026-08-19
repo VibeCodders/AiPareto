@@ -323,20 +323,48 @@ h1 {
   flex-shrink: 0;
 }
 
-/* Estimated (imputed) values are shown with subtle italic accent styling and badge support. */
+/* Estimated (imputed) values are shown with subtle italic accent styling, glowing indicator and badge support. */
 .est {
   font-style: italic;
-  color: color-mix(in srgb, var(--accent) 70%, var(--text));
-  text-decoration: underline dotted color-mix(in srgb, var(--accent) 60%, transparent);
+  color: #38bdf8 !important;
+  text-decoration: underline dotted color-mix(in srgb, #38bdf8 70%, transparent);
   text-underline-offset: 3px;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+[data-theme='light'] .est {
+  color: #0284c7 !important;
+  text-decoration-color: color-mix(in srgb, #0284c7 70%, transparent);
 }
 
 .tag-est {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background: color-mix(in srgb, #38bdf8 15%, transparent);
   font-style: italic;
-  font-weight: 500;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+[data-theme='light'] .tag-est {
+  border-color: #0284c7;
+  color: #0284c7;
+  background: color-mix(in srgb, #0284c7 12%, transparent);
+}
+
+.est-badge-pill {
+  display: inline-block;
+  font-size: 10px;
+  font-style: normal;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, #38bdf8 20%, transparent);
+  color: #38bdf8;
+  margin-left: 4px;
+  vertical-align: middle;
 }
 
 .size-legend {
