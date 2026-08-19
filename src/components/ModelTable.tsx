@@ -111,6 +111,17 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
     }
   }
 
+  // Rows are keyboard-focusable; Enter/Space selects. Ignore keystrokes originating from
+  // nested controls (the compare checkbox) so they keep their own behavior.
+  const handleRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>, slug: string) => {
+    const target = e.target as HTMLElement
+    if (target.closest('input, button, a, select, textarea')) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onSelect(slug)
+    }
+  }
+
   return (
     <div>
       <div className="col-toggles">
@@ -146,7 +157,13 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
               const blended = costOf(m, costView)
               const delta = frontierDeltas.get(m.slug) ?? null
               return (
-                <tr key={m.slug} className={`${isFrontier ? 'row-frontier' : ''} ${isSel ? 'row-sel' : ''} ${m.isSubscription ? 'row-sub' : ''}`}>
+                <tr
+                  key={m.slug}
+                  tabIndex={0}
+                  aria-selected={isSel}
+                  onKeyDown={(e) => handleRowKeyDown(e, m.slug)}
+                  className={`${isFrontier ? 'row-frontier' : ''} ${isSel ? 'row-sel' : ''} ${m.isSubscription ? 'row-sub' : ''}`}
+                >
                   <td className="center" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"

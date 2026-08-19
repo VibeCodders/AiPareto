@@ -9,11 +9,14 @@ export const AA_TO_OR: Record<string, string> = {
   'claude-opus-5-high': 'anthropic/claude-opus-5',
   'claude-opus-5-medium': 'anthropic/claude-opus-5',
   'claude-opus-5-xhigh': 'anthropic/claude-opus-5',
+  'claude-opus-5-low': 'anthropic/claude-opus-5',
   'claude-sonnet-5': 'anthropic/claude-sonnet-5',
   'claude-sonnet-5-high': 'anthropic/claude-sonnet-5',
   'claude-sonnet-5-medium': 'anthropic/claude-sonnet-5',
   'claude-sonnet-5-xhigh': 'anthropic/claude-sonnet-5',
+  'claude-sonnet-5-low': 'anthropic/claude-sonnet-5',
   'claude-sonnet-5-non-reasoning': 'anthropic/claude-sonnet-5',
+  'claude-sonnet-4-6-non-reasoning-low-effort': 'anthropic/claude-sonnet-4.6',
   'claude-fable-5': 'anthropic/claude-fable-5',
   'claude-4-5-haiku-reasoning': 'anthropic/claude-haiku-4.5',
   'claude-4-5-haiku': 'anthropic/claude-haiku-4.5',
@@ -98,6 +101,8 @@ export const AA_TO_OR: Record<string, string> = {
   'qwen3-5-9b-non-reasoning': 'qwen/qwen3.5-9b',
   'qwen3-coder-next': 'qwen/qwen3-coder-next',
   'qwen3-next-80b-a3b-instruct': 'qwen/qwen3-next-80b-a3b-instruct',
+  'qwen3-next-80b-a3b-reasoning': 'qwen/qwen3-next-80b-a3b-thinking',
+  'qwen3-8-27b': 'qwen/qwen3.8-27b',
 
   // Mistral
   'mistral-medium-3-5': 'mistralai/mistral-medium-3-5',
@@ -110,6 +115,10 @@ export const AA_TO_OR: Record<string, string> = {
 
   // Amazon
   'nova-premier': 'amazon/nova-premier-v1',
+  'nova-2-0-lite': 'amazon/nova-2-lite-v1',
+  'nova-2-0-lite-reasoning': 'amazon/nova-2-lite-v1',
+  'nova-2-0-lite-reasoning-medium': 'amazon/nova-2-lite-v1',
+  'nova-2-0-lite-reasoning-low': 'amazon/nova-2-lite-v1',
 
   // NVIDIA
   'nemotron-3-5-lightning': 'nvidia/nemotron-3.5-lightning',
@@ -121,6 +130,7 @@ export const AA_TO_OR: Record<string, string> = {
   // Z AI
   'glm-5-2': 'z-ai/glm-5.2',
   'glm-5-2-non-reasoning': 'z-ai/glm-5.2',
+  'glm-5-3': 'z-ai/glm-5.3',
 
   // Moonshot / Kimi
   'kimi-k3': 'moonshotai/kimi-k3',
@@ -150,4 +160,7 @@ export const AA_TO_OR: Record<string, string> = {
 
   // Thinking Machines
   inkling: 'thinkingmachines/inkling',
+
+  // AI21
+  'jamba-1-7-large': 'ai21/jamba-large-1.7',
 }

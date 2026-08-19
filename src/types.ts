@@ -80,4 +80,3 @@ export interface Point {
   cost: number
   score: number
 }
-

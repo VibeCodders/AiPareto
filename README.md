@@ -12,7 +12,9 @@ sull'asse X il costo (prezzi OpenRouter, USD per 1M token), sull'asse Y il punte
 - **Stato dei filtri nell'URL** (`?metric=…&cost=…&tin=…`): copia l'URL per condividere una vista.
 - **Preset nominati** (localStorage): salva una combinazione di parametri, ricaricala dal dropdown, eliminala, e condividila via link (`?…&p=<id>`); il link è autosufficiente anche per chi non ha il preset.
 - **Esportazione CSV** della tabella (separatore `;`, BOM UTF-8, compatibile con Excel).
-- Tema scuro/chiaro, lingua IT/EN.
+- Tema scuro/chiaro e lingua IT/EN, **persistiti tra le sessioni** (localStorage, con override via URL).
+- **Azzera filtri** in un clic; messaggio dedicato quando nessun elemento corrisponde ai filtri.
+- Accessibilità: righe della tabella e punti del grafico **navigabili da tastiera** (Enter/Spazio).
 
 ## Sviluppo
 
@@ -25,7 +27,7 @@ npm run preview  # serve dist/
 
 ## Dati
 
-I dati sono snapshot "una tantum" committati in `src/data/models.json` (104 modelli, 18 famiglie),
+I dati sono snapshot "una tantum" committati in `src/data/models.json` (114 modelli, 19 famiglie),
 generati da:
 
 - **OpenRouter** — `https://openrouter.ai/api/v1/models` (endpoint pubblico, senza API key):

@@ -73,13 +73,23 @@ function ScatterShape(props: ShapeProps) {
   const cy = props.cy ?? 0
   const isSub = props.payload?.model?.isSubscription
   const isActive = props.isActive === true
-  const select = () => props.payload?.model?.slug && onSelectRef.current?.(props.payload!.model!.slug)
+  const model = props.payload?.model
+  const label = model?.aaName ?? model?.id ?? ''
+  const select = () => model?.slug && onSelectRef.current?.(model.slug)
+  const keyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      select()
+    }
+  }
+  const a11y = { tabIndex: 0, role: 'button' as const, 'aria-label': label, onKeyDown: keyDown }
 
   if (isSub) {
     // Render a prominent star/gem shape for subscriptions
     const scale = isActive ? 1.3 : 1
     return (
       <polygon
+        {...a11y}
         points={`${cx},${cy - 8 * scale} ${cx + 2.5 * scale},${cy - 2.5 * scale} ${cx + 8 * scale},${cy - 2.5 * scale} ${cx + 3.5 * scale},${cy + 1.5 * scale} ${cx + 5.5 * scale},${cy + 7.5 * scale} ${cx},${cy + 4 * scale} ${cx - 5.5 * scale},${cy + 7.5 * scale} ${cx - 3.5 * scale},${cy + 1.5 * scale} ${cx - 8 * scale},${cy - 2.5 * scale} ${cx - 2.5 * scale},${cy - 2.5 * scale}`}
         fill="#eab308"
         stroke="#ffffff"
@@ -95,6 +105,7 @@ function ScatterShape(props: ShapeProps) {
     const r = isActive ? 9.5 : 7
     return (
       <path
+        {...a11y}
         d={`M ${cx - r} ${cy} L ${cx} ${cy - r} L ${cx + r} ${cy} L ${cx} ${cy + r} Z`}
         fill={props.fill}
         stroke={isActive ? '#ffffff' : 'var(--card)'}
@@ -107,6 +118,7 @@ function ScatterShape(props: ShapeProps) {
   }
   return (
     <circle
+      {...a11y}
       cx={cx}
       cy={cy}
       r={isActive ? 7.5 : 5}

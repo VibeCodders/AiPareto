@@ -126,6 +126,7 @@ export interface Strings {
   individualTier: string
   paretoOnly: string
   maxMonthlyCost: string
+  resetFilters: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -255,6 +256,7 @@ export const STRINGS: Record<Lang, Strings> = {
     individualTier: 'Individuale',
     paretoOnly: 'Solo Pareto',
     maxMonthlyCost: 'Costo mensile max',
+    resetFilters: 'Azzera filtri',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -382,6 +384,7 @@ export const STRINGS: Record<Lang, Strings> = {
     individualTier: 'Individual',
     paretoOnly: 'Pareto only',
     maxMonthlyCost: 'Max monthly cost',
+    resetFilters: 'Reset filters',
   },
 }
 

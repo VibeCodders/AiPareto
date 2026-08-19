@@ -20,7 +20,22 @@ const META = metaData as { fetchedAt: string }
 
 const ALL_FAMILIES = [...new Set([...BASE_MODELS.map((m) => m.family), ...SUBSCRIPTIONS.map((s) => s.provider)])].sort()
 
-const METRIC_DEFS = [
+type MetricLabelKey =
+  | 'intel'
+  | 'coding'
+  | 'agentic'
+  | 'tau2'
+  | 'hle'
+  | 'omniscience'
+  | 'outputSpeed'
+  | 'latency'
+  | 'context'
+  | 'valueScore'
+  | 'speedAdjustedScore'
+  | 'contextValue'
+  | 'efficiencyScore'
+
+const METRICS: Array<{ key: MetricKey; labelKey: MetricLabelKey; higherIsBetter: boolean }> = [
   { key: 'intelligenceIndex', labelKey: 'intel', higherIsBetter: true },
   { key: 'codingIndex', labelKey: 'coding', higherIsBetter: true },
   { key: 'agenticIndex', labelKey: 'agentic', higherIsBetter: true },
@@ -34,7 +49,7 @@ const METRIC_DEFS = [
   { key: 'speedAdjustedScore', labelKey: 'speedAdjustedScore', higherIsBetter: true },
   { key: 'contextValue', labelKey: 'contextValue', higherIsBetter: true },
   { key: 'efficiencyScore', labelKey: 'efficiencyScore', higherIsBetter: true },
-] as const
+]
 
 const VALUE_SCORE_BASES: Array<{ key: ValueScoreBase; labelKey: 'intel' | 'coding' | 'agentic' }> = [
   { key: 'intelligenceIndex', labelKey: 'intel' },
@@ -44,7 +59,7 @@ const VALUE_SCORE_BASES: Array<{ key: ValueScoreBase; labelKey: 'intel' | 'codin
 
 function computeMetricMax(models: Model[], costView: CostView, taskInput: number, taskOutput: number, valueScoreBase: ValueScoreBase = 'intelligenceIndex'): Record<MetricKey, number> {
   const base = Object.fromEntries(
-    METRIC_DEFS.map(({ key }) => {
+    METRICS.map(({ key }) => {
       const vals = models.map((m) => computeMetric(m, key, costView, taskInput, taskOutput, valueScoreBase)).filter((v): v is number => v != null)
       return [key, vals.length ? Math.ceil(Math.max(...vals)) : 1]
     }),
@@ -58,6 +73,13 @@ function computeMetricMax(models: Model[], costView: CostView, taskInput: number
 const STATIC_METRIC_MAX = computeMetricMax(BASE_MODELS, 'blended', 3000, 1000)
 const INITIAL = parseUrl(window.location.search, ALL_FAMILIES, STATIC_METRIC_MAX)
 
+// Preferences persist across sessions; an explicit URL parameter always wins over the saved value.
+const LS_LANG = 'ai-pareto-lang'
+const LS_THEME = 'ai-pareto-theme'
+const urlParams = new URLSearchParams(window.location.search)
+const urlHasLang = urlParams.get('lang') != null
+const urlHasTheme = urlParams.get('theme') != null
+
 const PALETTE = [
   '#f472b6', '#a78bfa', '#34d399', '#fbbf24', '#60a5fa', '#fb7185',
   '#2dd4bf', '#c084fc', '#f97316', '#4ade80', '#38bdf8', '#e879f9',
@@ -70,12 +92,6 @@ function colorFor(family: string): string {
   return PALETTE[h % PALETTE.length]
 }
 
-const METRICS: Array<{
-  key: MetricKey
-  labelKey: 'intel' | 'coding' | 'agentic' | 'tau2' | 'hle' | 'omniscience' | 'outputSpeed' | 'latency' | 'context' | 'valueScore' | 'speedAdjustedScore' | 'contextValue' | 'efficiencyScore'
-  higherIsBetter: boolean
-}> = METRIC_DEFS.map((d) => ({ key: d.key, labelKey: d.labelKey as never, higherIsBetter: d.higherIsBetter }))
-
 const COST_VIEWS: Array<{ key: CostView; labelKey: 'costViewInput' | 'costViewBlended' | 'costViewCache' | 'costViewOutput' | 'costViewTask' }> = [
   { key: 'input', labelKey: 'costViewInput' },
   { key: 'blended', labelKey: 'costViewBlended' },
@@ -85,8 +101,8 @@ const COST_VIEWS: Array<{ key: CostView; labelKey: 'costViewInput' | 'costViewBl
 ]
 
 export default function App() {
-  const [lang, setLang] = useState<Lang>(INITIAL.lang)
-  const [theme, setTheme] = useState<'dark' | 'light'>(INITIAL.theme)
+  const [lang, setLang] = useState<Lang>(() => (urlHasLang ? INITIAL.lang : (localStorage.getItem(LS_LANG) === 'en' ? 'en' : 'it')))
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => (urlHasTheme ? INITIAL.theme : (localStorage.getItem(LS_THEME) === 'light' ? 'light' : 'dark')))
   const [metric, setMetric] = useState<MetricKey>(INITIAL.metric)
   const [costView, setCostView] = useState<CostView>(INITIAL.costView)
   const [taskInput, setTaskInput] = useState(INITIAL.taskInput)
@@ -205,6 +221,8 @@ export default function App() {
   }
 
   useEffect(() => {
+    localStorage.setItem(LS_LANG, lang)
+    localStorage.setItem(LS_THEME, theme)
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
@@ -301,6 +319,35 @@ export default function App() {
     }
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
+  }
+
+  const resetFilters = () => {
+    setMetric('intelligenceIndex')
+    setCostView('input')
+    setTaskInput(3000)
+    setTaskOutput(1000)
+    setLogScale(true)
+    setIncludeEfforts(true)
+    setMaxEffortOnly(false)
+    setMinScore(0)
+    setQuery('')
+    setFamilies(new Set(ALL_FAMILIES))
+    setSelectedId(null)
+    setReasoningOnly(false)
+    setOpenWeightsOnly(false)
+    setMinPrice(0)
+    setMaxPrice(1000)
+    setCompareIds([])
+    setMinContext(0)
+    setReleasedFrom('')
+    setShowSubscriptions(true)
+    setUsageFactor(1)
+    setSubscriptionOnly(false)
+    setValueScoreBase('intelligenceIndex')
+    setEfficiencyWeights({ value: 1, speed: 1, context: 1 })
+    setShowTrend(false)
+    setParetoOnly(false)
+    setMaxMonthlyCost(0)
   }
 
   const points: Point[] = useMemo(() => {
@@ -590,6 +637,9 @@ export default function App() {
           <button className="btn" onClick={handleCopyLink} title={window.location.href}>
             {copied ? `✓ ${t.copied}` : `🔗 ${t.copyLink}`}
           </button>
+          <button className="btn" onClick={resetFilters} title={t.resetFilters}>
+            ↺ {t.resetFilters}
+          </button>
           {presetId && (
             <button className="btn btn-danger" onClick={() => { deletePreset(presetId); setPresets(listPresets()); setPresetId(null) }}>
               🗑 {t.deletePreset}
@@ -599,20 +649,24 @@ export default function App() {
       </section>
 
       <section className="chart-section">
-        <ParetoChart
-          points={displayedPoints}
-          frontier={frontier}
-          frontierSlugs={frontierSlugs}
-          logScale={logScale}
-          colorFor={colorFor}
-          metricName={t[METRICS.find((m) => m.key === metric)!.labelKey]}
-          costName={costView === 'task' ? `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})` : t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
-          costUnit={costView === 'task' ? '/task' : '/1M'}
-          formatScore={(v: number) => formatMetric(metric, v)}
-          formatTick={(v: number) => formatAxisTick(metric, v)}
-          t={t}
-          onSelect={(id) => setSelectedId(id)}
-        />
+        {displayedPoints.length === 0 ? (
+          <div className="empty-state">{t.noResults}</div>
+        ) : (
+          <ParetoChart
+            points={displayedPoints}
+            frontier={frontier}
+            frontierSlugs={frontierSlugs}
+            logScale={logScale}
+            colorFor={colorFor}
+            metricName={t[METRICS.find((m) => m.key === metric)!.labelKey]}
+            costName={costView === 'task' ? `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})` : t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
+            costUnit={costView === 'task' ? '/task' : '/1M'}
+            formatScore={(v: number) => formatMetric(metric, v)}
+            formatTick={(v: number) => formatAxisTick(metric, v)}
+            t={t}
+            onSelect={(id) => setSelectedId(id)}
+          />
+        )}
         <div className="count-bar muted">
           {displayedPoints.length} {t.modelsShown} {t.ofTotal} {ALL_ITEMS.length} · {t.clickHint}
           <button className="btn" onClick={() => setShowTrend((v) => !v)} style={{ marginLeft: 12 }}>
@@ -649,22 +703,26 @@ export default function App() {
             ⬇ {t.exportCsv}
           </button>
         </div>
-        <ModelTable
-          models={visibleModels}
-          metric={metric}
-          frontierIds={frontierSlugs}
-          frontierDeltas={frontierDeltas}
-          selectedId={selectedId}
-          costView={costView}
-          taskInput={taskInput}
-          taskOutput={taskOutput}
-          valueScoreBase={valueScoreBase}
-          efficiencyOpts={efficiencyOpts}
-          t={t}
-          onSelect={setSelectedId}
-          compareIds={compareIds}
-          onToggleCompare={toggleCompare}
-        />
+        {visibleModels.length === 0 ? (
+          <div className="empty-state">{t.noResults}</div>
+        ) : (
+          <ModelTable
+            models={visibleModels}
+            metric={metric}
+            frontierIds={frontierSlugs}
+            frontierDeltas={frontierDeltas}
+            selectedId={selectedId}
+            costView={costView}
+            taskInput={taskInput}
+            taskOutput={taskOutput}
+            valueScoreBase={valueScoreBase}
+            efficiencyOpts={efficiencyOpts}
+            t={t}
+            onSelect={setSelectedId}
+            compareIds={compareIds}
+            onToggleCompare={toggleCompare}
+          />
+        )}
       </section>
 
       <footer className="footer muted">
@@ -708,6 +766,10 @@ function ModelCard({
   const score = computeMetric(model, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
   const blended =
     model.inputPerM != null && model.outputPerM != null ? 0.8 * model.inputPerM + 0.2 * model.outputPerM : null
+  // Subscriptions are synthesized items (id = "sub:…") that don't exist on OpenRouter/AA —
+  // link to the underlying plan's model instead.
+  const orId = model.isSubscription ? model.subscription?.modelId : model.id
+  const aaSlug = model.isSubscription ? model.subscription?.modelSlug : model.slug
   return (
     <section className="model-card">
       <div className="mc-head">
@@ -756,10 +818,9 @@ function ModelCard({
         </div>
       )}
       <div className="mc-links">
-        <a href={`https://openrouter.ai/${model.id}`} target="_blank" rel="noreferrer">{t.openRouterLink} ↗</a>
-        <a href={`https://artificialanalysis.ai/models/${model.slug}`} target="_blank" rel="noreferrer">{t.aaLink} ↗</a>
+        <a href={`https://openrouter.ai/${orId}`} target="_blank" rel="noreferrer">{t.openRouterLink} ↗</a>
+        <a href={`https://artificialanalysis.ai/models/${aaSlug}`} target="_blank" rel="noreferrer">{t.aaLink} ↗</a>
       </div>
     </section>
   )
 }
-
