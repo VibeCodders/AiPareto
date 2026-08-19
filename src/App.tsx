@@ -139,6 +139,7 @@ export default function App() {
   const [sizeBy, setSizeBy] = useState<SizeBy>(INITIAL.sizeBy)
   const [showLabels, setShowLabels] = useState(INITIAL.showLabels)
   const [estimateMissing, setEstimateMissing] = useState(INITIAL.estimateMissing)
+  const [xMetric, setXMetric] = useState<MetricKey | null>(INITIAL.xMetric)
   const chartSvgRef = useRef<SVGSVGElement | null>(null)
   const [svgReady, setSvgReady] = useState(false)
   const [pngSaved, setPngSaved] = useState(false)
@@ -232,6 +233,7 @@ export default function App() {
     sizeBy,
     showLabels,
     estimateMissing,
+    xMetric,
   }
 
   useEffect(() => {
@@ -240,15 +242,10 @@ export default function App() {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing, xMetric])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
-  }
-
-  const selectCostView = (view: CostView) => {
-    if (metric === 'valueScore') setMinScore(0)
-    setCostView(view)
   }
 
   const toggleFamily = (f: string) => {
@@ -303,6 +300,7 @@ export default function App() {
     setSizeBy(s.sizeBy)
     setShowLabels(s.showLabels)
     setEstimateMissing(s.estimateMissing)
+    setXMetric(s.xMetric)
   }
 
   const handleSavePreset = () => {
@@ -368,6 +366,7 @@ export default function App() {
     setSizeBy('none')
     setShowLabels(true)
     setEstimateMissing(true)
+    setXMetric(null)
   }
 
   const points: Point[] = useMemo(() => {
@@ -390,23 +389,31 @@ export default function App() {
       if (maxEffortOnly && m.effort != null && m.effort !== 'max') return false
       if (!includeEfforts && m.effort != null) return false
       if (q && !`${m.aaName} ${m.name} ${m.id}`.toLowerCase().includes(q)) return false
-      const cost = costOf(m, costView)
-      if (cost == null || cost <= 0) return false
-      if (cost < minPrice || cost > maxPrice) return false
+      const price = costOf(m, costView)
+      if (price == null || price <= 0) return false
+      if (price < minPrice || price > maxPrice) return false
       if (minContext > 0 && (m.contextTokens == null || m.contextTokens < minContext)) return false
       if (releasedFrom && (m.released == null || m.released < releasedFrom)) return false
       return true
     })
-      .map((m) => ({
-        model: m,
-        cost: costOf(m, costView)!,
-        score: computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)!,
-        scoreEstimated: isEstimated(m, metric, valueScoreBase),
-      }))
-      .sort((a, b) => a.cost - b.cost)
-  }, [ALL_ITEMS, showSubscriptions, subscriptionOnly, maxMonthlyCost, families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom, valueScoreBase, efficiencyOpts])
+      .map((m): Point | null => {
+        // X is either the selected cost view or an arbitrary metric.
+        const x = xMetric != null ? computeMetric(m, xMetric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts) : costOf(m, costView)!
+        if (x == null || x <= 0 || !Number.isFinite(x)) return null
+        return {
+          model: m,
+          x,
+          score: computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)!,
+          scoreEstimated: isEstimated(m, metric, valueScoreBase) || (xMetric != null && isEstimated(m, xMetric, valueScoreBase)),
+        }
+      })
+      .filter((p): p is Point => p != null)
+      .sort((a, b) => a.x - b.x)
+  }, [ALL_ITEMS, showSubscriptions, subscriptionOnly, maxMonthlyCost, families, metric, minScore, maxEffortOnly, includeEfforts, query, costView, taskInput, taskOutput, reasoningOnly, openWeightsOnly, minPrice, maxPrice, minContext, releasedFrom, valueScoreBase, efficiencyOpts, xMetric])
 
-  const frontier = useMemo(() => computeFrontier(points, isLowerBetter(metric)), [points, metric])
+  // On the X axis "better" means cheaper for cost views, but for a metric it depends on the metric.
+  const xLowerIsBetter = useMemo(() => (xMetric == null ? true : isLowerBetter(xMetric)), [xMetric])
+  const frontier = useMemo(() => computeFrontier(points, isLowerBetter(metric), xLowerIsBetter), [points, metric, xLowerIsBetter])
   const frontierSlugs = useMemo(() => new Set(frontier.map((p) => p.model.slug)), [frontier])
   const frontierDeltas = useMemo(() => {
     const lower = isLowerBetter(metric)
@@ -423,6 +430,7 @@ export default function App() {
 
   const buildFilterSummary = (): string => {
     const parts: string[] = [`metric=${metric}`, `cost=${costView}`]
+    if (xMetric) parts.push(`xmetric=${xMetric}`)
     if (families.size !== ALL_FAMILIES.length) parts.push(`families=${[...families].join(',')}`)
     if (showSubscriptions) parts.push(`subscriptions=on (usage=${usageFactor * 100}%)`)
     if (subscriptionOnly) parts.push('subscriptionOnly')
@@ -502,14 +510,38 @@ export default function App() {
             )}
           </div>
           <div className="control-group">
-            <span className="control-label">{t.cost}</span>
-            <div className="badges" role="group">
-              {COST_VIEWS.map((v) => (
-                <button key={v.key} className={`badge ${costView === v.key ? 'on' : ''}`} onClick={() => selectCostView(v.key)}>
-                  {t[v.labelKey]}
-                </button>
-              ))}
-            </div>
+            <span className="control-label">{t.xAxis}</span>
+            <select
+              className="usage-select"
+              value={xMetric ? `metric:${xMetric}` : `cost:${costView}`}
+              onChange={(e) => {
+                const v = e.target.value
+                if (v.startsWith('cost:')) {
+                  const view = v.slice(5) as CostView
+                  setXMetric(null)
+                  if (metric === 'valueScore') setMinScore(0)
+                  setCostView(view)
+                } else {
+                  setXMetric(v.slice(7) as MetricKey)
+                }
+              }}
+            >
+              <optgroup label={t.xAxisCost}>
+                {COST_VIEWS.map((v) => (
+                  <option key={v.key} value={`cost:${v.key}`}>{t[v.labelKey]}</option>
+                ))}
+              </optgroup>
+              <optgroup label={t.xAxisMetrics}>
+                {METRICS.map((m) => (
+                  <option key={m.key} value={`metric:${m.key}`}>{t[m.labelKey]}</option>
+                ))}
+              </optgroup>
+            </select>
+            {xMetric != null && (
+              <span className="legend-muted" style={{ fontSize: 11 }}>
+                {t.cost}: {t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
+              </span>
+            )}
             {costView === 'task' && (
               <div className="task-inputs">
                 <label>
@@ -526,8 +558,8 @@ export default function App() {
         </div>
 
         <div className="control-row wrap">
-          <label className="check">
-            <input type="checkbox" checked={logScale} onChange={(e) => setLogScale(e.target.checked)} />
+          <label className="check" title={xMetric ? t.logScaleOnlyCost : undefined}>
+            <input type="checkbox" checked={logScale} disabled={xMetric != null} onChange={(e) => setLogScale(e.target.checked)} />
             {t.logScale}
           </label>
           <label className="check">
@@ -700,8 +732,9 @@ export default function App() {
             logScale={logScale}
             colorFor={colorFor}
             metricName={t[METRICS.find((m) => m.key === metric)!.labelKey]}
-            costName={costView === 'task' ? `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})` : t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
-            costUnit={costView === 'task' ? '/task' : '/1M'}
+            xName={xMetric ? t[METRICS.find((m) => m.key === xMetric)!.labelKey] : costView === 'task' ? `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})` : t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
+            xUnit={xMetric ? '' : costView === 'task' ? '/task' : '/1M'}
+            xIsMetric={xMetric != null}
             formatScore={(v: number) => formatMetric(metric, v)}
             formatTick={(v: number) => formatAxisTick(metric, v)}
             t={t}

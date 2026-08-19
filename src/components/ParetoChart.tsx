@@ -15,8 +15,12 @@ interface Props {
   logScale: boolean
   colorFor: (family: string) => string
   metricName: string
-  costName: string
-  costUnit: string
+  /** Label for the X axis: the selected cost view or metric. */
+  xName: string
+  /** Unit suffix for X values (e.g. "/1M", "/task"; empty for metrics). */
+  xUnit: string
+  /** True when the X axis is a metric rather than a cost. */
+  xIsMetric: boolean
   formatScore: (v: number) => string
   formatTick: (v: number) => string
   t: T
@@ -36,10 +40,10 @@ interface Props {
 }
 
 interface TooltipPayload {
-  payload?: { model?: Model; cost?: number; score?: number; scoreEstimated?: boolean }
+  payload?: { model?: Model; x?: number; score?: number; scoreEstimated?: boolean }
 }
 
-function TooltipContent({ active, payload, t, costUnit, formatScore }: { active?: boolean; payload?: TooltipPayload[]; t: T; costUnit: string; formatScore: (v: number) => string }) {
+function TooltipContent({ active, payload, t, xName, xUnit, formatX, formatScore }: { active?: boolean; payload?: TooltipPayload[]; t: T; xName: string; xUnit: string; formatX: (v: number) => string; formatScore: (v: number) => string }) {
   if (!active || !payload?.length) return null
   const p = payload[0]?.payload
   const m = p?.model
@@ -60,8 +64,8 @@ function TooltipContent({ active, payload, t, costUnit, formatScore }: { active?
       )}
       {m.family && <div className="tooltip-row muted">{m.family}</div>}
       <div className="tooltip-row">
-        <span>{t.cost}:</span>
-        <b>{formatUsd(p?.cost)}{costUnit}</b>
+        <span>{xName}:</span>
+        <b>{p?.x != null ? formatX(p.x) : '—'}{xUnit}</b>
       </div>
       <div className="tooltip-row">
         <span>{t.score}:</span>
@@ -253,7 +257,7 @@ function sizeLegendItems(sizeBy: SizeBy): { value: number; label: string }[] {
 // Kept in a ref so the MutationObserver below always reports to the latest callback without re-subscribing.
 const onSvgReadyRef: { current?: (svg: SVGSVGElement | null) => void } = {}
 
-export default function ParetoChart({ points, frontier, frontierSlugs, logScale, colorFor, metricName, costName, costUnit, formatScore, formatTick, t, onSelect, sizeBy, showLabels, highlightedSlugs, estimatedSlugs, estimatesActive, onSvgReady }: Props) {
+export default function ParetoChart({ points, frontier, frontierSlugs, logScale, colorFor, metricName, xName, xUnit, xIsMetric, formatScore, formatTick, t, onSelect, sizeBy, showLabels, highlightedSlugs, estimatedSlugs, estimatesActive, onSvgReady }: Props) {
   const [wrapWidth, setWrapWidth] = useState(0)
   const wrapRef = useRef<HTMLDivElement>(null)
   onSelectRef.current = onSelect
@@ -289,11 +293,12 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
   const data = useMemo(
     () =>
       [...points]
-        .sort((a, b) => a.cost - b.cost)
+        .sort((a, b) => a.x - b.x)
         .map((p) => ({ ...p, key: `${p.model.id}:${p.model.slug}`, isFrontier: frontierSlugs.has(p.model.slug) })),
     [points, frontierSlugs],
   )
-  const frontierSorted = useMemo(() => [...frontier].sort((a, b) => a.cost - b.cost), [frontier])
+  const frontierSorted = useMemo(() => [...frontier].sort((a, b) => a.x - b.x), [frontier])
+  const xTickFormatter = (v: number) => (xIsMetric ? formatTick(v) : formatUsd(v, v < 0.01 ? 4 : v < 1 ? 3 : 1))
   const yDomain: [number, number] = useMemo(() => {
     const max = points.reduce((m, p) => Math.max(m, p.score), 0)
     return [0, niceCeil(max)]
@@ -316,15 +321,15 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
         <ComposedChart data={data} margin={{ top: 12, right: 18, bottom: 8, left: 4 }}>
           <CartesianGrid stroke="var(--grid)" strokeDasharray="3 3" />
           <XAxis
-            dataKey="cost"
+            dataKey="x"
             type="number"
-            scale={logScale ? 'log' : 'linear'}
-            domain={logScale ? ['auto', 'auto'] : [0, 'auto']}
+            scale={xIsMetric ? 'linear' : logScale ? 'log' : 'linear'}
+            domain={xIsMetric ? [0, 'auto'] : logScale ? ['auto', 'auto'] : [0, 'auto']}
             allowDataOverflow
-            tickFormatter={(v: number) => formatUsd(v, v < 0.01 ? 4 : v < 1 ? 3 : 1)}
+            tickFormatter={xTickFormatter}
             stroke="var(--axis)"
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
-            label={{ value: costName, position: 'insideBottom', offset: -4, fill: 'var(--text-muted)', fontSize: 12 }}
+            label={{ value: xName, position: 'insideBottom', offset: -4, fill: 'var(--text-muted)', fontSize: 12 }}
           />
           <YAxis
             dataKey="score"
@@ -336,7 +341,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
             label={{ value: metricName, angle: -90, position: 'insideLeft', offset: 10, fill: 'var(--text-muted)', fontSize: 12 }}
           />
           <Tooltip
-            content={<TooltipContent t={t} costUnit={costUnit} formatScore={formatScore} />}
+            content={<TooltipContent t={t} xName={xName} xUnit={xUnit} formatX={xTickFormatter} formatScore={formatScore} />}
             cursor={{ strokeDasharray: '4 4', stroke: 'var(--axis)' }}
             isAnimationActive={false}
           />

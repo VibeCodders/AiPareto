@@ -43,6 +43,8 @@ export interface UrlState {
   showLabels: boolean
   /** Fill missing benchmark/spec values with similarity-based estimates (marked ≈). */
   estimateMissing: boolean
+  /** Metric on the X axis; null means the X axis is the selected cost view instead. */
+  xMetric: MetricKey | null
 }
 
 
@@ -140,6 +142,7 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     sizeBy: SIZE_BYS.includes(p.get('size') as 'none' | 'context' | 'speed') ? (p.get('size') as 'none' | 'context' | 'speed') : 'none',
     showLabels: p.get('labels') !== '0',
     estimateMissing: p.get('est') !== '0',
+    xMetric: METRICS.includes(p.get('xmet') as MetricKey) ? (p.get('xmet') as MetricKey) : null,
   }
 }
 
@@ -183,6 +186,7 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (s.sizeBy !== 'none') p.set('size', s.sizeBy)
   if (!s.showLabels) p.set('labels', '0')
   if (!s.estimateMissing) p.set('est', '0')
+  if (s.xMetric) p.set('xmet', s.xMetric)
   return p.toString()
 }
 

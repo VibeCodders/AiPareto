@@ -77,7 +77,9 @@ export interface ComparisonModel {
 
 export interface Point {
   model: Model
-  cost: number
+  /** X-axis value: a cost (USD per the selected cost view) or any metric value. */
+  x: number
+  /** Y-axis value (the selected metric). */
   score: number
   /** True when the plotted score was estimated because the raw value was missing. */
   scoreEstimated?: boolean

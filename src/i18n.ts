@@ -137,6 +137,10 @@ export interface Strings {
   estimateMissing: string
   estimated: string
   estimatedHint: string
+  xAxis: string
+  xAxisCost: string
+  xAxisMetrics: string
+  logScaleOnlyCost: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -277,6 +281,10 @@ export const STRINGS: Record<Lang, Strings> = {
     estimateMissing: 'Stima valori mancanti',
     estimated: 'stimato',
     estimatedHint: 'I valori mancanti sono stimati da modelli simili (k-NN: famiglia + punteggi); ≈ indica una stima',
+    xAxis: 'Asse X',
+    xAxisCost: 'Costo',
+    xAxisMetrics: 'Metriche',
+    logScaleOnlyCost: 'La scala logaritmica si applica solo agli assi costo',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -415,6 +423,10 @@ export const STRINGS: Record<Lang, Strings> = {
     estimateMissing: 'Estimate missing values',
     estimated: 'estimated',
     estimatedHint: 'Missing values are estimated from similar models (k-NN: family + scores); ≈ marks an estimate',
+    xAxis: 'X axis',
+    xAxisCost: 'Cost',
+    xAxisMetrics: 'Metrics',
+    logScaleOnlyCost: 'Log scale only applies to cost axes',
   },
 }
 

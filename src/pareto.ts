@@ -119,14 +119,16 @@ export function computeMetric(
 }
 
 /**
- * How far a point sits behind the Pareto frontier at an equal-or-lower cost, as a percentage
+ * How far a point sits behind the Pareto frontier at an equal-or-better X value, as a percentage
  * of the frontier's score. 0% means the point is on the frontier; higher means further behind.
- * Returns null if no frontier point at an equal-or-lower cost exists (point is cheaper than the whole frontier).
+ * Returns null if no frontier point at an equal-or-better X exists (point is better than the whole frontier).
  */
-export function frontierDeltaOf(point: Point, frontierSortedByCost: Point[], lowerIsBetter: boolean): number | null {
+export function frontierDeltaOf(point: Point, frontierSortedByX: Point[], lowerIsBetter: boolean): number | null {
   let ref: Point | undefined
-  for (const f of frontierSortedByCost) {
-    if (f.cost <= point.cost) ref = f
+  // Frontier is sorted by ascending X; "equal-or-better" means the frontier point with the
+  // largest X not exceeding the point's own X (whether X is a cost or a higher-is-better metric).
+  for (const f of frontierSortedByX) {
+    if (f.x <= point.x) ref = f
     else break
   }
   if (!ref || ref.score === 0) return null
@@ -142,21 +144,25 @@ export function formatDelta(v: number | null | undefined): string {
 
 /**
  * Pareto-optimal points: a point is on the frontier if no other point has
- * cost <= its cost AND a better score (>= for higher-is-better metrics,
+ * an X value at least as good AND a better score (>= for higher-is-better metrics,
  * <= for lower-is-better ones like latency), with at least one strict.
- * Returns the frontier sorted by ascending cost.
+ * `xLowerIsBetter` is true when the X axis is a cost (cheaper is better); for metrics
+ * like context where more is better it is false.
+ * Returns the frontier sorted by ascending X.
  */
-export function computeFrontier(points: Point[], lowerIsBetter = false): Point[] {
-  // Drop exact duplicates (same cost and score)
+export function computeFrontier(points: Point[], lowerIsBetter = false, xLowerIsBetter = true): Point[] {
+  // Drop exact duplicates (same X and score)
   const seen = new Set<string>()
   const unique: Point[] = []
   for (const p of points) {
-    const key = `${p.cost}|${p.score}`
+    const key = `${p.x}|${p.score}`
     if (seen.has(key)) continue
     seen.add(key)
     unique.push(p)
   }
-  unique.sort((a, b) => a.cost - b.cost || (lowerIsBetter ? a.score - b.score : b.score - a.score))
+  // Scan from the best X end so the running "best score so far" is always admissible;
+  // reverse at the end so the returned frontier is ascending in X regardless.
+  unique.sort((a, b) => (xLowerIsBetter ? a.x - b.x : b.x - a.x) || (lowerIsBetter ? a.score - b.score : b.score - a.score))
   const frontier: Point[] = []
   let best = lowerIsBetter ? Infinity : -Infinity
   for (const p of unique) {
@@ -166,7 +172,7 @@ export function computeFrontier(points: Point[], lowerIsBetter = false): Point[]
       best = p.score
     }
   }
-  return frontier
+  return xLowerIsBetter ? frontier : frontier.reverse()
 }
 
 /** Round up to a "nice" axis max (1/2/2.5/5/7.5 × 10^n) so ticks look clean. */
