@@ -10,7 +10,7 @@ import { parseUrl, toSearch, type UrlState } from './urlState'
 import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
 import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
-import { estimateModels, isCostEstimated, isEstimated, isFieldEstimated } from './estimation'
+import { estimateModels, isCostEstimated, isEstimated, isFieldEstimated, type EstimatedModel } from './estimation'
 import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
@@ -158,6 +158,25 @@ export default function App() {
       // What paying per-token for the underlying model would cost at the same estimated usage, for comparison.
       const paygoBlended = baseModel.inputPerM != null && baseModel.outputPerM != null ? 0.8 * baseModel.inputPerM + 0.2 * baseModel.outputPerM : null
       const paygoEquivalentMonthly = paygoBlended != null ? (paygoBlended * actualTokensMonthly) / 1e6 : null
+
+      const subEstimatedMetrics = new Set<string>(
+        (baseModel as Partial<EstimatedModel>).estimatedMetrics ? Array.from((baseModel as Partial<EstimatedModel>).estimatedMetrics!) : [],
+      )
+
+      // Subscriptions have flat effective token cost for input; derive output/cache proportional to base model or standard multipliers
+      const ratioOutput = baseModel.inputPerM && baseModel.outputPerM ? baseModel.outputPerM / baseModel.inputPerM : 3.0
+      const ratioCacheRead = baseModel.inputPerM && baseModel.cacheReadPerM ? baseModel.cacheReadPerM / baseModel.inputPerM : 0.25
+      const ratioCacheWrite = baseModel.inputPerM && baseModel.cacheWritePerM ? baseModel.cacheWritePerM / baseModel.inputPerM : 1.25
+
+      const subOutputPerM = Number((effectiveCostPerM * ratioOutput).toFixed(4))
+      const subCacheReadPerM = Number((effectiveCostPerM * ratioCacheRead).toFixed(4))
+      const subCacheWritePerM = Number((effectiveCostPerM * ratioCacheWrite).toFixed(4))
+
+      subEstimatedMetrics.add('outputPerM')
+      subEstimatedMetrics.add('cacheReadPerM')
+      subEstimatedMetrics.add('cacheWritePerM')
+      subEstimatedMetrics.add('inputPerM')
+
       return {
         ...baseModel,
         id: `sub:${sub.id}`,
@@ -173,13 +192,15 @@ export default function App() {
         effectiveCostPerM,
         paygoEquivalentMonthly,
         inputPerM: effectiveCostPerM,
-        outputPerM: null,
-        cacheReadPerM: null,
-        cacheWritePerM: null,
+        outputPerM: subOutputPerM,
+        cacheReadPerM: subCacheReadPerM,
+        cacheWritePerM: subCacheWritePerM,
+        estimatedMetrics: subEstimatedMetrics,
       }
     })
     return [...DISPLAY_BASE, ...subModels]
   }, [usageFactor, DISPLAY_BASE])
+
 
   // Reactive to costView/taskInput/taskOutput/valueScoreBase since valueScore's scale depends on the chosen cost basis and benchmark.
   const METRIC_MAX = useMemo(() => computeMetricMax(ALL_ITEMS, costView, taskInput, taskOutput, valueScoreBase), [ALL_ITEMS, costView, taskInput, taskOutput, valueScoreBase])

@@ -210,16 +210,16 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                     {estScore ? '≈ ' : ''}{formatMetric(metric, score)}
                   </td>
                   <td className={`num ${estInput ? 'est' : ''}`} title={estInput ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {estInput ? '≈ ' : ''}{m.isSubscription ? formatUsd(m.effectiveCostPerM) : formatUsd(m.inputPerM)}
+                    {estInput ? '≈ ' : ''}{formatUsd(m.isSubscription ? (m.inputPerM ?? m.effectiveCostPerM) : m.inputPerM)}
                   </td>
                   <td className={`num ${estOutput ? 'est' : ''}`} title={estOutput ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {estOutput ? '≈ ' : ''}{m.isSubscription ? '—' : formatUsd(m.outputPerM)}
+                    {m.outputPerM != null ? `${estOutput ? '≈ ' : ''}${formatUsd(m.outputPerM)}` : '—'}
                   </td>
                   <td className={`num ${estCache ? 'est' : ''}`} title={estCache ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {estCache ? '≈ ' : ''}{m.isSubscription ? '—' : formatUsd(m.cacheReadPerM)}
+                    {m.cacheReadPerM != null ? `${estCache ? '≈ ' : ''}${formatUsd(m.cacheReadPerM)}` : '—'}
                   </td>
                   <td className={`num bold ${estBlended ? 'est' : ''}`} title={estBlended ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {estBlended ? '≈ ' : ''}{formatUsd(blended)}
+                    {blended != null ? `${estBlended ? '≈ ' : ''}${formatUsd(blended)}` : '—'}
                   </td>
                   {visibleCols.has('codingIndex') && (
                     <td className={`num ${estCoding ? 'est' : ''}`} title={estCoding ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
