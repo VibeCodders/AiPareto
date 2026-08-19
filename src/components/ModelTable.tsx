@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
 import { computeMetric, formatDelta, formatMetric, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
-import { isEstimated } from '../estimation'
+import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
 
@@ -157,6 +157,18 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
               const score = computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
               const blended = costOf(m, costView)
               const delta = frontierDeltas.get(m.slug) ?? null
+
+              const estScore = isEstimated(m, metric, valueScoreBase)
+              const estInput = isFieldEstimated(m, 'inputPerM')
+              const estOutput = isFieldEstimated(m, 'outputPerM')
+              const estCache = isFieldEstimated(m, 'cacheReadPerM')
+              const estBlended = isCostEstimated(m, costView)
+              const estCoding = isFieldEstimated(m, 'codingIndex')
+              const estAgentic = isFieldEstimated(m, 'agenticIndex')
+              const estSpeed = isFieldEstimated(m, 'outputSpeed')
+              const estLatency = isFieldEstimated(m, 'latencySeconds')
+              const estContext = isFieldEstimated(m, 'contextTokens')
+
               return (
                 <tr
                   key={m.slug}
@@ -194,39 +206,39 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                       )}
                     </td>
                   )}
-                  <td className={`num bold ${isEstimated(m, metric, valueScoreBase) ? 'est' : ''}`} title={isEstimated(m, metric, valueScoreBase) ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {isEstimated(m, metric, valueScoreBase) ? '≈ ' : ''}{formatMetric(metric, score)}
+                  <td className={`num bold ${estScore ? 'est' : ''}`} title={estScore ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                    {estScore ? '≈ ' : ''}{formatMetric(metric, score)}
                   </td>
-                  <td className="num" onClick={() => onSelect(m.slug)}>
-                    {m.isSubscription ? formatUsd(m.effectiveCostPerM) : formatUsd(m.inputPerM)}
+                  <td className={`num ${estInput ? 'est' : ''}`} title={estInput ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                    {estInput ? '≈ ' : ''}{m.isSubscription ? formatUsd(m.effectiveCostPerM) : formatUsd(m.inputPerM)}
                   </td>
-                  <td className="num" onClick={() => onSelect(m.slug)}>
-                    {m.isSubscription ? '—' : formatUsd(m.outputPerM)}
+                  <td className={`num ${estOutput ? 'est' : ''}`} title={estOutput ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                    {estOutput ? '≈ ' : ''}{m.isSubscription ? '—' : formatUsd(m.outputPerM)}
                   </td>
-                  <td className="num" onClick={() => onSelect(m.slug)}>
-                    {m.isSubscription ? '—' : formatUsd(m.cacheReadPerM)}
+                  <td className={`num ${estCache ? 'est' : ''}`} title={estCache ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                    {estCache ? '≈ ' : ''}{m.isSubscription ? '—' : formatUsd(m.cacheReadPerM)}
                   </td>
-                  <td className="num bold" onClick={() => onSelect(m.slug)}>
-                    {formatUsd(blended)}
+                  <td className={`num bold ${estBlended ? 'est' : ''}`} title={estBlended ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                    {estBlended ? '≈ ' : ''}{formatUsd(blended)}
                   </td>
                   {visibleCols.has('codingIndex') && (
-                    <td className={`num ${isEstimated(m, 'codingIndex') ? 'est' : ''}`} title={isEstimated(m, 'codingIndex') ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {m.codingIndex != null ? `${isEstimated(m, 'codingIndex') ? '≈ ' : ''}${m.codingIndex.toFixed(1)}` : '—'}
+                    <td className={`num ${estCoding ? 'est' : ''}`} title={estCoding ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {m.codingIndex != null ? `${estCoding ? '≈ ' : ''}${m.codingIndex.toFixed(1)}` : '—'}
                     </td>
                   )}
                   {visibleCols.has('agenticIndex') && (
-                    <td className={`num ${isEstimated(m, 'agenticIndex') ? 'est' : ''}`} title={isEstimated(m, 'agenticIndex') ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {m.agenticIndex != null ? `${isEstimated(m, 'agenticIndex') ? '≈ ' : ''}${m.agenticIndex.toFixed(1)}` : '—'}
+                    <td className={`num ${estAgentic ? 'est' : ''}`} title={estAgentic ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {m.agenticIndex != null ? `${estAgentic ? '≈ ' : ''}${m.agenticIndex.toFixed(1)}` : '—'}
                     </td>
                   )}
                   {visibleCols.has('outputSpeed') && (
-                    <td className={`num ${isEstimated(m, 'outputSpeed') ? 'est' : ''}`} title={isEstimated(m, 'outputSpeed') ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {m.outputSpeed != null ? `${isEstimated(m, 'outputSpeed') ? '≈ ' : ''}${Math.round(m.outputSpeed)} tok/s` : '—'}
+                    <td className={`num ${estSpeed ? 'est' : ''}`} title={estSpeed ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {m.outputSpeed != null ? `${estSpeed ? '≈ ' : ''}${Math.round(m.outputSpeed)} tok/s` : '—'}
                     </td>
                   )}
                   {visibleCols.has('latencySeconds') && (
-                    <td className={`num ${isEstimated(m, 'latencySeconds') ? 'est' : ''}`} title={isEstimated(m, 'latencySeconds') ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {m.latencySeconds != null ? `${isEstimated(m, 'latencySeconds') ? '≈ ' : ''}${m.latencySeconds.toFixed(1)}s` : '—'}
+                    <td className={`num ${estLatency ? 'est' : ''}`} title={estLatency ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {m.latencySeconds != null ? `${estLatency ? '≈ ' : ''}${m.latencySeconds.toFixed(1)}s` : '—'}
                     </td>
                   )}
                   {visibleCols.has('frontierDelta') && (
@@ -234,8 +246,8 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                       {formatDelta(delta)}
                     </td>
                   )}
-                  <td className="num" onClick={() => onSelect(m.slug)}>
-                    {formatTokens(m.contextTokens)}
+                  <td className={`num ${estContext ? 'est' : ''}`} title={estContext ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                    {estContext ? '≈ ' : ''}{formatTokens(m.contextTokens)}
                   </td>
                   <td className="num muted" onClick={() => onSelect(m.slug)}>
                     {m.released ?? '—'}

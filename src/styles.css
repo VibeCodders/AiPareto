@@ -323,16 +323,20 @@ h1 {
   flex-shrink: 0;
 }
 
-/* Estimated (imputed) values are shown in italic with a subtle accent tint. */
+/* Estimated (imputed) values are shown with subtle italic accent styling and badge support. */
 .est {
   font-style: italic;
-  color: color-mix(in srgb, var(--text) 75%, var(--accent));
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
+  text-decoration: underline dotted color-mix(in srgb, var(--accent) 60%, transparent);
+  text-underline-offset: 3px;
 }
 
 .tag-est {
   border-color: var(--accent);
   color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   font-style: italic;
+  font-weight: 500;
 }
 
 .size-legend {

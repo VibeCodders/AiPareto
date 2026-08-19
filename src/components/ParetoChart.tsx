@@ -40,7 +40,7 @@ interface Props {
 }
 
 interface TooltipPayload {
-  payload?: { model?: Model; x?: number; score?: number; scoreEstimated?: boolean }
+  payload?: { model?: Model; x?: number; score?: number; scoreEstimated?: boolean; xEstimated?: boolean }
 }
 
 function TooltipContent({ active, payload, t, xName, xUnit, formatX, formatScore }: { active?: boolean; payload?: TooltipPayload[]; t: T; xName: string; xUnit: string; formatX: (v: number) => string; formatScore: (v: number) => string }) {
@@ -65,21 +65,31 @@ function TooltipContent({ active, payload, t, xName, xUnit, formatX, formatScore
       {m.family && <div className="tooltip-row muted">{m.family}</div>}
       <div className="tooltip-row">
         <span>{xName}:</span>
-        <b>{p?.x != null ? formatX(p.x) : '—'}{xUnit}</b>
+        <b className={p?.xEstimated ? 'est' : ''}>
+          {p?.xEstimated ? '≈ ' : ''}{p?.x != null ? formatX(p.x) : '—'}{xUnit}
+        </b>
       </div>
       <div className="tooltip-row">
         <span>{t.score}:</span>
-        <b>{p?.score != null ? formatScore(p.score) : '—'}</b>
+        <b className={p?.scoreEstimated ? 'est' : ''}>
+          {p?.scoreEstimated ? '≈ ' : ''}{p?.score != null ? formatScore(p.score) : '—'}
+        </b>
       </div>
       {tags.length > 0 && (
         <div className="tooltip-row muted" style={{ fontSize: 11, marginTop: 4 }}>
           {tags.join(' · ')}
         </div>
       )}
-      {p?.scoreEstimated && (
-        <div className="tooltip-row" style={{ fontSize: 11, marginTop: 4 }}>
+      {(p?.scoreEstimated || p?.xEstimated) && (
+        <div className="tooltip-row" style={{ fontSize: 11, marginTop: 4, color: 'var(--accent)' }}>
           <span>≈</span>
-          <b style={{ fontWeight: 500 }}>{t.estimated}</b>
+          <b style={{ fontWeight: 500 }}>
+            {p?.scoreEstimated && p?.xEstimated
+              ? `${t.estimated} (X & Y)`
+              : p?.scoreEstimated
+              ? `${t.estimated} (${t.score})`
+              : `${t.estimated} (${xName})`}
+          </b>
         </div>
       )}
       {m.subscription?.rateLimitDesc && (
@@ -473,7 +483,7 @@ export default function ParetoChart({ points, frontier, frontierSlugs, logScale,
             tickFormatter={(v: number) => formatTick(v)}
             stroke="var(--axis)"
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
-            label={{ value: metricName, angle: -90, position: 'insideLeft', offset: 10, fill: 'var(--text-muted)', fontSize: 12 }}
+            label={{ value: metricName, angle: -90, position: 'insideLeft', offset: 12, fill: 'var(--text-muted)', fontSize: 12 }}
           />
           <Tooltip
             content={<TooltipContent t={t} xName={xName} xUnit={xUnit} formatX={xTickFormatter} formatScore={formatScore} />}

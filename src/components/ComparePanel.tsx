@@ -1,6 +1,6 @@
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
 import { computeMetric, formatMetric, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
-import { isEstimated } from '../estimation'
+import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import type { T } from '../i18n'
 
 interface Row {
@@ -8,8 +8,10 @@ interface Row {
   higherIsBetter: boolean
   value: (m: Model) => number | null
   format: (v: number | null) => string
-  /** Metric key used to check whether the shown value is an estimate. */
+  /** Metric key or field key used to check whether the shown value is an estimate. */
+  estField?: string
   estMetric?: MetricKey
+  costView?: CostView
 }
 
 const BENCHMARK_ROWS: Row[] = [
@@ -52,10 +54,10 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
   }
 
   const costRows: Row[] = [
-    { labelKey: 'input', higherIsBetter: false, value: (m) => m.inputPerM, format: (v) => formatUsd(v) },
-    { labelKey: 'output', higherIsBetter: false, value: (m) => m.outputPerM, format: (v) => formatUsd(v) },
-    { labelKey: 'cache', higherIsBetter: false, value: (m) => m.cacheReadPerM, format: (v) => formatUsd(v) },
-    { labelKey: 'blended', higherIsBetter: false, value: (m) => costOf(m, costView, taskInput, taskOutput), format: (v) => formatUsd(v) },
+    { labelKey: 'input', higherIsBetter: false, value: (m) => m.inputPerM, format: (v) => formatUsd(v), estField: 'inputPerM' },
+    { labelKey: 'output', higherIsBetter: false, value: (m) => m.outputPerM, format: (v) => formatUsd(v), estField: 'outputPerM' },
+    { labelKey: 'cache', higherIsBetter: false, value: (m) => m.cacheReadPerM, format: (v) => formatUsd(v), estField: 'cacheReadPerM' },
+    { labelKey: 'blended', higherIsBetter: false, value: (m) => costOf(m, costView, taskInput, taskOutput), format: (v) => formatUsd(v), costView },
     { labelKey: 'valueScore', higherIsBetter: true, value: (m) => computeMetric(m, 'valueScore', costView, taskInput, taskOutput, valueScoreBase), format: (v) => formatMetric('valueScore', v), estMetric: 'valueScore' },
     { labelKey: 'speedAdjustedScore', higherIsBetter: true, value: (m) => computeMetric(m, 'speedAdjustedScore', costView, taskInput, taskOutput), format: (v) => formatMetric('speedAdjustedScore', v), estMetric: 'speedAdjustedScore' },
     { labelKey: 'contextValue', higherIsBetter: true, value: (m) => computeMetric(m, 'contextValue', costView, taskInput, taskOutput), format: (v) => formatMetric('contextValue', v), estMetric: 'contextValue' },
@@ -111,7 +113,10 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
                   <tr key={String(row.labelKey)}>
                     <td className="muted">{t[row.labelKey] as string}</td>
                     {compared.map((m) => {
-                      const est = row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false
+                      const est =
+                        (row.estField ? isFieldEstimated(m, row.estField) : false) ||
+                        (row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false) ||
+                        (row.costView ? isCostEstimated(m, row.costView) : false)
                       return (
                         <td key={m.slug} className={`${winner === m.slug ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={winner === m.slug ? t.rank : est ? t.estimated : undefined}>
                           {est ? '≈ ' : ''}{row.format(row.value(m))}
@@ -128,7 +133,10 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
                   <tr key={String(row.labelKey)}>
                     <td className="muted">{t[row.labelKey] as string}</td>
                     {compared.map((m) => {
-                      const est = row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false
+                      const est =
+                        (row.estField ? isFieldEstimated(m, row.estField) : false) ||
+                        (row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false) ||
+                        (row.costView ? isCostEstimated(m, row.costView) : false)
                       return (
                         <td key={m.slug} className={`${winner === m.slug ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={winner === m.slug ? t.rank : est ? t.estimated : undefined}>
                           {est ? '≈ ' : ''}{row.format(row.value(m))}

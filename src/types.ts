@@ -83,4 +83,6 @@ export interface Point {
   score: number
   /** True when the plotted score was estimated because the raw value was missing. */
   scoreEstimated?: boolean
+  /** True when the plotted X-axis value (cost or metric) was estimated. */
+  xEstimated?: boolean
 }

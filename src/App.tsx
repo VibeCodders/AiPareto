@@ -10,7 +10,7 @@ import { parseUrl, toSearch, type UrlState } from './urlState'
 import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
 import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
-import { estimateModels, isEstimated } from './estimation'
+import { estimateModels, isCostEstimated, isEstimated, isFieldEstimated } from './estimation'
 import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
@@ -400,11 +400,14 @@ export default function App() {
         // X is either the selected cost view or an arbitrary metric.
         const x = xMetric != null ? computeMetric(m, xMetric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts) : costOf(m, costView)!
         if (x == null || x <= 0 || !Number.isFinite(x)) return null
+        const isXEst = xMetric != null ? isEstimated(m, xMetric, valueScoreBase) : isCostEstimated(m, costView)
+        const isScoreEst = isEstimated(m, metric, valueScoreBase)
         return {
           model: m,
           x,
           score: computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)!,
-          scoreEstimated: isEstimated(m, metric, valueScoreBase) || (xMetric != null && isEstimated(m, xMetric, valueScoreBase)),
+          scoreEstimated: isScoreEst,
+          xEstimated: isXEst,
         }
       })
       .filter((p): p is Point => p != null)
@@ -742,7 +745,7 @@ export default function App() {
             sizeBy={sizeBy}
             showLabels={showLabels}
             highlightedSlugs={new Set([...(selectedId ? [selectedId] : []), ...compareIds])}
-            estimatedSlugs={new Set(displayedPoints.filter((p) => p.scoreEstimated).map((p) => p.model.slug))}
+            estimatedSlugs={new Set(displayedPoints.filter((p) => p.scoreEstimated || p.xEstimated).map((p) => p.model.slug))}
             estimatesActive={estimateMissing}
             onSvgReady={(svg) => { chartSvgRef.current = svg; setSvgReady(Boolean(svg)) }}
           />
@@ -861,6 +864,16 @@ function ModelCard({
   const scoreEstimated = isEstimated(model, metric, valueScoreBase)
   const blended =
     model.inputPerM != null && model.outputPerM != null ? 0.8 * model.inputPerM + 0.2 * model.outputPerM : null
+
+  const estInput = isFieldEstimated(model, 'inputPerM')
+  const estOutput = isFieldEstimated(model, 'outputPerM')
+  const estCache = isFieldEstimated(model, 'cacheReadPerM')
+  const estBlended = isCostEstimated(model, 'blended')
+  const estSpeed = isFieldEstimated(model, 'outputSpeed')
+  const estLatency = isFieldEstimated(model, 'latencySeconds')
+  const estContext = isFieldEstimated(model, 'contextTokens')
+  const hasAnyEstimate = (model as { estimatedMetrics?: Set<string> }).estimatedMetrics?.size ?? 0
+
   // Subscriptions are synthesized items (id = "sub:…") that don't exist on OpenRouter/AA —
   // link to the underlying plan's model instead.
   const orId = model.isSubscription ? model.subscription?.modelId : model.id
@@ -874,7 +887,7 @@ function ModelCard({
           {model.effort && <span className="tag">{model.effort}</span>}
           {model.isReasoning && <span className="tag">reasoning</span>}
           {model.openWeights && <span className="tag tag-open">open weights</span>}
-          {scoreEstimated && <span className="tag tag-est">≈ {t.estimated}</span>}
+          {hasAnyEstimate > 0 && <span className="tag tag-est">≈ {t.estimated}</span>}
           <button className={`btn compare-toggle ${inCompare ? 'on' : ''}`} onClick={onToggleCompare}>
             {inCompare ? `✓ ${t.removeFromCompare}` : `+ ${t.addToCompare}`}
           </button>
@@ -882,15 +895,15 @@ function ModelCard({
       </div>
       <div className="mc-grid">
         <div><span className="muted">{t.family}</span><b>{model.family}</b></div>
-        <div><span className="muted">{t[METRICS.find((m) => m.key === metric)!.labelKey]}</span><b className={scoreEstimated ? 'est' : ''}>{scoreEstimated ? '≈ ' : ''}{formatMetric(metric, score)}</b></div>
+        <div><span className="muted">{t[METRICS.find((m) => m.key === metric)!.labelKey]}</span><b className={scoreEstimated ? 'est' : ''} title={scoreEstimated ? t.estimated : undefined}>{scoreEstimated ? '≈ ' : ''}{formatMetric(metric, score)}</b></div>
         <div><span className="muted">{t.vsFrontier}</span><b className={frontierDelta != null && frontierDelta > 0.05 ? 'delta-behind' : 'delta-ok'}>{formatDelta(frontierDelta)}</b></div>
-        <div><span className="muted">{t.input}</span><b>{formatUsd(model.inputPerM)}/1M</b></div>
-        <div><span className="muted">{t.output}</span><b>{formatUsd(model.outputPerM)}/1M</b></div>
-        <div><span className="muted">{t.cache}</span><b>{formatUsd(model.cacheReadPerM)}/1M</b></div>
-        <div><span className="muted">{t.blended}</span><b>{formatUsd(blended)}/1M</b></div>
-        <div><span className="muted">{t.outputSpeed}</span><b className={isEstimated(model, 'outputSpeed') ? 'est' : ''}>{isEstimated(model, 'outputSpeed') ? '≈ ' : ''}{formatMetric('outputSpeed', model.outputSpeed)}</b></div>
-        <div><span className="muted">{t.latency}</span><b className={isEstimated(model, 'latencySeconds') ? 'est' : ''}>{isEstimated(model, 'latencySeconds') ? '≈ ' : ''}{formatMetric('latencySeconds', model.latencySeconds)}</b></div>
-        <div><span className="muted">{t.context}</span><b>{formatTokens(model.contextTokens)}</b></div>
+        <div><span className="muted">{t.input}</span><b className={estInput ? 'est' : ''} title={estInput ? t.estimated : undefined}>{estInput ? '≈ ' : ''}{formatUsd(model.inputPerM)}/1M</b></div>
+        <div><span className="muted">{t.output}</span><b className={estOutput ? 'est' : ''} title={estOutput ? t.estimated : undefined}>{estOutput ? '≈ ' : ''}{formatUsd(model.outputPerM)}/1M</b></div>
+        <div><span className="muted">{t.cache}</span><b className={estCache ? 'est' : ''} title={estCache ? t.estimated : undefined}>{estCache ? '≈ ' : ''}{formatUsd(model.cacheReadPerM)}/1M</b></div>
+        <div><span className="muted">{t.blended}</span><b className={estBlended ? 'est' : ''} title={estBlended ? t.estimated : undefined}>{estBlended ? '≈ ' : ''}{formatUsd(blended)}/1M</b></div>
+        <div><span className="muted">{t.outputSpeed}</span><b className={estSpeed ? 'est' : ''} title={estSpeed ? t.estimated : undefined}>{estSpeed ? '≈ ' : ''}{formatMetric('outputSpeed', model.outputSpeed)}</b></div>
+        <div><span className="muted">{t.latency}</span><b className={estLatency ? 'est' : ''} title={estLatency ? t.estimated : undefined}>{estLatency ? '≈ ' : ''}{formatMetric('latencySeconds', model.latencySeconds)}</b></div>
+        <div><span className="muted">{t.context}</span><b className={estContext ? 'est' : ''} title={estContext ? t.estimated : undefined}>{estContext ? '≈ ' : ''}{formatTokens(model.contextTokens)}</b></div>
         <div><span className="muted">{t.release}</span><b>{model.released ?? '—'}</b></div>
       </div>
       {model.isSubscription && model.subscription && (
