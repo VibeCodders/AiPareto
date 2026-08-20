@@ -55,6 +55,8 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
     t.speedAdjustedScore,
     t.contextValue,
     t.efficiencyScore,
+    t.parameters,
+    t.activeParameters,
     'estimated',
   ]
 
@@ -98,6 +100,8 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
       num(speedAdjustedScoreOf(m)),
       num(contextValueOf(m)),
       num(efficiencyScoreOf(m, costView, taskInput, taskOutput, { weights, norm })),
+      m.parameters != null ? String(m.parameters) : '',
+      m.activeParameters != null ? String(m.activeParameters) : '',
       // Metrics whose value was imputed (e.g. "codingIndex+latencySeconds"), empty when none.
       [...((m as { estimatedMetrics?: Set<string> }).estimatedMetrics ?? [])].sort().join('+'),
     ]

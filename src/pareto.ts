@@ -238,3 +238,12 @@ export function formatTokens(n: number | null | undefined): string {
   if (n >= 1000) return `${(n / 1000).toFixed(0)}k`
   return String(n)
 }
+
+export function formatParams(n: number | null | undefined): string {
+  if (n == null) return '—'
+  if (n >= 1e12) return `${(n / 1e12).toFixed(n >= 10e12 ? 0 : 1)}T`
+  if (n >= 1e9) return `${(n / 1e9).toFixed(n >= 10e9 ? 0 : 1)}B`
+  if (n >= 1e6) return `${(n / 1e6).toFixed(0)}M`
+  if (n >= 1e3) return `${(n / 1e3).toFixed(0)}K`
+  return String(n)
+}

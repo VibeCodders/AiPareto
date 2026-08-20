@@ -93,6 +93,8 @@ export interface Strings {
   releasedFrom: string
   columns: string
   exportCompare: string
+  parameters: string
+  activeParameters: string
   subscriptions: string
   showSubscriptions: string
   subscriptionUsage: string
@@ -239,6 +241,8 @@ export const STRINGS: Record<Lang, Strings> = {
     releasedFrom: 'Rilasciato dopo',
     columns: 'Colonne',
     exportCompare: 'Esporta confronto CSV',
+    parameters: 'Parametri',
+    activeParameters: 'Parametri attivi',
     subscriptions: 'Abbonamenti',
     showSubscriptions: 'Includi Abbonamenti',
     subscriptionUsage: 'Scenario Utilizzo',
@@ -383,6 +387,8 @@ export const STRINGS: Record<Lang, Strings> = {
     releasedFrom: 'Released after',
     columns: 'Columns',
     exportCompare: 'Export comparison CSV',
+    parameters: 'Parameters',
+    activeParameters: 'Active params',
     subscriptions: 'Subscriptions',
     showSubscriptions: 'Include Subscriptions',
     subscriptionUsage: 'Usage Scenario',

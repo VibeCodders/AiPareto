@@ -1,5 +1,5 @@
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
-import { computeMetric, formatMetric, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
+import { computeMetric, formatMetric, formatParams, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import type { T } from '../i18n'
 
@@ -24,6 +24,8 @@ const BENCHMARK_ROWS: Row[] = [
   { labelKey: 'outputSpeed', higherIsBetter: true, value: (m) => m.outputSpeed, format: (v) => formatMetric('outputSpeed', v), estMetric: 'outputSpeed' },
   { labelKey: 'latency', higherIsBetter: false, value: (m) => m.latencySeconds, format: (v) => formatMetric('latencySeconds', v), estMetric: 'latencySeconds' },
   { labelKey: 'context', higherIsBetter: true, value: (m) => m.contextTokens, format: (v) => formatTokens(v), estMetric: 'contextTokens' },
+  { labelKey: 'parameters', higherIsBetter: true, value: (m) => m.parameters, format: (v) => formatParams(v), estField: 'parameters' },
+  { labelKey: 'activeParameters', higherIsBetter: true, value: (m) => m.activeParameters, format: (v) => formatParams(v), estField: 'activeParameters' },
 ]
 
 interface Props {

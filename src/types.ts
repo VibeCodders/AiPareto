@@ -37,6 +37,8 @@ export interface Model {
   outputPerM: number | null
   cacheReadPerM: number | null
   cacheWritePerM: number | null
+  parameters: number | null
+  activeParameters: number | null
   valueScore: number | null
   // Subscription metadata if this item represents a subscription plan
   isSubscription?: boolean

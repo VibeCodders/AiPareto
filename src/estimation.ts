@@ -26,6 +26,8 @@ export type EstimableField =
   | 'outputPerM'
   | 'cacheReadPerM'
   | 'cacheWritePerM'
+  | 'parameters'
+  | 'activeParameters'
 
 export const ESTIMABLE_FIELDS: EstimableField[] = [
   'intelligenceIndex',
@@ -41,6 +43,8 @@ export const ESTIMABLE_FIELDS: EstimableField[] = [
   'outputPerM',
   'cacheReadPerM',
   'cacheWritePerM',
+  'parameters',
+  'activeParameters',
 ]
 
 export type EstimatedModel = Model & {
@@ -58,11 +62,12 @@ const DISTANCE_FEATURES: EstimableField[] = [
   'contextTokens',
   'inputPerM',
   'outputPerM',
+  'parameters',
 ]
 
 /** Feature weights tailored depending on what target field is being estimated. */
 const FEATURE_WEIGHTS: Record<EstimableField, Partial<Record<EstimableField, number>>> = {
-  intelligenceIndex: { codingIndex: 2.0, agenticIndex: 2.0, hle: 1.5, omniscience: 1.5, inputPerM: 0.8 },
+  intelligenceIndex: { codingIndex: 2.0, agenticIndex: 2.0, hle: 1.5, omniscience: 1.5, inputPerM: 0.8, parameters: 1.2 },
   codingIndex: { intelligenceIndex: 2.5, agenticIndex: 2.0, hle: 1.2, omniscience: 1.2 },
   agenticIndex: { intelligenceIndex: 2.5, codingIndex: 2.0, tau2: 1.8, hle: 1.2 },
   tau2: { agenticIndex: 2.5, intelligenceIndex: 1.8, codingIndex: 1.5 },
@@ -70,18 +75,20 @@ const FEATURE_WEIGHTS: Record<EstimableField, Partial<Record<EstimableField, num
   omniscience: { intelligenceIndex: 2.5, hle: 2.0, codingIndex: 1.5 },
   outputSpeed: { latencySeconds: 2.0, inputPerM: 1.2, contextTokens: 0.8 },
   latencySeconds: { outputSpeed: 2.0, inputPerM: 1.2, contextTokens: 0.8 },
-  contextTokens: { inputPerM: 1.2, outputPerM: 1.2, intelligenceIndex: 0.8 },
+  contextTokens: { inputPerM: 1.2, outputPerM: 1.2, intelligenceIndex: 0.8, parameters: 1.0 },
   inputPerM: { outputPerM: 3.0, intelligenceIndex: 1.8, codingIndex: 1.2, contextTokens: 1.0 },
   outputPerM: { inputPerM: 3.0, intelligenceIndex: 1.8, codingIndex: 1.2 },
   cacheReadPerM: { inputPerM: 3.0, outputPerM: 1.5 },
   cacheWritePerM: { inputPerM: 3.0, outputPerM: 1.5 },
+  parameters: { intelligenceIndex: 2.5, contextTokens: 1.5, inputPerM: 1.2 },
+  activeParameters: { parameters: 3.0, intelligenceIndex: 1.0 },
 }
 
 /** Feature value on a normalized/log scale for fair distance comparison. */
 function featureValue(m: Model, k: EstimableField): number | null {
   const v = m[k]
   if (v == null || !Number.isFinite(v)) return null
-  if (k === 'contextTokens' || k === 'inputPerM' || k === 'outputPerM' || k === 'cacheReadPerM' || k === 'cacheWritePerM' || k === 'outputSpeed' || k === 'latencySeconds') {
+  if (k === 'contextTokens' || k === 'inputPerM' || k === 'outputPerM' || k === 'cacheReadPerM' || k === 'cacheWritePerM' || k === 'outputSpeed' || k === 'latencySeconds' || k === 'parameters' || k === 'activeParameters') {
     return Math.log10(Math.max(v, 0.0001))
   }
   return v
@@ -274,12 +281,25 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
         v = Math.max(1024, Math.round(v / 1000) * 1000)
       } else if (x === 'inputPerM' || x === 'outputPerM' || x === 'cacheReadPerM' || x === 'cacheWritePerM') {
         v = Math.max(0.001, Number(v.toFixed(4)))
+      } else if (x === 'parameters' || x === 'activeParameters') {
+        v = Math.max(1, Math.round(v / 1000000) * 1000000)
       } else {
         v = Math.min(targetMax[x] ?? 100, Math.max(targetMin[x] ?? 0, Number(v.toFixed(2))))
       }
 
       out[x] = v
       estimatedMetrics.add(x)
+    }
+
+    if (out.activeParameters == null && out.parameters != null) {
+      const text = `${out.name} ${out.id} ${out.aaName}`.toLowerCase()
+      const hasMoE = /\b(a\d+(?:\.\d+)?\s*[bBmM]|x\d+\s*[bBmM])\b/.test(text)
+      if (hasMoE) {
+        out.activeParameters = Math.max(1, Math.round(out.parameters * 0.28))
+      } else {
+        out.activeParameters = out.parameters
+      }
+      estimatedMetrics.add('activeParameters')
     }
 
     return out

@@ -154,6 +154,53 @@ function parseEffort(name: string): string | null {
   return null
 }
 
+function parseParamValue(numStr: string, unit: string): number | null {
+  const n = parseFloat(numStr)
+  if (!Number.isFinite(n) || n <= 0) return null
+  const u = unit.trim().toLowerCase()
+  if (u === 't') return Math.round(n * 1e12)
+  if (u === 'b') return Math.round(n * 1e9)
+  if (u === 'm') return Math.round(n * 1e6)
+  return null
+}
+
+function parseParams(text: string): { total: number | null; active: number | null } {
+  const t = text.toLowerCase().replace(/[–—]/g, '-').replace(/\s+/g, ' ')
+  
+  // Pattern: NxM B/M/T (e.g. "8x7b", "8x22b")
+  const nxm = t.match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
+  if (nxm) {
+    const experts = parseFloat(nxm[1])
+    const perExpert = parseParamValue(nxm[2], nxm[3])
+    if (Number.isFinite(experts) && perExpert != null) {
+      const total = Math.round(experts * perExpert)
+      const active = Math.round(2 * perExpert)
+      return { total, active }
+    }
+  }
+  
+  const activeMarker = t.match(/a\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
+  if (activeMarker) {
+    const active = parseParamValue(activeMarker[1], activeMarker[2])
+    const before = t.slice(0, activeMarker.index!)
+    const paramMatches = [...before.matchAll(/(\d+(?:\.\d+)?)\s*([tTbBmM])\b/g)]
+    if (paramMatches.length > 0) {
+      const last = paramMatches[paramMatches.length - 1]
+      const total = parseParamValue(last[1], last[2])
+      return { total, active }
+    }
+  }
+  
+  const allMatches = [...t.matchAll(/(\d+(?:\.\d+)?)\s*([tTbBmM])\b/g)]
+  if (allMatches.length > 0) {
+    const last = allMatches[allMatches.length - 1]
+    const total = parseParamValue(last[1], last[2])
+    return { total, active: null }
+  }
+  
+  return { total: null, active: null }
+}
+
 async function main() {
   const flags = parseFlags()
   fs.mkdirSync(PAGES_DIR, { recursive: true })
@@ -237,6 +284,7 @@ async function main() {
       outputPerM: usd(or.pricing.completion),
       cacheReadPerM: usd(or.pricing.input_cache_read),
       cacheWritePerM: usd(or.pricing.input_cache_write),
+      ...parseParams(`${or.id} ${or.name} ${m.name}`),
     })
   }
 

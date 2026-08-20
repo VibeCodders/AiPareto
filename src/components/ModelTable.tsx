@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
-import { computeMetric, formatDelta, formatMetric, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
+import { computeMetric, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
@@ -17,6 +17,8 @@ type SortKey =
   | 'released'
   | 'outputSpeed'
   | 'latencySeconds'
+  | 'parameters'
+  | 'activeParameters'
   | 'codingIndex'
   | 'agenticIndex'
   | 'subscription'
@@ -73,6 +75,8 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
   const cols: Array<{ key: SortKey; label: string; num?: boolean }> = [
     { key: 'name', label: t.model },
     { key: 'family', label: t.family },
+    { key: 'parameters', label: t.parameters, num: true },
+    { key: 'activeParameters', label: t.activeParameters, num: true },
     ...(visibleCols.has('subscription') ? [{ key: 'subscription' as SortKey, label: t.subscriptions, num: false }] : []),
     { key: 'score', label: t.score, num: true },
     { key: 'inputPerM', label: t.input, num: true },
@@ -91,6 +95,8 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
     if (sortKey === 'family') return m.family
     if (sortKey === 'subscription') return m.subscription?.priceMonthly ?? (m.isSubscription ? 0 : 9999)
     if (sortKey === 'frontierDelta') return frontierDeltas.get(m.slug) ?? null
+    if (sortKey === 'parameters') return m.parameters
+    if (sortKey === 'activeParameters') return m.activeParameters
     return (m as unknown as Record<string, number | string | null>)[sortKey]
   }
 
@@ -168,6 +174,8 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
               const estSpeed = isFieldEstimated(m, 'outputSpeed')
               const estLatency = isFieldEstimated(m, 'latencySeconds')
               const estContext = isFieldEstimated(m, 'contextTokens')
+              const estParameters = isFieldEstimated(m, 'parameters')
+              const estActiveParameters = isFieldEstimated(m, 'activeParameters')
 
               return (
                 <tr
@@ -193,6 +201,12 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                   </td>
                   <td className="muted" onClick={() => onSelect(m.slug)}>
                     {m.family}
+                  </td>
+                  <td className={`num ${estParameters ? 'est' : ''}`} title={estParameters ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                    {estParameters ? '≈ ' : ''}{formatParams(m.parameters)}
+                  </td>
+                  <td className={`num ${estActiveParameters ? 'est' : ''}`} title={estActiveParameters ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                    {estActiveParameters ? '≈ ' : ''}{formatParams(m.activeParameters)}
                   </td>
                   {visibleCols.has('subscription') && (
                     <td onClick={() => onSelect(m.slug)}>

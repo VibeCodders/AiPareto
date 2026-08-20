@@ -3,7 +3,7 @@ import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
 import type { CostView, EfficiencyWeights, MetricKey, Model, Point, SubscriptionPlan, ValueScoreBase } from './types'
-import { computeFrontier, computeMetric, formatAxisTick, formatDelta, formatMetric, formatTokens, formatUsd, costOf, frontierDeltaOf, type EfficiencyOpts } from './pareto'
+import { computeFrontier, computeMetric, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, type EfficiencyOpts } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
@@ -893,6 +893,8 @@ function ModelCard({
   const estSpeed = isFieldEstimated(model, 'outputSpeed')
   const estLatency = isFieldEstimated(model, 'latencySeconds')
   const estContext = isFieldEstimated(model, 'contextTokens')
+  const estParameters = isFieldEstimated(model, 'parameters')
+  const estActiveParameters = isFieldEstimated(model, 'activeParameters')
   const hasAnyEstimate = (model as { estimatedMetrics?: Set<string> }).estimatedMetrics?.size ?? 0
 
   // Subscriptions are synthesized items (id = "sub:…") that don't exist on OpenRouter/AA —
@@ -925,6 +927,8 @@ function ModelCard({
         <div><span className="muted">{t.outputSpeed}</span><b className={estSpeed ? 'est' : ''} title={estSpeed ? t.estimated : undefined}>{estSpeed ? '≈ ' : ''}{formatMetric('outputSpeed', model.outputSpeed)}</b></div>
         <div><span className="muted">{t.latency}</span><b className={estLatency ? 'est' : ''} title={estLatency ? t.estimated : undefined}>{estLatency ? '≈ ' : ''}{formatMetric('latencySeconds', model.latencySeconds)}</b></div>
         <div><span className="muted">{t.context}</span><b className={estContext ? 'est' : ''} title={estContext ? t.estimated : undefined}>{estContext ? '≈ ' : ''}{formatTokens(model.contextTokens)}</b></div>
+        <div><span className="muted">{t.parameters}</span><b className={estParameters ? 'est' : ''} title={estParameters ? t.estimated : undefined}>{estParameters ? '≈ ' : ''}{formatParams(model.parameters)}</b></div>
+        <div><span className="muted">{t.activeParameters}</span><b className={estActiveParameters ? 'est' : ''} title={estActiveParameters ? t.estimated : undefined}>{estActiveParameters ? '≈ ' : ''}{formatParams(model.activeParameters)}</b></div>
         <div><span className="muted">{t.release}</span><b>{model.released ?? '—'}</b></div>
       </div>
       {model.isSubscription && model.subscription && (
