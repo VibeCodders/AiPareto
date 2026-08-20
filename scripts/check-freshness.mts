@@ -9,30 +9,30 @@
  *
  * This does not modify any file — it's a read-only report to run periodically
  * (or in CI) so new model releases don't go unnoticed between manual fetch-data runs.
+ *
+ * Flags:
+ *   --timeout MS   HTTP request timeout in ms (default 30000).
+ *   --retries N    Number of retries on transient failures (default 3).
  */
 import { extractFlightChunks, parseModelRegistry } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
+import { CREATOR_WHITELIST, get } from './shared.mts'
 
-const UA = 'Mozilla/5.0 (compatible; ai-pareto-freshness-check/0.1)'
-
-// Keep in sync with CREATOR_WHITELIST in fetch-data.mts — this mirrors the same
-// vendor scope so freshness gaps reported here are ones fetch-data would actually pick up.
-const CREATOR_WHITELIST = [
-  'OpenAI', 'Anthropic', 'Google', 'Meta', 'DeepSeek', 'SpaceXAI', 'Alibaba',
-  'Mistral', 'Amazon', 'NVIDIA', 'Z AI', 'MiniMax', 'StepFun', 'Tencent',
-  'Baidu', 'ByteDance Seed', 'Cohere', 'AI21 Labs', 'Perplexity', 'Microsoft',
-  'Naver', 'Xiaomi', 'Moonshot', 'Kimi', 'InclusionAI', 'Moonshot AI',
-]
-
-async function get(url: string): Promise<string> {
-  const res = await fetch(url, { headers: { 'User-Agent': UA } })
-  if (!res.ok) throw new Error(`GET ${url} -> ${res.status}`)
-  return res.text()
+function parseFlags(): { timeout: number; retries: number } {
+  const args = process.argv.slice(2)
+  const flags = { timeout: 30000, retries: 3 }
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]
+    if (a === '--timeout' && args[i + 1]) flags.timeout = Math.max(1000, parseInt(args[++i], 10) || 30000)
+    else if (a === '--retries' && args[i + 1]) flags.retries = Math.max(0, parseInt(args[++i], 10) || 3)
+  }
+  return flags
 }
 
 async function main() {
+  const flags = parseFlags()
   console.log('— fetching Artificial Analysis model registry…')
-  const aaHtml = await get('https://artificialanalysis.ai/models')
+  const aaHtml = await get('https://artificialanalysis.ai/models', { timeout: flags.timeout, retries: flags.retries })
   const registry = parseModelRegistry(extractFlightChunks(aaHtml).join(''))
   const active = registry.filter((m) => !m.deprecated)
   const whitelisted = active.filter((m) => m.creator && CREATOR_WHITELIST.some((c) => m.creator!.name.toLowerCase().includes(c.toLowerCase())))
@@ -40,7 +40,7 @@ async function main() {
   console.log(`  ${registry.length} total, ${active.length} active, ${whitelisted.length} in-scope vendors, ${recent.length} released >= 2025-01-01`)
 
   console.log('— fetching OpenRouter model catalog…')
-  const orJson = JSON.parse(await get('https://openrouter.ai/api/v1/models')) as { data: Array<{ id: string }> }
+  const orJson = JSON.parse(await get('https://openrouter.ai/api/v1/models', { timeout: flags.timeout, retries: flags.retries })) as { data: Array<{ id: string }> }
   const orIds = new Set(orJson.data.map((m) => m.id))
   console.log(`  ${orIds.size} models on OpenRouter`)
 

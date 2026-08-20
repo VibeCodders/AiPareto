@@ -8,24 +8,52 @@
  *
  * Output: src/data/models.json (rows merged by curated mapping), src/data/meta.json.
  * Detail pages are cached in .tmp/aa_pages so re-runs are cheap.
+ *
+ * Flags:
+ *   --force           Bypass all caches (download everything fresh).
+ *   --no-cache        Do not write cache files (.tmp/).
+ *   --concurrency N   Parallel workers for detail page crawling (default 4).
+ *   --delay MS        Delay between requests per worker (default 400).
+ *   --older-than HOURS  Only refresh leaderboards cache if older than this (default 24).
  */
 import fs from 'node:fs'
 import path from 'node:path'
 import { extractFlightChunks, extractModelObjects, extractObjectsContaining, extractPerfFromDetail, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
+import { CREATOR_WHITELIST, DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, get } from './shared.mts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
 const TMP = path.join(ROOT, '.tmp')
 const PAGES_DIR = path.join(TMP, 'aa_pages')
 const OUT_DIR = path.join(ROOT, 'src', 'data')
-const UA = 'Mozilla/5.0 (compatible; ai-pareto-data-fetcher/0.1)'
 
-const CREATOR_WHITELIST = [
-  'OpenAI', 'Anthropic', 'Google', 'Meta', 'DeepSeek', 'SpaceXAI', 'Alibaba',
-  'Mistral', 'Amazon', 'NVIDIA', 'Z AI', 'MiniMax', 'StepFun', 'Tencent',
-  'Baidu', 'ByteDance Seed', 'Cohere', 'AI21 Labs', 'Perplexity', 'Microsoft',
-  'Naver', 'Xiaomi', 'Moonshot', 'Kimi', 'InclusionAI', 'Moonshot AI',
-]
+interface Flags {
+  force: boolean
+  noCache: boolean
+  concurrency: number
+  delayMs: number
+  leaderboardMaxAgeMs: number
+}
+
+function parseFlags(): Flags {
+  const args = process.argv.slice(2)
+  const flags: Flags = {
+    force: false,
+    noCache: false,
+    concurrency: 4,
+    delayMs: 400,
+    leaderboardMaxAgeMs: DEFAULT_LEADERBOARD_MAX_AGE_MS,
+  }
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]
+    if (a === '--force') flags.force = true
+    else if (a === '--no-cache') flags.noCache = true
+    else if (a === '--concurrency' && args[i + 1]) flags.concurrency = Math.max(1, parseInt(args[++i], 10) || 4)
+    else if (a === '--delay' && args[i + 1]) flags.delayMs = Math.max(0, parseInt(args[++i], 10) || 400)
+    else if (a === '--older-than' && args[i + 1]) flags.leaderboardMaxAgeMs = Math.max(1, parseInt(args[++i], 10) || 24) * 60 * 60 * 1000
+  }
+  return flags
+}
 
 interface ORModel {
   id: string
@@ -43,12 +71,6 @@ interface ORModel {
   }
 }
 
-async function get(url: string, headers: Record<string, string> = {}): Promise<string> {
-  const res = await fetch(url, { headers: { 'User-Agent': UA, ...headers } })
-  if (!res.ok) throw new Error(`GET ${url} -> ${res.status}`)
-  return res.text()
-}
-
 async function fetchOpenRouter(): Promise<ORModel[]> {
   const json = JSON.parse(await get('https://openrouter.ai/api/v1/models')) as { data: ORModel[] }
   return json.data
@@ -62,37 +84,43 @@ async function fetchAAModelsPage(): Promise<{ registry: AAModelMeta[]; scored: A
   return { registry, scored }
 }
 
-/** The /leaderboards/models page embeds every model's full benchmark object. */
-async function fetchAALeaderboards(): Promise<AAModelData[]> {
+async function fetchAALeaderboards(flags: Flags): Promise<AAModelData[]> {
   const file = path.join(TMP, 'aa_leaderboards.html')
+  const now = Date.now()
+  const useCache = !flags.force && fs.existsSync(file) && (now - fs.statSync(file).mtimeMs) < flags.leaderboardMaxAgeMs
   let html: string
-  if (fs.existsSync(file)) {
+  if (useCache) {
     html = fs.readFileSync(file, 'utf8')
   } else {
-    html = await get('https://artificialanalysis.ai/leaderboards/models')
-    fs.writeFileSync(file, html)
+    html = await get('https://artificialanalysis.ai/leaderboards/models', { timeout: 60000 })
+    if (!flags.noCache) fs.writeFileSync(file, html)
   }
   return extractObjectsContaining(extractFlightChunks(html).join(''), '"codingIndex"')
 }
 
-async function getDetailHtml(slug: string): Promise<string> {
+async function getDetailHtml(slug: string, flags: Flags): Promise<string> {
   const file = path.join(PAGES_DIR, `${slug}.html`)
-  if (fs.existsSync(file)) return fs.readFileSync(file, 'utf8')
+  if (!flags.force && fs.existsSync(file)) return fs.readFileSync(file, 'utf8')
   const html = await get(`https://artificialanalysis.ai/models/${slug}`)
-  fs.writeFileSync(file, html)
+  if (!flags.noCache) fs.writeFileSync(file, html)
   return html
 }
 
-async function fetchAADetail(slug: string): Promise<AAModelData | null> {
-  const html = await getDetailHtml(slug)
-  const raw = extractFlightChunks(html).join('')
-  const objs = extractModelObjects(raw)
-  // The page's own model object is the one whose release.slug matches.
-  return objs.find((o) => o.release?.slug === slug) ?? objs[0] ?? null
+interface DetailResult {
+  data: AAModelData | null
+  html: string
 }
 
-async function crawlDetails(slugs: string[], concurrency = 4, delayMs = 400): Promise<Map<string, AAModelData>> {
-  const results = new Map<string, AAModelData>()
+async function fetchAADetail(slug: string, flags: Flags): Promise<DetailResult> {
+  const html = await getDetailHtml(slug, flags)
+  const raw = extractFlightChunks(html).join('')
+  const objs = extractModelObjects(raw)
+  const data = objs.find((o) => o.release?.slug === slug) ?? objs[0] ?? null
+  return { data, html }
+}
+
+async function crawlDetails(slugs: string[], flags: Flags): Promise<Map<string, DetailResult>> {
+  const results = new Map<string, DetailResult>()
   const queue = [...slugs]
   let next = 0
   const worker = async () => {
@@ -101,16 +129,16 @@ async function crawlDetails(slugs: string[], concurrency = 4, delayMs = 400): Pr
       const slug = queue[i]
       if (!slug) return
       try {
-        const data = await fetchAADetail(slug)
-        if (data) results.set(slug, data)
-        console.log(`  [${i + 1}/${queue.length}] ${slug} ${data?.intelligenceIndex != null ? `II=${data.intelligenceIndex.toFixed(1)}` : '(no score)'}`)
+        const result = await fetchAADetail(slug, flags)
+        results.set(slug, result)
+        console.log(`  [${i + 1}/${queue.length}] ${slug} ${result.data?.intelligenceIndex != null ? `II=${result.data.intelligenceIndex.toFixed(1)}` : '(no score)'}`)
       } catch (e) {
         console.warn(`  [${i + 1}/${queue.length}] ${slug} FAILED: ${(e as Error).message}`)
       }
-      await new Promise((r) => setTimeout(r, delayMs))
+      await new Promise((r) => setTimeout(r, flags.delayMs))
     }
   }
-  await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, worker))
+  await Promise.all(Array.from({ length: Math.min(flags.concurrency, queue.length) }, worker))
   return results
 }
 
@@ -127,10 +155,11 @@ function parseEffort(name: string): string | null {
 }
 
 async function main() {
+  const flags = parseFlags()
   fs.mkdirSync(PAGES_DIR, { recursive: true })
   fs.mkdirSync(OUT_DIR, { recursive: true })
 
-  console.log('— fetching OpenRouter models…')
+  console.log(`— fetching OpenRouter models (timeout=${DEFAULT_TIMEOUT}ms, retries=${DEFAULT_RETRIES})…`)
   const orModels = await fetchOpenRouter()
   console.log(`  ${orModels.length} models`)
 
@@ -139,7 +168,7 @@ async function main() {
   console.log(`  registry: ${registry.length} models, ${scored.length} scored on page`)
 
   console.log('— fetching Artificial Analysis leaderboards page…')
-  const leaderboard = await fetchAALeaderboards()
+  const leaderboard = await fetchAALeaderboards(flags)
   console.log(`  ${leaderboard.length} full model objects (coding index etc.)`)
 
   const active = registry.filter((m) => !m.deprecated)
@@ -149,17 +178,14 @@ async function main() {
   const recent = whitelisted.filter((m) => (m.releaseDate ?? '') >= '2025-01-01')
   console.log(`  whitelisted active: ${whitelisted.length}, released >= 2025: ${recent.length}`)
 
-  // Slugs we already have scores for from the models page
   const haveSlugs = new Set(scored.map((o) => o.release?.slug).filter((s): s is string => Boolean(s)))
   const topSlugs = [...haveSlugs]
 
-  // Crawl list: recent whitelisted models + top-scored models from the page
   const crawlSlugs = [...new Set([...recent.map((m) => m.slug), ...topSlugs])].filter((s) => !haveSlugs.has(s))
-  console.log(`— crawling ${crawlSlugs.length} detail pages (already have ${topSlugs.length})…`)
-  const details = await crawlDetails(crawlSlugs)
+  console.log(`— crawling ${crawlSlugs.length} detail pages (concurrency=${flags.concurrency}, delay=${flags.delayMs}ms, already have ${topSlugs.length})…`)
+  const details = await crawlDetails(crawlSlugs, flags)
   console.log(`  got scores for ${details.size} detail pages`)
 
-  // Build score lookup: leaderboards first, detail pages fill gaps (e.g. agentic).
   const scoreBySlug = new Map<string, AAModelData>()
   for (const o of scored) if (o.release?.slug) scoreBySlug.set(o.release.slug, o)
   for (const o of leaderboard) {
@@ -169,13 +195,12 @@ async function main() {
   for (const [slug, d] of details) {
     const prev = scoreBySlug.get(slug)
     if (!prev) {
-      scoreBySlug.set(slug, d)
-    } else {
-      scoreBySlug.set(slug, { ...d, ...prev, agenticIndex: prev.agenticIndex ?? d.agenticIndex })
+      scoreBySlug.set(slug, d.data!)
+    } else if (d.data) {
+      scoreBySlug.set(slug, { ...d.data, ...prev, agenticIndex: prev.agenticIndex ?? d.data.agenticIndex })
     }
   }
 
-  // Map AA slugs to OpenRouter model ids via the curated map
   const orById = new Map(orModels.map((m) => [m.id, m]))
 
   const rows: Array<Record<string, unknown>> = []
@@ -214,14 +239,15 @@ async function main() {
       cacheWritePerM: usd(or.pricing.input_cache_write),
     })
   }
-  // Output speed / latency / context from each detail page's JSON-LD datasets.
+
   let perfOk = 0
   let perfMissing = 0
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i] as Record<string, unknown>
     const slug = row.slug as string
+    const cached = details.get(slug)
     try {
-      const html = await getDetailHtml(slug)
+      const html = cached?.html ?? await getDetailHtml(slug, flags)
       const perf = extractPerfFromDetail(html, slug)
       row.outputSpeed = perf.outputSpeed != null ? round1(perf.outputSpeed) : null
       row.latencySeconds = perf.latencySeconds != null ? round1(perf.latencySeconds) : null
@@ -233,7 +259,7 @@ async function main() {
       perfMissing++
       console.warn(`  [${i + 1}/${rows.length}] perf FAILED ${slug}: ${(e as Error).message}`)
     }
-    await new Promise((r) => setTimeout(r, 200))
+    if (!cached) await new Promise((r) => setTimeout(r, flags.delayMs))
   }
   console.log(`  perf ok: ${perfOk}, missing both: ${perfMissing}`)
 
@@ -242,9 +268,6 @@ async function main() {
   const modelsPath = path.join(OUT_DIR, 'models.json')
   const metaPath = path.join(OUT_DIR, 'meta.json')
 
-  // Safety net for unattended (cron) runs: if the fetch came back with far fewer models than
-  // last time, the site's markup or API likely changed shape and partially broke extraction —
-  // better to fail loudly than to silently auto-commit a gutted dataset.
   const previous = fs.existsSync(modelsPath) ? (JSON.parse(fs.readFileSync(modelsPath, 'utf8')) as Array<Record<string, unknown>>) : []
   const MIN_RETENTION = 0.7
   if (previous.length > 0 && rows.length < previous.length * MIN_RETENTION) {
@@ -281,7 +304,6 @@ async function main() {
     for (const u of unmatched.slice(0, 60)) console.log('   ', u)
   }
 
-  // Machine-readable outputs for CI (e.g. to build a commit message / job summary).
   const summaryLines = [
     `Fetched ${rows.length} models (+${added.length} / -${removed.length}).`,
     added.length ? `Added: ${added.join(', ')}` : null,
@@ -309,7 +331,7 @@ function round1(n: number): number {
 
 function usd(n: number | null | undefined): number | null {
   if (n == null) return null
-  return Math.round(n * 1e6 * 10000) / 10000 // $/token -> $/1M tokens
+  return Math.round(n * 1e6 * 10000) / 10000
 }
 
 main().catch((e) => {

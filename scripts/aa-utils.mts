@@ -124,8 +124,21 @@ export function extractJsonValue(raw: string, key: string, hintPos: number): str
 
 /** Parse the full model registry array from the /models page flight payload. */
 export function parseModelRegistry(raw: string): AAModelMeta[] {
-  const value = extractJsonValue(raw, 'models', 279000)
-  return JSON.parse(value) as AAModelMeta[]
+  const keyStr = '"models":'
+  let from = 0
+  let best: { value: string; len: number } | undefined
+  while (true) {
+    const s = raw.indexOf(keyStr, from)
+    if (s === -1) break
+    const start = s + keyStr.length
+    const end = findObjectEnd(raw, start)
+    if (end === -1) break
+    const value = raw.slice(start, end).replace(/[\r\n]/g, '')
+    if (value.length > (best?.len ?? 0)) best = { value, len: value.length }
+    from = end
+  }
+  if (!best) throw new Error('key "models" not found in flight payload')
+  return JSON.parse(best.value) as AAModelMeta[]
 }
 
 /** Extract full per-model data objects (keyed by "release":{...}) from a page's flight payload. */
