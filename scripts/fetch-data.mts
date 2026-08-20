@@ -164,22 +164,100 @@ function parseParamValue(numStr: string, unit: string): number | null {
   return null
 }
 
-function parseParams(text: string): { total: number | null; active: number | null } {
+const KNOWN_PARAMS: Record<string, { parameters: number; activeParameters?: number }> = {
+  'llama-4-maverick': { parameters: 400e9, activeParameters: 17e9 },
+  'llama-4-scout': { parameters: 109e9, activeParameters: 17e9 },
+  'gemma-4-26b-a4b': { parameters: 26e9, activeParameters: 4e9 },
+  'gemma-4-31b': { parameters: 31e9 },
+  'gemma-3-270m': { parameters: 270e6 },
+  'gemma-3-4b': { parameters: 4e9 },
+  'gemma-3-12b': { parameters: 12e9 },
+  'gemma-3-27b': { parameters: 27e9 },
+  'gemma-2-27b': { parameters: 27e9 },
+  'gemma-3n-e4b': { parameters: 4e9 },
+  'gemma-4-e2b': { parameters: 2e9 },
+  'gemma-4-e4b': { parameters: 4e9 },
+  'gemma-4-12b': { parameters: 12e9 },
+  'ministral-14b': { parameters: 14e9 },
+  'ministral-3b': { parameters: 3e9 },
+  'ministral-8b': { parameters: 8e9 },
+  'mistral-small-3': { parameters: 24e9 },
+  'mistral-small-3.1-24b': { parameters: 24e9 },
+  'mistral-small-4': { parameters: 24e9 },
+  'mistral-medium-3': { parameters: 70e9 },
+  'mistral-large-3': { parameters: 123e9 },
+  'gpt-oss-120b': { parameters: 120e9 },
+  'gpt-oss-20b': { parameters: 20e9 },
+  'ring-2.6-1t': { parameters: 1e12 },
+  'muse-glimmer-30b': { parameters: 30e9 },
+  'muse-spark-1.2': { parameters: 1.2e9 },
+  'qwen3.5-122b-a10b': { parameters: 122e9, activeParameters: 10e9 },
+  'qwen3.5-35b-a3b': { parameters: 35e9, activeParameters: 3e9 },
+  'qwen3.5-397b-a17b': { parameters: 397e9, activeParameters: 17e9 },
+  'qwen3.6-35b-a3b': { parameters: 35e9, activeParameters: 3e9 },
+  'qwen3.8-27b': { parameters: 27e9 },
+  'qwen3.8-2.4t-a95b': { parameters: 2400e9, activeParameters: 95e9 },
+  'qwen3-next-80b-a3b': { parameters: 80e9, activeParameters: 3e9 },
+  'qwen3-coder-next': { parameters: 235e9 },
+  'deepseek-v3-0324': { parameters: 671e9, activeParameters: 37e9 },
+  'deepseek-r1-distill-llama-70b': { parameters: 70e9 },
+  'llama-3.3-70b': { parameters: 70e9 },
+  'llama-3.1-70b': { parameters: 70e9 },
+  'llama-3.1-8b': { parameters: 8e9 },
+  'llama-3.2-1b': { parameters: 1e9 },
+  'llama-3.2-3b': { parameters: 3e9 },
+  'llama-guard-4-12b': { parameters: 12e9 },
+  'phi-4': { parameters: 14e9 },
+  'llama-3.3-70b-instruct': { parameters: 70e9 },
+  'nemotron-3-nano-30b-a3b': { parameters: 30e9, activeParameters: 3e9 },
+  'nemotron-3-super-120b-a12b': { parameters: 120e9, activeParameters: 12e9 },
+  'nemotron-3-ultra-550b-a55b': { parameters: 550e9, activeParameters: 55e9 },
+  'nemotron-3.5-lightning': { parameters: 340e9 },
+  'nemotron-3-nano-4b': { parameters: 4e9 },
+  'nemotron-nano-9b-v2': { parameters: 9e9 },
+  'nemotron-nano-12b-v2-vl': { parameters: 12e9 },
+  'nemotron-cascade-2-30b-a3b': { parameters: 30e9, activeParameters: 3e9 },
+  'kimi-linear-48b-a3b-instruct': { parameters: 48e9, activeParameters: 3e9 },
+  'step-3-vl-10b': { parameters: 10e9 },
+  'ernie-4-5-300b-a47b': { parameters: 300e9, activeParameters: 47e9 },
+  'jamba-1-7-mini': { parameters: 8e9 },
+  'jamba-1-7-large': { parameters: 52e9 },
+  'jamba-reasoning-3b': { parameters: 3e9 },
+}
+
+function matchKnownParams(text: string): { parameters: number | null; activeParameters: number | null } | null {
+  const lower = text.toLowerCase().replace(/[–—\s]+/g, '-')
+  for (const [key, val] of Object.entries(KNOWN_PARAMS)) {
+    if (lower.includes(key)) {
+      return { parameters: val.parameters, activeParameters: val.activeParameters ?? null }
+    }
+  }
+  return null
+}
+
+function parseParams(text: string): { parameters: number | null; activeParameters: number | null } {
   const t = text.toLowerCase().replace(/[–—]/g, '-').replace(/\s+/g, ' ')
-  
-  // Pattern: NxM B/M/T (e.g. "8x7b", "8x22b")
+
+  const known = matchKnownParams(t)
+  if (known) return known
+
   const nxm = t.match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
   if (nxm) {
     const experts = parseFloat(nxm[1])
     const perExpert = parseParamValue(nxm[2], nxm[3])
     if (Number.isFinite(experts) && perExpert != null) {
       const total = Math.round(experts * perExpert)
+      const activeMarker = t.match(/\ba\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
+      if (activeMarker) {
+        const active = parseParamValue(activeMarker[1], activeMarker[2])
+        return { parameters: total, activeParameters: active }
+      }
       const active = Math.round(2 * perExpert)
-      return { total, active }
+      return { parameters: total, activeParameters: active }
     }
   }
-  
-  const activeMarker = t.match(/a\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
+
+  const activeMarker = t.match(/\ba\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
   if (activeMarker) {
     const active = parseParamValue(activeMarker[1], activeMarker[2])
     const before = t.slice(0, activeMarker.index!)
@@ -187,18 +265,18 @@ function parseParams(text: string): { total: number | null; active: number | nul
     if (paramMatches.length > 0) {
       const last = paramMatches[paramMatches.length - 1]
       const total = parseParamValue(last[1], last[2])
-      return { total, active }
+      return { parameters: total, activeParameters: active }
     }
   }
-  
+
   const allMatches = [...t.matchAll(/(\d+(?:\.\d+)?)\s*([tTbBmM])\b/g)]
   if (allMatches.length > 0) {
     const last = allMatches[allMatches.length - 1]
     const total = parseParamValue(last[1], last[2])
-    return { total, active: null }
+    return { parameters: total, activeParameters: null }
   }
-  
-  return { total: null, active: null }
+
+  return { parameters: null, activeParameters: null }
 }
 
 async function main() {

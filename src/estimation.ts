@@ -63,6 +63,7 @@ const DISTANCE_FEATURES: EstimableField[] = [
   'inputPerM',
   'outputPerM',
   'parameters',
+  'activeParameters',
 ]
 
 /** Feature weights tailored depending on what target field is being estimated. */
@@ -80,7 +81,7 @@ const FEATURE_WEIGHTS: Record<EstimableField, Partial<Record<EstimableField, num
   outputPerM: { inputPerM: 3.0, intelligenceIndex: 1.8, codingIndex: 1.2 },
   cacheReadPerM: { inputPerM: 3.0, outputPerM: 1.5 },
   cacheWritePerM: { inputPerM: 3.0, outputPerM: 1.5 },
-  parameters: { intelligenceIndex: 2.5, contextTokens: 1.5, inputPerM: 1.2 },
+  parameters: { intelligenceIndex: 2.5, contextTokens: 1.5, inputPerM: 1.2, activeParameters: 1.0 },
   activeParameters: { parameters: 3.0, intelligenceIndex: 1.0 },
 }
 
@@ -92,6 +93,114 @@ function featureValue(m: Model, k: EstimableField): number | null {
     return Math.log10(Math.max(v, 0.0001))
   }
   return v
+}
+
+function parseParamValue(numStr: string, unit: string): number | null {
+  const n = parseFloat(numStr)
+  if (!Number.isFinite(n) || n <= 0) return null
+  const u = unit.trim().toLowerCase()
+  if (u === 't') return Math.round(n * 1e12)
+  if (u === 'b') return Math.round(n * 1e9)
+  if (u === 'm') return Math.round(n * 1e6)
+  return null
+}
+
+const KNOWN_PARAMS_ESTIMATION: Record<string, { parameters: number; activeParameters?: number }> = {
+  'llama-4-maverick': { parameters: 400e9, activeParameters: 17e9 },
+  'llama-4-scout': { parameters: 109e9, activeParameters: 17e9 },
+  'gemma-4-26b-a4b': { parameters: 26e9, activeParameters: 4e9 },
+  'gemma-4-31b': { parameters: 31e9 },
+  'gemma-3-270m': { parameters: 270e6 },
+  'gemma-3-4b': { parameters: 4e9 },
+  'gemma-3-12b': { parameters: 12e9 },
+  'gemma-3-27b': { parameters: 27e9 },
+  'gemma-2-27b': { parameters: 27e9 },
+  'gemma-3n-e4b': { parameters: 4e9 },
+  'gemma-4-e2b': { parameters: 2e9 },
+  'gemma-4-e4b': { parameters: 4e9 },
+  'gemma-4-12b': { parameters: 12e9 },
+  'ministral-14b': { parameters: 14e9 },
+  'ministral-3b': { parameters: 3e9 },
+  'ministral-8b': { parameters: 8e9 },
+  'mistral-small-3': { parameters: 24e9 },
+  'mistral-small-3.1-24b': { parameters: 24e9 },
+  'mistral-small-4': { parameters: 24e9 },
+  'mistral-medium-3': { parameters: 70e9 },
+  'mistral-large-3': { parameters: 123e9 },
+  'gpt-oss-120b': { parameters: 120e9 },
+  'gpt-oss-20b': { parameters: 20e9 },
+  'ring-2.6-1t': { parameters: 1e12 },
+  'muse-glimmer-30b': { parameters: 30e9 },
+  'muse-spark-1.2': { parameters: 1.2e9 },
+  'qwen3.5-122b-a10b': { parameters: 122e9, activeParameters: 10e9 },
+  'qwen3.5-35b-a3b': { parameters: 35e9, activeParameters: 3e9 },
+  'qwen3.5-397b-a17b': { parameters: 397e9, activeParameters: 17e9 },
+  'qwen3.6-35b-a3b': { parameters: 35e9, activeParameters: 3e9 },
+  'qwen3.8-27b': { parameters: 27e9 },
+  'qwen3.8-2.4t-a95b': { parameters: 2400e9, activeParameters: 95e9 },
+  'qwen3-next-80b-a3b': { parameters: 80e9, activeParameters: 3e9 },
+  'qwen3-coder-next': { parameters: 235e9 },
+  'deepseek-v3-0324': { parameters: 671e9, activeParameters: 37e9 },
+  'deepseek-r1-distill-llama-70b': { parameters: 70e9 },
+  'llama-3.3-70b': { parameters: 70e9 },
+  'llama-3.1-70b': { parameters: 70e9 },
+  'llama-3.1-8b': { parameters: 8e9 },
+  'llama-3.2-1b': { parameters: 1e9 },
+  'llama-3.2-3b': { parameters: 3e9 },
+  'llama-guard-4-12b': { parameters: 12e9 },
+  'phi-4': { parameters: 14e9 },
+  'llama-3.3-70b-instruct': { parameters: 70e9 },
+  'nemotron-3-nano-30b-a3b': { parameters: 30e9, activeParameters: 3e9 },
+  'nemotron-3-super-120b-a12b': { parameters: 120e9, activeParameters: 12e9 },
+  'nemotron-3-ultra-550b-a55b': { parameters: 550e9, activeParameters: 55e9 },
+  'nemotron-3.5-lightning': { parameters: 340e9 },
+  'nemotron-3-nano-4b': { parameters: 4e9 },
+  'nemotron-nano-9b-v2': { parameters: 9e9 },
+  'nemotron-nano-12b-v2-vl': { parameters: 12e9 },
+  'nemotron-cascade-2-30b-a3b': { parameters: 30e9, activeParameters: 3e9 },
+  'kimi-linear-48b-a3b-instruct': { parameters: 48e9, activeParameters: 3e9 },
+  'step-3-vl-10b': { parameters: 10e9 },
+  'ernie-4-5-300b-a47b': { parameters: 300e9, activeParameters: 47e9 },
+  'jamba-1-7-mini': { parameters: 8e9 },
+  'jamba-1-7-large': { parameters: 52e9 },
+  'jamba-reasoning-3b': { parameters: 3e9 },
+}
+
+function extractActiveFromText(text: string): number | null {
+  const t = text.toLowerCase()
+  const dashActive = t.match(/(\d+(?:\.\d+)?)\s*[bBmM]\s*-\s*a\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
+  if (dashActive) {
+    return parseParamValue(dashActive[2], dashActive[3])
+  }
+  const standaloneActive = t.match(/\ba\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
+  if (standaloneActive) {
+    return parseParamValue(standaloneActive[1], standaloneActive[2])
+  }
+  return null
+}
+
+function estimateMoERatio(text: string, total: number): number | null {
+  const t = text.toLowerCase()
+  const active = extractActiveFromText(t)
+  if (active != null && total > 0) return active / total
+
+  const nxm = t.match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
+  if (nxm) {
+    const experts = parseFloat(nxm[1])
+    const perExpert = parseParamValue(nxm[2], nxm[3])
+    if (Number.isFinite(experts) && perExpert != null && total > 0) {
+      const activeTotal = Math.round(2 * perExpert)
+      return activeTotal / total
+    }
+  }
+
+  if (t.includes('deepseek-v3') || t.includes('deepseek-r1')) return 37e9 / total
+  if (t.includes('llama-4-maverick')) return 17e9 / total
+  if (t.includes('llama-4-scout')) return 17e9 / total
+  if (t.includes('gemma-4')) return 4e9 / total
+  if (/\bqwen3\b/.test(t) && /\ba\d+[bBmM]\b/.test(t)) return 0.025
+
+  return null
 }
 
 function modelDistance(
@@ -247,6 +356,23 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
       }
     }
 
+    // Step 1.5: Fill known exact parameter counts before k-NN estimation
+    if (out.parameters == null || out.activeParameters == null) {
+      const text = `${out.name} ${out.id} ${out.aaName}`.toLowerCase().replace(/[–—\s]+/g, '-')
+      const known = KNOWN_PARAMS_ESTIMATION[out.id.split('/').pop() ?? '']
+      ?? Object.entries(KNOWN_PARAMS_ESTIMATION).find(([k]) => text.includes(k))?.[1]
+      if (known) {
+        if (out.parameters == null && known.parameters != null) {
+          out.parameters = known.parameters
+          estimatedMetrics.add('parameters')
+        }
+        if (out.activeParameters == null && known.activeParameters != null) {
+          out.activeParameters = known.activeParameters
+          estimatedMetrics.add('activeParameters')
+        }
+      }
+    }
+
     // Step 2: Impute remaining fields with similarity-weighted k-NN
     for (const x of ESTIMABLE_FIELDS) {
       if (out[x] != null) continue
@@ -293,9 +419,9 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
 
     if (out.activeParameters == null && out.parameters != null) {
       const text = `${out.name} ${out.id} ${out.aaName}`.toLowerCase()
-      const hasMoE = /\b(a\d+(?:\.\d+)?\s*[bBmM]|x\d+\s*[bBmM])\b/.test(text)
-      if (hasMoE) {
-        out.activeParameters = Math.max(1, Math.round(out.parameters * 0.28))
+      const ratio = estimateMoERatio(text, out.parameters)
+      if (ratio != null) {
+        out.activeParameters = Math.max(1, Math.round(out.parameters * ratio))
       } else {
         out.activeParameters = out.parameters
       }
