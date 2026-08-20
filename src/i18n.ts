@@ -116,6 +116,8 @@ export interface Strings {
   valueScoreBase: string
   vsFrontier: string
   onFrontier: string
+  dominates: string
+  dominatesHint: string
   methodology: string
   paygoEquivalent: string
   paygoCheaper: string
@@ -264,14 +266,16 @@ export const STRINGS: Record<Lang, Strings> = {
     valueScoreBase: 'Base Value Score',
     vsFrontier: 'Δ vs frontiera',
     onFrontier: 'Sulla frontiera',
+    dominates: 'Domina',
+    dominatesHint: 'Numero di modelli Pareto-dominati su entrambi gli assi',
     methodology: 'Metodologia stima',
     paygoEquivalent: 'Equivalente a consumo',
     paygoCheaper: 'più economico dell\'abbonamento',
     paygoPricier: 'più caro dell\'abbonamento',
     showTrend: 'Mostra andamento nel tempo',
     hideTrend: 'Nascondi andamento',
-    trendTitle: 'Andamento del miglior Value Score nel tempo',
-    trendHint: 'Miglior Value Score cumulativo raggiunto da un modello rilasciato entro ciascuna data (frontiera nel tempo)',
+    trendTitle: 'Andamento del miglior punteggio nel tempo',
+    trendHint: 'Miglior valore cumulativo del punteggio selezionato raggiunto entro ciascuna data (frontiera nel tempo)',
     teamTier: 'Team/Business',
     individualTier: 'Individuale',
     paretoOnly: 'Solo Pareto',
@@ -410,14 +414,16 @@ export const STRINGS: Record<Lang, Strings> = {
     valueScoreBase: 'Value Score basis',
     vsFrontier: 'Δ vs frontier',
     onFrontier: 'On frontier',
+    dominates: 'Dominates',
+    dominatesHint: 'Number of Pareto-dominated models on both axes',
     methodology: 'Estimation methodology',
     paygoEquivalent: 'Pay-as-you-go equivalent',
     paygoCheaper: 'cheaper than the subscription',
     paygoPricier: 'pricier than the subscription',
     showTrend: 'Show trend over time',
     hideTrend: 'Hide trend',
-    trendTitle: 'Best Value Score over time',
-    trendHint: 'Cumulative best Value Score reached by any model released by each date (frontier over time)',
+    trendTitle: 'Best score over time',
+    trendHint: 'Cumulative best of the selected score reached by any model released by each date (frontier over time)',
     teamTier: 'Team/Business',
     individualTier: 'Individual',
     paretoOnly: 'Pareto only',

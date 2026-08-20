@@ -185,10 +185,10 @@ const KNOWN_PARAMS: Record<string, { parameters: number; activeParameters?: numb
   'mistral-small-3.1-24b': { parameters: 24e9 },
   'mistral-small-4': { parameters: 24e9 },
   'mistral-medium-3': { parameters: 70e9 },
-  'mistral-large-3': { parameters: 123e9 },
-  'gpt-oss-120b': { parameters: 120e9 },
-  'gpt-oss-20b': { parameters: 20e9 },
-  'ring-2.6-1t': { parameters: 1e12 },
+  'mistral-large-3': { parameters: 675e9, activeParameters: 41e9 },
+  'gpt-oss-120b': { parameters: 120e9, activeParameters: 5.1e9 },
+  'gpt-oss-20b': { parameters: 20e9, activeParameters: 3.6e9 },
+  'ring-2.6-1t': { parameters: 1e12, activeParameters: 63e9 },
   'muse-glimmer-30b': { parameters: 30e9 },
   'muse-spark-1.2': { parameters: 1.2e9 },
   'qwen3.5-122b-a10b': { parameters: 122e9, activeParameters: 10e9 },
@@ -221,8 +221,19 @@ const KNOWN_PARAMS: Record<string, { parameters: number; activeParameters?: numb
   'step-3-vl-10b': { parameters: 10e9 },
   'ernie-4-5-300b-a47b': { parameters: 300e9, activeParameters: 47e9 },
   'jamba-1-7-mini': { parameters: 8e9 },
-  'jamba-1-7-large': { parameters: 52e9 },
+  'jamba-1-7-large': { parameters: 52e9, activeParameters: 12e9 },
   'jamba-reasoning-3b': { parameters: 3e9 },
+  // Additional known parameter counts for models in the mapping whose names don't encode the count.
+  'command-a': { parameters: 111e9 },
+  'kimi-k2-7-code': { parameters: 1e12, activeParameters: 32e9 },
+  'kimi-k3': { parameters: 2800e9, activeParameters: 104e9 },
+  'qwen3.8-max': { parameters: 20e9 },
+  'qwen3.7-plus': { parameters: 17e9 },
+  'minimax-m3': { parameters: 428e9, activeParameters: 23e9 },
+  'ling-3-0-flash': { parameters: 124e9, activeParameters: 5.1e9 },
+  'ling-3-0-tiny': { parameters: 7.9e9, activeParameters: 1.3e9 },
+  'hy3': { parameters: 299e9, activeParameters: 21e9 },
+  'mimo-v2-5-pro': { parameters: 1023e9, activeParameters: 42e9 },
 }
 
 function matchKnownParams(text: string): { parameters: number | null; activeParameters: number | null } | null {
@@ -235,11 +246,9 @@ function matchKnownParams(text: string): { parameters: number | null; activePara
   return null
 }
 
-function parseParams(text: string): { parameters: number | null; activeParameters: number | null } {
+/** Extract parameter counts embedded in model name text (e.g. "122B A10B", "2.4T A95B", "NxM MoE"). */
+function parseNameParams(text: string): { parameters: number | null; activeParameters: number | null } {
   const t = text.toLowerCase().replace(/[–—]/g, '-').replace(/\s+/g, ' ')
-
-  const known = matchKnownParams(t)
-  if (known) return known
 
   const nxm = t.match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*([bBmM])\b/)
   if (nxm) {
@@ -277,6 +286,42 @@ function parseParams(text: string): { parameters: number | null; activeParameter
   }
 
   return { parameters: null, activeParameters: null }
+}
+
+/** Extract parameter counts from Artificial Analysis model data.
+  * AA reports total/active params in BILLIONS via different field names depending on
+  * the source: leaderboard objects use `totalParameters`/`activeParameters`, while
+  * detail-page objects use `parameters`/`inferenceParametersActiveBillions`.
+  */
+function extractParamsFromAA(data: AAModelData | null | undefined): { parameters: number | null; activeParameters: number | null } {
+  if (!data) return { parameters: null, activeParameters: null }
+  const totalBillions = data.totalParameters ?? data.parameters ?? null
+  const activeBillions = data.activeParameters ?? data.inferenceParametersActiveBillions ?? null
+  return {
+    parameters: totalBillions != null && totalBillions > 0 ? Math.round(totalBillions * 1e9) : null,
+    activeParameters: activeBillions != null && activeBillions > 0 ? Math.round(activeBillions * 1e9) : null,
+  }
+}
+
+/** Determine parameter counts using a priority cascade:
+  * 1. Artificial Analysis model data (totalParameters/activeParameters or parameters/inferenceParametersActiveBillions).
+  * 2. KNOWN_PARAMS table (curated values for models whose names don't encode the count).
+  * 3. Name text parsing (NxM MoE patterns, "aN B" active markers, last number+unit).
+  */
+function parseParams(text: string, data: AAModelData | null | undefined): { parameters: number | null; activeParameters: number | null } {
+  const result = extractParamsFromAA(data)
+
+  const known = matchKnownParams(text)
+  if (known) {
+    if (result.parameters == null) result.parameters = known.parameters
+    if (result.activeParameters == null) result.activeParameters = known.activeParameters
+  }
+
+  const fromName = parseNameParams(text)
+  if (result.parameters == null) result.parameters = fromName.parameters
+  if (result.activeParameters == null) result.activeParameters = fromName.activeParameters
+
+  return result
 }
 
 async function main() {
@@ -362,7 +407,7 @@ async function main() {
       outputPerM: usd(or.pricing.completion),
       cacheReadPerM: usd(or.pricing.input_cache_read),
       cacheWritePerM: usd(or.pricing.input_cache_write),
-      ...parseParams(`${or.id} ${or.name} ${m.name}`),
+      ...parseParams(`${or.id} ${or.name} ${m.name}`, data),
     })
   }
 
@@ -388,6 +433,13 @@ async function main() {
     if (!cached) await new Promise((r) => setTimeout(r, flags.delayMs))
   }
   console.log(`  perf ok: ${perfOk}, missing both: ${perfMissing}`)
+
+  const paramRows = rows as Array<Record<string, unknown>>
+  const paramFromAA = paramRows.filter((r) => r.parameters != null).length
+  const paramNull = paramRows.filter((r) => r.parameters == null).length
+  const activeFromAA = paramRows.filter((r) => r.activeParameters != null).length
+  console.log(`  parameters: ${paramFromAA}/${paramRows.length} filled, ${paramNull} null (${activeFromAA} active filled)`)
+
 
   rows.sort((a, b) => (b.intelligenceIndex as number) - (a.intelligenceIndex as number))
 

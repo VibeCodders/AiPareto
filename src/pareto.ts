@@ -123,17 +123,36 @@ export function computeMetric(
  * of the frontier's score. 0% means the point is on the frontier; higher means further behind.
  * Returns null if no frontier point at an equal-or-better X exists (point is better than the whole frontier).
  */
-export function frontierDeltaOf(point: Point, frontierSortedByX: Point[], lowerIsBetter: boolean): number | null {
+export function frontierDeltaOf(point: Point, frontierSortedByX: Point[], lowerIsBetter: boolean, xLowerIsBetter = true): number | null {
   let ref: Point | undefined
-  // Frontier is sorted by ascending X; "equal-or-better" means the frontier point with the
-  // largest X not exceeding the point's own X (whether X is a cost or a higher-is-better metric).
-  for (const f of frontierSortedByX) {
-    if (f.x <= point.x) ref = f
-    else break
+  // The frontier is always sorted by ascending X. "Equal-or-better X" depends on the axis
+  // direction: for costs (cheaper is better) it's the frontier point with the largest X not
+  // exceeding the point's own; for a higher-is-better metric it's the smallest X at least the point's own.
+  if (xLowerIsBetter) {
+    for (const f of frontierSortedByX) {
+      if (f.x <= point.x) ref = f
+      else break
+    }
+  } else {
+    for (const f of frontierSortedByX) {
+      if (f.x >= point.x) {
+        ref = f
+        break
+      }
+    }
   }
   if (!ref || ref.score === 0) return null
   if (ref.model.slug === point.model.slug) return 0
   return lowerIsBetter ? ((point.score - ref.score) / ref.score) * 100 : ((ref.score - point.score) / ref.score) * 100
+}
+
+/** Whether point `a` Pareto-dominates `b` on the current X (cost or metric) and Y axes. */
+export function dominates(a: Point, b: Point, lowerIsBetter: boolean, xLowerIsBetter: boolean): boolean {
+  const xAtLeast = xLowerIsBetter ? a.x <= b.x : a.x >= b.x
+  const yAtLeast = lowerIsBetter ? a.score <= b.score : a.score >= b.score
+  const xBetter = xLowerIsBetter ? a.x < b.x : a.x > b.x
+  const yBetter = lowerIsBetter ? a.score < b.score : a.score > b.score
+  return xAtLeast && yAtLeast && (xBetter || yBetter)
 }
 
 export function formatDelta(v: number | null | undefined): string {

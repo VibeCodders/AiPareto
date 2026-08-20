@@ -126,10 +126,10 @@ const KNOWN_PARAMS_ESTIMATION: Record<string, { parameters: number; activeParame
   'mistral-small-3.1-24b': { parameters: 24e9 },
   'mistral-small-4': { parameters: 24e9 },
   'mistral-medium-3': { parameters: 70e9 },
-  'mistral-large-3': { parameters: 123e9 },
-  'gpt-oss-120b': { parameters: 120e9 },
-  'gpt-oss-20b': { parameters: 20e9 },
-  'ring-2.6-1t': { parameters: 1e12 },
+  'mistral-large-3': { parameters: 675e9, activeParameters: 41e9 },
+  'gpt-oss-120b': { parameters: 120e9, activeParameters: 5.1e9 },
+  'gpt-oss-20b': { parameters: 20e9, activeParameters: 3.6e9 },
+  'ring-2.6-1t': { parameters: 1e12, activeParameters: 63e9 },
   'muse-glimmer-30b': { parameters: 30e9 },
   'muse-spark-1.2': { parameters: 1.2e9 },
   'qwen3.5-122b-a10b': { parameters: 122e9, activeParameters: 10e9 },
@@ -162,8 +162,16 @@ const KNOWN_PARAMS_ESTIMATION: Record<string, { parameters: number; activeParame
   'step-3-vl-10b': { parameters: 10e9 },
   'ernie-4-5-300b-a47b': { parameters: 300e9, activeParameters: 47e9 },
   'jamba-1-7-mini': { parameters: 8e9 },
-  'jamba-1-7-large': { parameters: 52e9 },
+  'jamba-1-7-large': { parameters: 52e9, activeParameters: 12e9 },
   'jamba-reasoning-3b': { parameters: 3e9 },
+  // Additional known parameter counts for models whose names don't encode the count.
+  'command-a': { parameters: 111e9 },
+  'kimi-k2-7-code': { parameters: 1e12, activeParameters: 32e9 },
+  'kimi-k3': { parameters: 2800e9, activeParameters: 104e9 },
+  'qwen3.8-max': { parameters: 20e9 },
+  'qwen3.7-plus': { parameters: 17e9 },
+  'minimax-m3': { parameters: 428e9, activeParameters: 23e9 },
+  'ling-3-0-flash': { parameters: 124e9, activeParameters: 5.1e9 },
 }
 
 function extractActiveFromText(text: string): number | null {
@@ -194,11 +202,40 @@ function estimateMoERatio(text: string, total: number): number | null {
     }
   }
 
-  if (t.includes('deepseek-v3') || t.includes('deepseek-r1')) return 37e9 / total
+  // Family-specific MoE ratios: total known params / active ratio for MoE models.
+  // Dense (non-MoE) models default to active = total (ratio 1.0) via the caller.
+  if (t.includes('deepseek-v3') || t.includes('deepseek-r1') || t.includes('deepseek-v4')) return 37e9 / total
   if (t.includes('llama-4-maverick')) return 17e9 / total
   if (t.includes('llama-4-scout')) return 17e9 / total
   if (t.includes('gemma-4')) return 4e9 / total
+  if (t.includes('ernie-4-5')) return 47e9 / total
+  if (t.includes('nemotron-3-super')) return 12e9 / total
+  if (t.includes('nemotron-3-ultra')) return 55e9 / total
+  if (t.includes('nemotron-cascade')) return 3e9 / total
+  if (t.includes('nemotron-3-nano')) return 3e9 / total
+  if (t.includes('kimi-linear')) return 3e9 / total
+  if (t.includes('qwen3.5-397b-a17b')) return 17e9 / total
+  if (t.includes('qwen3.5-122b-a10b')) return 10e9 / total
+  if (t.includes('qwen3.6-35b-a3b')) return 3e9 / total
+  if (t.includes('qwen3-8-2.4t-a95b')) return 95e9 / total
+  if (t.includes('qwen3-next-80b')) return 3e9 / total
+  if (t.includes('qwen3-coder-next') && total > 0) return Math.round(3e9) / total
+  if (t.includes('jamba-1-7-large')) return 12e9 / total
+  if (t.includes('jamba-1-7-mini')) return 12e9 / total
   if (/\bqwen3\b/.test(t) && /\ba\d+[bBmM]\b/.test(t)) return 0.025
+  if (t.includes('mistral-large')) return 41e9 / total
+  if (t.includes('mistral-small-4')) return 6.5e9 / total
+  if (t.includes('mistral-small-3')) return 6.5e9 / total
+  if (t.includes('gpt-oss-120b')) return 5.1e9 / total
+  if (t.includes('gpt-oss-20b')) return 3.6e9 / total
+  if (t.includes('kimi-k2-7-code')) return 32e9 / total
+  if (t.includes('kimi-k3')) return 104e9 / total
+  if (t.includes('minimax-m3')) return 23e9 / total
+  if (t.includes('ring-2.6-1t')) return 63e9 / total
+  if (t.includes('hy3')) return 21e9 / total
+  if (t.includes('ling-3.0-flash')) return 5.1e9 / total
+  if (t.includes('mimo-v2.5-pro')) return 42e9 / total
+  if (t.includes('mimo-v2')) return 15e9 / total
 
   return null
 }
@@ -293,7 +330,7 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
       }
     }
     targetMax[x] = Number.isFinite(mx) ? mx : 1
-    min[x] = Number.isFinite(mn) ? mn : 0
+    targetMin[x] = Number.isFinite(mn) ? mn : 0
   }
 
   const K = 7
@@ -391,11 +428,23 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
       const total = weights.reduce((s, w) => s + w, 0)
       if (total <= 0) continue
 
-      let v = 0
-      for (let i = 0; i < candidates.length; i++) {
-        v += (candidates[i].c[x] as number) * weights[i]
+       let v = 0
+      // For parameters and activeParameters, which span many orders of magnitude,
+      // average in log10-space (matching how featureValue computes distances) to
+      // avoid being dominated by the single largest model.
+      const useLogAverage = x === 'parameters' || x === 'activeParameters'
+      if (useLogAverage) {
+        let logSum = 0
+        for (let i = 0; i < candidates.length; i++) {
+          logSum += Math.log10(Math.max(candidates[i].c[x] as number, 1)) * weights[i]
+        }
+        v = Math.pow(10, logSum / total)
+      } else {
+        for (let i = 0; i < candidates.length; i++) {
+          v += (candidates[i].c[x] as number) * weights[i]
+        }
+        v /= total
       }
-      v /= total
 
       if (x === 'tau2') {
         v = Math.min(1, Math.max(0, Number(v.toFixed(3))))
@@ -408,7 +457,9 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
       } else if (x === 'inputPerM' || x === 'outputPerM' || x === 'cacheReadPerM' || x === 'cacheWritePerM') {
         v = Math.max(0.001, Number(v.toFixed(4)))
       } else if (x === 'parameters' || x === 'activeParameters') {
-        v = Math.max(1, Math.round(v / 1000000) * 1000000)
+        // Round to an appropriate precision based on magnitude.
+        const step = v >= 1e12 ? 1e8 : v >= 1e11 ? 1e7 : v >= 1e10 ? 1e6 : v >= 1e9 ? 1e6 : 1e5
+        v = Math.max(1, Math.round(v / step) * step)
       } else {
         v = Math.min(targetMax[x] ?? 100, Math.max(targetMin[x] ?? 0, Number(v.toFixed(2))))
       }
@@ -423,9 +474,22 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
       if (ratio != null) {
         out.activeParameters = Math.max(1, Math.round(out.parameters * ratio))
       } else {
-        out.activeParameters = out.parameters
+        // No MoE pattern matched: assume dense (active = total) unless the family
+        // is known for sparse MoE architectures where the active ratio is typically small.
+        const denseFamily = /mistral|ministral|gemma-4|gemma-3|gpt-oss|gemini|nemotron-nano|nemotron-3-nano|nemotron-cascade.*3b|phi|kimi-linear|step-3-vl|jamba-1-7-mini|jamba-reasoning|ling-3.0-tiny|ring-flash|tiny-aya|magistral-small|muse|deepseek-v4-flash|north-mini/.test(text)
+        if (denseFamily) {
+          out.activeParameters = out.parameters
+        } else {
+          // Unknown architecture: be conservative — a typical MoE active ratio is ~5-15%.
+          out.activeParameters = Math.round(out.parameters * 0.10)
+        }
       }
       estimatedMetrics.add('activeParameters')
+    }
+
+    // Sanity: active parameters can never exceed total parameters.
+    if (out.parameters != null && out.activeParameters != null && out.activeParameters > out.parameters) {
+      out.activeParameters = out.parameters
     }
 
     return out

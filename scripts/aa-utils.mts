@@ -30,6 +30,16 @@ export interface AAModelData {
   openSourceCategorization?: string | null
   isOpenWeights?: boolean | null
   openrouterApiId?: string | null
+
+  // Parameter counts from Artificial Analysis.
+  // Leaderboard data reports `totalParameters` / `activeParameters` (in billions).
+  // Detail-page data reports `parameters` / `inferenceParametersActiveBillions` (in billions).
+  // Values are `null` for proprietary models where AA has no data (e.g. Claude, GPT-5.x, Gemini).
+  parameters?: number | null
+  inferenceParametersActiveBillions?: number | null
+  totalParameters?: number | null
+  activeParameters?: number | null
+  paramClass?: string | null
 }
 
 /** Extract and unescape all self.__next_f.push([1,"..."]) chunks from a page. */

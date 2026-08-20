@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
-import { computeMetric, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
+import { computeMetric, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
@@ -12,6 +12,7 @@ type SortKey =
   | 'inputPerM'
   | 'outputPerM'
   | 'cacheReadPerM'
+  | 'cacheWritePerM'
   | 'blended'
   | 'contextTokens'
   | 'released'
@@ -23,16 +24,19 @@ type SortKey =
   | 'agenticIndex'
   | 'subscription'
   | 'frontierDelta'
+  | 'dominates'
 
-type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta'
+type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta' | 'cacheWritePerM' | 'dominates'
 
-const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' }> = [
+const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' | 'cacheWrite' | 'dominates' }> = [
   { key: 'subscription', labelKey: 'subscriptions' },
+  { key: 'cacheWritePerM', labelKey: 'cacheWrite' },
   { key: 'codingIndex', labelKey: 'coding' },
   { key: 'agenticIndex', labelKey: 'agentic' },
   { key: 'outputSpeed', labelKey: 'outputSpeed' },
   { key: 'latencySeconds', labelKey: 'latency' },
   { key: 'frontierDelta', labelKey: 'vsFrontier' },
+  { key: 'dominates', labelKey: 'dominates' },
 ]
 
 interface Props {
@@ -50,9 +54,10 @@ interface Props {
   onSelect: (id: string) => void
   compareIds: string[]
   onToggleCompare: (id: string) => void
+  dominatedCounts: Map<string, number>
 }
 
-export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare }: Props) {
+export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare, dominatedCounts }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('score')
   const [desc, setDesc] = useState(() => !isLowerBetter(metric))
   const [visibleCols, setVisibleCols] = useState<Set<OptionalCol>>(new Set(['subscription']))
@@ -82,19 +87,21 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
     { key: 'inputPerM', label: t.input, num: true },
     { key: 'outputPerM', label: t.output, num: true },
     { key: 'cacheReadPerM', label: t.cache, num: true },
+    ...(visibleCols.has('cacheWritePerM') ? [{ key: 'cacheWritePerM' as SortKey, label: t.cacheWrite, num: true }] : []),
     { key: 'blended', label: t.blended, num: true },
-    ...OPTIONAL_COLS.filter((c) => c.key !== 'subscription' && visibleCols.has(c.key)).map((c) => ({ key: c.key, label: t[c.labelKey], num: true })),
+    ...OPTIONAL_COLS.filter((c) => c.key !== 'subscription' && c.key !== 'cacheWritePerM' && visibleCols.has(c.key)).map((c) => ({ key: c.key, label: t[c.labelKey], num: true })),
     { key: 'contextTokens', label: t.context, num: true },
     { key: 'released', label: t.release, num: true },
   ]
 
   const valueOf = (m: Model): number | string | null => {
     if (sortKey === 'score') return computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
-    if (sortKey === 'blended') return costOf(m, costView)
+    if (sortKey === 'blended') return m.inputPerM != null && m.outputPerM != null ? 0.8 * m.inputPerM + 0.2 * m.outputPerM : null
     if (sortKey === 'name') return m.isSubscription ? m.name : m.aaName
     if (sortKey === 'family') return m.family
     if (sortKey === 'subscription') return m.subscription?.priceMonthly ?? (m.isSubscription ? 0 : 9999)
     if (sortKey === 'frontierDelta') return frontierDeltas.get(m.slug) ?? null
+    if (sortKey === 'dominates') return dominatedCounts.get(m.slug) ?? 0
     if (sortKey === 'parameters') return m.parameters
     if (sortKey === 'activeParameters') return m.activeParameters
     return (m as unknown as Record<string, number | string | null>)[sortKey]
@@ -114,7 +121,8 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
     if (k === sortKey) setDesc(!desc)
     else {
       setSortKey(k)
-      setDesc(true)
+      // Text columns read more naturally ascending on first click; numeric columns descend.
+      setDesc(k !== 'name' && k !== 'family')
     }
   }
 
@@ -161,14 +169,16 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
               const isSel = selectedId === m.slug
               const isComparing = compareIds.includes(m.slug)
               const score = computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
-              const blended = costOf(m, costView)
+              const blended = m.inputPerM != null && m.outputPerM != null ? 0.8 * m.inputPerM + 0.2 * m.outputPerM : null
               const delta = frontierDeltas.get(m.slug) ?? null
+              const dominated = dominatedCounts.get(m.slug) ?? 0
 
               const estScore = isEstimated(m, metric, valueScoreBase)
               const estInput = isFieldEstimated(m, 'inputPerM')
               const estOutput = isFieldEstimated(m, 'outputPerM')
               const estCache = isFieldEstimated(m, 'cacheReadPerM')
-              const estBlended = isCostEstimated(m, costView)
+              const estCacheWrite = isFieldEstimated(m, 'cacheWritePerM')
+              const estBlended = isCostEstimated(m, 'blended')
               const estCoding = isFieldEstimated(m, 'codingIndex')
               const estAgentic = isFieldEstimated(m, 'agenticIndex')
               const estSpeed = isFieldEstimated(m, 'outputSpeed')
@@ -232,6 +242,11 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                   <td className={`num ${estCache ? 'est' : ''}`} title={estCache ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
                     {m.cacheReadPerM != null ? `${estCache ? '≈ ' : ''}${formatUsd(m.cacheReadPerM)}` : '—'}
                   </td>
+                  {visibleCols.has('cacheWritePerM') && (
+                    <td className={`num ${estCacheWrite ? 'est' : ''}`} title={estCacheWrite ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {m.cacheWritePerM != null ? `${estCacheWrite ? '≈ ' : ''}${formatUsd(m.cacheWritePerM)}` : '—'}
+                    </td>
+                  )}
                   <td className={`num bold ${estBlended ? 'est' : ''}`} title={estBlended ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
                     {blended != null ? `${estBlended ? '≈ ' : ''}${formatUsd(blended)}` : '—'}
                   </td>
@@ -258,6 +273,11 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                   {visibleCols.has('frontierDelta') && (
                     <td className={`num ${delta != null && delta > 0.05 ? 'delta-behind' : 'delta-ok'}`} onClick={() => onSelect(m.slug)}>
                       {formatDelta(delta)}
+                    </td>
+                  )}
+                  {visibleCols.has('dominates') && (
+                    <td className="num" title={t.dominatesHint} onClick={() => onSelect(m.slug)}>
+                      {dominated}
                     </td>
                   )}
                   <td className={`num ${estContext ? 'est' : ''}`} title={estContext ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>

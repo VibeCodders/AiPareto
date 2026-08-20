@@ -3,7 +3,7 @@ import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
 import type { CostView, EfficiencyWeights, MetricKey, Model, Point, SubscriptionPlan, ValueScoreBase } from './types'
-import { computeFrontier, computeMetric, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, type EfficiencyOpts } from './pareto'
+import { computeFrontier, computeMetric, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, type EfficiencyOpts } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
@@ -441,8 +441,23 @@ export default function App() {
   const frontierSlugs = useMemo(() => new Set(frontier.map((p) => p.model.slug)), [frontier])
   const frontierDeltas = useMemo(() => {
     const lower = isLowerBetter(metric)
-    return new Map(points.map((p) => [p.model.slug, frontierDeltaOf(p, frontier, lower)]))
-  }, [points, frontier, metric])
+    return new Map(points.map((p) => [p.model.slug, frontierDeltaOf(p, frontier, lower, xLowerIsBetter)]))
+  }, [points, frontier, metric, xLowerIsBetter])
+
+  // How many other filtered models each point Pareto-dominates on the current two axes.
+  const dominatedCounts = useMemo(() => {
+    const map = new Map<string, number>()
+    const lower = isLowerBetter(metric)
+    for (const p of points) {
+      let n = 0
+      for (const q of points) {
+        if (p.model.slug === q.model.slug) continue
+        if (dominates(p, q, lower, xLowerIsBetter)) n++
+      }
+      map.set(p.model.slug, n)
+    }
+    return map
+  }, [points, metric, xLowerIsBetter])
 
   const selected = useMemo(() => (selectedId ? ALL_ITEMS.find((m) => m.slug === selectedId) ?? null : null), [selectedId, ALL_ITEMS])
 
@@ -791,7 +806,7 @@ export default function App() {
             {pngSaved ? `✓ ${t.pngSaved}` : `⬇ ${t.downloadPng}`}
           </button>
         </div>
-        {showTrend && <TrendChart models={BASE_MODELS} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} t={t} />}
+        {showTrend && <TrendChart models={BASE_MODELS} metric={metric} metricName={t[METRICS.find((m) => m.key === metric)!.labelKey]} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} efficiencyOpts={efficiencyOpts} t={t} />}
       </section>
 
       {selected && (
@@ -800,6 +815,7 @@ export default function App() {
           metric={metric}
           frontier={frontierSlugs.has(selected.slug)}
           frontierDelta={frontierDeltas.get(selected.slug) ?? null}
+          dominatedCount={dominatedCounts.get(selected.slug) ?? 0}
           costView={costView}
           taskInput={taskInput}
           taskOutput={taskOutput}
@@ -839,6 +855,7 @@ export default function App() {
             onSelect={setSelectedId}
             compareIds={compareIds}
             onToggleCompare={toggleCompare}
+            dominatedCounts={dominatedCounts}
           />
         )}
       </section>
@@ -859,6 +876,7 @@ function ModelCard({
   metric,
   frontier,
   frontierDelta,
+  dominatedCount,
   costView,
   taskInput,
   taskOutput,
@@ -872,6 +890,7 @@ function ModelCard({
   metric: MetricKey
   frontier: boolean
   frontierDelta: number | null
+  dominatedCount: number
   costView: CostView
   taskInput: number
   taskOutput: number
@@ -889,6 +908,7 @@ function ModelCard({
   const estInput = isFieldEstimated(model, 'inputPerM')
   const estOutput = isFieldEstimated(model, 'outputPerM')
   const estCache = isFieldEstimated(model, 'cacheReadPerM')
+  const estCacheWrite = isFieldEstimated(model, 'cacheWritePerM')
   const estBlended = isCostEstimated(model, 'blended')
   const estSpeed = isFieldEstimated(model, 'outputSpeed')
   const estLatency = isFieldEstimated(model, 'latencySeconds')
@@ -920,9 +940,11 @@ function ModelCard({
         <div><span className="muted">{t.family}</span><b>{model.family}</b></div>
         <div><span className="muted">{t[METRICS.find((m) => m.key === metric)!.labelKey]}</span><b className={scoreEstimated ? 'est' : ''} title={scoreEstimated ? t.estimated : undefined}>{scoreEstimated ? '≈ ' : ''}{formatMetric(metric, score)}</b></div>
         <div><span className="muted">{t.vsFrontier}</span><b className={frontierDelta != null && frontierDelta > 0.05 ? 'delta-behind' : 'delta-ok'}>{formatDelta(frontierDelta)}</b></div>
+        <div><span className="muted">{t.dominates}</span><b title={t.dominatesHint}>{dominatedCount}</b></div>
         <div><span className="muted">{t.input}</span><b className={estInput ? 'est' : ''} title={estInput ? t.estimated : undefined}>{estInput ? '≈ ' : ''}{formatUsd(model.inputPerM)}/1M</b></div>
         <div><span className="muted">{t.output}</span><b className={estOutput ? 'est' : ''} title={estOutput ? t.estimated : undefined}>{estOutput ? '≈ ' : ''}{formatUsd(model.outputPerM)}/1M</b></div>
         <div><span className="muted">{t.cache}</span><b className={estCache ? 'est' : ''} title={estCache ? t.estimated : undefined}>{estCache ? '≈ ' : ''}{formatUsd(model.cacheReadPerM)}/1M</b></div>
+        <div><span className="muted">{t.cacheWrite}</span><b className={estCacheWrite ? 'est' : ''} title={estCacheWrite ? t.estimated : undefined}>{estCacheWrite ? '≈ ' : ''}{formatUsd(model.cacheWritePerM)}/1M</b></div>
         <div><span className="muted">{t.blended}</span><b className={estBlended ? 'est' : ''} title={estBlended ? t.estimated : undefined}>{estBlended ? '≈ ' : ''}{formatUsd(blended)}/1M</b></div>
         <div><span className="muted">{t.outputSpeed}</span><b className={estSpeed ? 'est' : ''} title={estSpeed ? t.estimated : undefined}>{estSpeed ? '≈ ' : ''}{formatMetric('outputSpeed', model.outputSpeed)}</b></div>
         <div><span className="muted">{t.latency}</span><b className={estLatency ? 'est' : ''} title={estLatency ? t.estimated : undefined}>{estLatency ? '≈ ' : ''}{formatMetric('latencySeconds', model.latencySeconds)}</b></div>
