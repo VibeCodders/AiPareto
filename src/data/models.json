@@ -20,7 +20,7 @@
     "outputPerM": 25,
     "cacheReadPerM": 0.5,
     "cacheWritePerM": 6.25,
-    "outputSpeed": 52.7,
+    "outputSpeed": 60.6,
     "latencySeconds": null
   },
   {
@@ -44,8 +44,8 @@
     "outputPerM": 25,
     "cacheReadPerM": 0.5,
     "cacheWritePerM": 6.25,
-    "outputSpeed": 53.8,
-    "latencySeconds": 33.6
+    "outputSpeed": 59.8,
+    "latencySeconds": 34.8
   },
   {
     "id": "anthropic/claude-fable-5",
@@ -68,7 +68,7 @@
     "outputPerM": 50,
     "cacheReadPerM": 1,
     "cacheWritePerM": 12.5,
-    "outputSpeed": 67.6,
+    "outputSpeed": 74.6,
     "latencySeconds": null
   },
   {
@@ -92,8 +92,8 @@
     "outputPerM": 25,
     "cacheReadPerM": 0.5,
     "cacheWritePerM": 6.25,
-    "outputSpeed": 53.3,
-    "latencySeconds": 14.7
+    "outputSpeed": 58,
+    "latencySeconds": 20.6
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -116,7 +116,7 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": 3.125,
-    "outputSpeed": 69.7,
+    "outputSpeed": 67.8,
     "latencySeconds": null
   },
   {
@@ -140,8 +140,8 @@
     "outputPerM": 6,
     "cacheReadPerM": 0.5,
     "cacheWritePerM": null,
-    "outputSpeed": 58.3,
-    "latencySeconds": 47.6
+    "outputSpeed": 65.6,
+    "latencySeconds": 45.4
   },
   {
     "id": "moonshotai/kimi-k3",
@@ -164,8 +164,8 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.3,
     "cacheWritePerM": null,
-    "outputSpeed": 38.4,
-    "latencySeconds": 55
+    "outputSpeed": 40.6,
+    "latencySeconds": 52
   },
   {
     "id": "z-ai/glm-5.3",
@@ -177,7 +177,7 @@
     "released": "2026-08-18",
     "isReasoning": true,
     "intelligenceIndex": 59.5,
-    "codingIndex": null,
+    "codingIndex": 74.8,
     "agenticIndex": 59.1,
     "tau2": null,
     "hle": 0.4,
@@ -188,8 +188,8 @@
     "outputPerM": 4.4,
     "cacheReadPerM": 0.26,
     "cacheWritePerM": null,
-    "outputSpeed": 84.7,
-    "latencySeconds": 25.5
+    "outputSpeed": 93.2,
+    "latencySeconds": 23.4
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -212,8 +212,8 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": 3.125,
-    "outputSpeed": 69.2,
-    "latencySeconds": 45.1
+    "outputSpeed": 72.1,
+    "latencySeconds": 49.3
   },
   {
     "id": "anthropic/claude-opus-5",
@@ -236,8 +236,8 @@
     "outputPerM": 25,
     "cacheReadPerM": 0.5,
     "cacheWritePerM": 6.25,
-    "outputSpeed": 52.5,
-    "latencySeconds": 5.4
+    "outputSpeed": 59.7,
+    "latencySeconds": 7.2
   },
   {
     "id": "qwen/qwen3.8-max",
@@ -260,8 +260,8 @@
     "outputPerM": 6,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": 2.5,
-    "outputSpeed": 44.6,
-    "latencySeconds": 47.5
+    "outputSpeed": 45.3,
+    "latencySeconds": 46.8
   },
   {
     "id": "qwen/qwen3.8-2.4t-a95b",
@@ -284,8 +284,8 @@
     "outputPerM": 6,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": null,
-    "outputSpeed": 46.4,
-    "latencySeconds": 45.7
+    "outputSpeed": 44.9,
+    "latencySeconds": 47.1
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -308,8 +308,8 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": 3.125,
-    "outputSpeed": 65.9,
-    "latencySeconds": 14.1
+    "outputSpeed": 67.4,
+    "latencySeconds": 21.1
   },
   {
     "id": "meta/muse-spark-1.2",
@@ -356,7 +356,7 @@
     "outputPerM": 12,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": 2.5,
-    "outputSpeed": 123.4,
+    "outputSpeed": 118.1,
     "latencySeconds": null
   },
   {
@@ -380,8 +380,8 @@
     "outputPerM": 1.875,
     "cacheReadPerM": 0.0375,
     "cacheWritePerM": 0.0208,
-    "outputSpeed": 373.8,
-    "latencySeconds": 17.7
+    "outputSpeed": 372.9,
+    "latencySeconds": 12.1
   },
   {
     "id": "x-ai/grok-4.5",
@@ -404,8 +404,8 @@
     "outputPerM": 6,
     "cacheReadPerM": 0.3,
     "cacheWritePerM": null,
-    "outputSpeed": 51,
-    "latencySeconds": 10.9
+    "outputSpeed": 54.6,
+    "latencySeconds": 12.4
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -428,8 +428,8 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": 3.125,
-    "outputSpeed": 63.3,
-    "latencySeconds": 4.1
+    "outputSpeed": 68.8,
+    "latencySeconds": 5.7
   },
   {
     "id": "anthropic/claude-sonnet-5",
@@ -452,7 +452,7 @@
     "outputPerM": 10,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": 2.5,
-    "outputSpeed": 77.3,
+    "outputSpeed": 84.8,
     "latencySeconds": null
   },
   {
@@ -476,8 +476,8 @@
     "outputPerM": 1.875,
     "cacheReadPerM": 0.0375,
     "cacheWritePerM": 0.0208,
-    "outputSpeed": 307.5,
-    "latencySeconds": 6.1
+    "outputSpeed": 340.4,
+    "latencySeconds": 4.6
   },
   {
     "id": "deepseek/deepseek-v4-pro-0813",
@@ -496,11 +496,11 @@
     "omniscience": 0.8,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 1.32,
-    "outputPerM": 3.96,
-    "cacheReadPerM": 0.044,
+    "inputPerM": 1.188,
+    "outputPerM": 3.564,
+    "cacheReadPerM": 0.0396,
     "cacheWritePerM": null,
-    "outputSpeed": 80.2,
+    "outputSpeed": 80.3,
     "latencySeconds": 26.6
   },
   {
@@ -524,8 +524,8 @@
     "outputPerM": 12,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": 2.5,
-    "outputSpeed": 109.5,
-    "latencySeconds": 19.6
+    "outputSpeed": 109.9,
+    "latencySeconds": 28.1
   },
   {
     "id": "z-ai/glm-5.2",
@@ -548,8 +548,8 @@
     "outputPerM": 3.036,
     "cacheReadPerM": 0.1932,
     "cacheWritePerM": null,
-    "outputSpeed": 152.2,
-    "latencySeconds": 14.5
+    "outputSpeed": 97.7,
+    "latencySeconds": 22.4
   },
   {
     "id": "anthropic/claude-opus-5",
@@ -572,8 +572,8 @@
     "outputPerM": 25,
     "cacheReadPerM": 0.5,
     "cacheWritePerM": 6.25,
-    "outputSpeed": 52.8,
-    "latencySeconds": 2.8
+    "outputSpeed": 59.5,
+    "latencySeconds": 4.3
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -596,7 +596,7 @@
     "outputPerM": 1.2,
     "cacheReadPerM": 0.02,
     "cacheWritePerM": 0.25,
-    "outputSpeed": 169.3,
+    "outputSpeed": 153.7,
     "latencySeconds": null
   },
   {
@@ -609,7 +609,7 @@
     "released": "2026-08-14",
     "isReasoning": true,
     "intelligenceIndex": 52,
-    "codingIndex": null,
+    "codingIndex": 68.1,
     "agenticIndex": 50.9,
     "tau2": null,
     "hle": 0.3,
@@ -644,8 +644,8 @@
     "outputPerM": 0.28,
     "cacheReadPerM": 0.028,
     "cacheWritePerM": null,
-    "outputSpeed": 107.2,
-    "latencySeconds": 19.9
+    "outputSpeed": 126.3,
+    "latencySeconds": 17.1
   },
   {
     "id": "google/gemini-3.6-flash",
@@ -668,8 +668,8 @@
     "outputPerM": 3.75,
     "cacheReadPerM": 0.075,
     "cacheWritePerM": 0.0417,
-    "outputSpeed": 215.1,
-    "latencySeconds": 16.4
+    "outputSpeed": 216.6,
+    "latencySeconds": 21.1
   },
   {
     "id": "google/gemini-3.7-flash",
@@ -692,8 +692,8 @@
     "outputPerM": 1.875,
     "cacheReadPerM": 0.0375,
     "cacheWritePerM": 0.0208,
-    "outputSpeed": 324.3,
-    "latencySeconds": 0.7
+    "outputSpeed": 347.7,
+    "latencySeconds": 0.9
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -716,8 +716,8 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": 3.125,
-    "outputSpeed": 59.7,
-    "latencySeconds": 2.9
+    "outputSpeed": 58,
+    "latencySeconds": 3.8
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -740,8 +740,8 @@
     "outputPerM": 1.2,
     "cacheReadPerM": 0.02,
     "cacheWritePerM": 0.25,
-    "outputSpeed": 171.6,
-    "latencySeconds": 33.6
+    "outputSpeed": 158.4,
+    "latencySeconds": 56.7
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -764,8 +764,8 @@
     "outputPerM": 12,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": 2.5,
-    "outputSpeed": 110.1,
-    "latencySeconds": 2.2
+    "outputSpeed": 111.5,
+    "latencySeconds": 4
   },
   {
     "id": "moonshotai/kimi-k3",
@@ -788,8 +788,8 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.3,
     "cacheWritePerM": null,
-    "outputSpeed": 38.4,
-    "latencySeconds": 55.1
+    "outputSpeed": 37.7,
+    "latencySeconds": 55.9
   },
   {
     "id": "google/gemini-3.1-pro-preview",
@@ -812,8 +812,8 @@
     "outputPerM": 12,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": 0.375,
-    "outputSpeed": 108,
-    "latencySeconds": 33.9
+    "outputSpeed": 123.2,
+    "latencySeconds": 32.5
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -836,8 +836,8 @@
     "outputPerM": 1.2,
     "cacheReadPerM": 0.02,
     "cacheWritePerM": 0.25,
-    "outputSpeed": 158.1,
-    "latencySeconds": 9.7
+    "outputSpeed": 140.5,
+    "latencySeconds": 12.4
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -860,8 +860,8 @@
     "outputPerM": 12,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": 2.5,
-    "outputSpeed": 103.2,
-    "latencySeconds": 1.7
+    "outputSpeed": 108.3,
+    "latencySeconds": 2.1
   },
   {
     "id": "google/gemini-3.5-flash",
@@ -884,8 +884,8 @@
     "outputPerM": 9,
     "cacheReadPerM": 0.15,
     "cacheWritePerM": 0.0833,
-    "outputSpeed": 186.4,
-    "latencySeconds": 20.4
+    "outputSpeed": 195.3,
+    "latencySeconds": 21.3
   },
   {
     "id": "openai/gpt-5.3-codex",
@@ -908,8 +908,8 @@
     "outputPerM": 14,
     "cacheReadPerM": 0.175,
     "cacheWritePerM": null,
-    "outputSpeed": 139.2,
-    "latencySeconds": 50.5
+    "outputSpeed": 139,
+    "latencySeconds": null
   },
   {
     "id": "minimax/minimax-m3",
@@ -932,8 +932,8 @@
     "outputPerM": 1.2,
     "cacheReadPerM": 0.06,
     "cacheWritePerM": null,
-    "outputSpeed": 95.9,
-    "latencySeconds": 22
+    "outputSpeed": 98.2,
+    "latencySeconds": 21.8
   },
   {
     "id": "deepseek/deepseek-v4-pro",
@@ -952,12 +952,12 @@
     "omniscience": -10.7,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 1.32,
-    "outputPerM": 3.96,
-    "cacheReadPerM": 0.044,
+    "inputPerM": 1.44,
+    "outputPerM": 2.88,
+    "cacheReadPerM": 0.1215,
     "cacheWritePerM": null,
-    "outputSpeed": 81.5,
-    "latencySeconds": 55.5
+    "outputSpeed": 76.8,
+    "latencySeconds": 58.7
   },
   {
     "id": "deepseek/deepseek-v4-pro",
@@ -976,12 +976,12 @@
     "omniscience": -10.6,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 1.32,
-    "outputPerM": 3.96,
-    "cacheReadPerM": 0.044,
+    "inputPerM": 1.44,
+    "outputPerM": 2.88,
+    "cacheReadPerM": 0.1215,
     "cacheWritePerM": null,
-    "outputSpeed": 77.3,
-    "latencySeconds": 27.5
+    "outputSpeed": 74.3,
+    "latencySeconds": 28.7
   },
   {
     "id": "moonshotai/kimi-k2.7-code",
@@ -1004,8 +1004,8 @@
     "outputPerM": 3.5,
     "cacheReadPerM": 0.15,
     "cacheWritePerM": null,
-    "outputSpeed": 38.4,
-    "latencySeconds": 60.9
+    "outputSpeed": 37.6,
+    "latencySeconds": 62.4
   },
   {
     "id": "xiaomi/mimo-v2.5-pro",
@@ -1028,8 +1028,8 @@
     "outputPerM": 0.87,
     "cacheReadPerM": 0.0036,
     "cacheWritePerM": null,
-    "outputSpeed": 56.3,
-    "latencySeconds": 38.7
+    "outputSpeed": 65.7,
+    "latencySeconds": 34
   },
   {
     "id": "anthropic/claude-sonnet-5",
@@ -1052,8 +1052,8 @@
     "outputPerM": 10,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": 2.5,
-    "outputSpeed": 63.1,
-    "latencySeconds": 1.1
+    "outputSpeed": 70.1,
+    "latencySeconds": 1.7
   },
   {
     "id": "tencent/hy3",
@@ -1076,8 +1076,8 @@
     "outputPerM": 0.528,
     "cacheReadPerM": 0.033,
     "cacheWritePerM": null,
-    "outputSpeed": 69.7,
-    "latencySeconds": 31.5
+    "outputSpeed": 73,
+    "latencySeconds": 30.3
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -1100,8 +1100,8 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": 3.125,
-    "outputSpeed": 59.9,
-    "latencySeconds": 1.3
+    "outputSpeed": 64.7,
+    "latencySeconds": 1.4
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -1124,8 +1124,8 @@
     "outputPerM": 12,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": 2.5,
-    "outputSpeed": 106.2,
-    "latencySeconds": 1.4
+    "outputSpeed": 99.5,
+    "latencySeconds": 1.7
   },
   {
     "id": "qwen/qwen3.7-plus",
@@ -1148,8 +1148,8 @@
     "outputPerM": 1.28,
     "cacheReadPerM": 0.064,
     "cacheWritePerM": 0.4,
-    "outputSpeed": 56.5,
-    "latencySeconds": 37.7
+    "outputSpeed": 55.9,
+    "latencySeconds": 38.1
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -1172,8 +1172,8 @@
     "outputPerM": 1.2,
     "cacheReadPerM": 0.02,
     "cacheWritePerM": 0.25,
-    "outputSpeed": 174.7,
-    "latencySeconds": 2.1
+    "outputSpeed": 149.4,
+    "latencySeconds": 3.1
   },
   {
     "id": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -1196,8 +1196,8 @@
     "outputPerM": 3.6,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": null,
-    "outputSpeed": 142.3,
-    "latencySeconds": 17.7
+    "outputSpeed": 130.7,
+    "latencySeconds": 19.4
   },
   {
     "id": "xiaomi/mimo-v2.5",
@@ -1220,8 +1220,8 @@
     "outputPerM": 0.28,
     "cacheReadPerM": 0.0028,
     "cacheWritePerM": null,
-    "outputSpeed": 66.8,
-    "latencySeconds": 32.5
+    "outputSpeed": 61.1,
+    "latencySeconds": 35.5
   },
   {
     "id": "inclusionai/ling-3.0-flash",
@@ -1264,11 +1264,11 @@
     "omniscience": -20,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.3,
-    "outputPerM": 2,
-    "cacheReadPerM": 0.03,
+    "inputPerM": 0.6,
+    "outputPerM": 3.6,
+    "cacheReadPerM": 0.12,
     "cacheWritePerM": null,
-    "outputSpeed": 58,
+    "outputSpeed": 55,
     "latencySeconds": null
   },
   {
@@ -1292,8 +1292,8 @@
     "outputPerM": 2.5,
     "cacheReadPerM": 0.03,
     "cacheWritePerM": 0.0833,
-    "outputSpeed": 356.1,
-    "latencySeconds": 9.8
+    "outputSpeed": 389.3,
+    "latencySeconds": 9
   },
   {
     "id": "x-ai/grok-4.3",
@@ -1316,7 +1316,7 @@
     "outputPerM": 2.5,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": null,
-    "outputSpeed": 121.9,
+    "outputSpeed": 126.3,
     "latencySeconds": 13.5
   },
   {
@@ -1340,8 +1340,8 @@
     "outputPerM": 2.5,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": null,
-    "outputSpeed": 116.2,
-    "latencySeconds": 6.1
+    "outputSpeed": 116,
+    "latencySeconds": 6.9
   },
   {
     "id": "google/gemini-3.5-flash",
@@ -1364,8 +1364,8 @@
     "outputPerM": 9,
     "cacheReadPerM": 0.15,
     "cacheWritePerM": 0.0833,
-    "outputSpeed": 166.1,
-    "latencySeconds": 0.8
+    "outputSpeed": 169.9,
+    "latencySeconds": 0.9
   },
   {
     "id": "meta/muse-glimmer-30b",
@@ -1388,8 +1388,8 @@
     "outputPerM": 1.5,
     "cacheReadPerM": 0.04,
     "cacheWritePerM": null,
-    "outputSpeed": 110.2,
-    "latencySeconds": 19
+    "outputSpeed": 106.1,
+    "latencySeconds": 19.6
   },
   {
     "id": "anthropic/claude-sonnet-4.6",
@@ -1412,8 +1412,8 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.3,
     "cacheWritePerM": 3.75,
-    "outputSpeed": 43.5,
-    "latencySeconds": 1.3
+    "outputSpeed": 47.1,
+    "latencySeconds": 1.9
   },
   {
     "id": "z-ai/glm-5.2",
@@ -1436,7 +1436,7 @@
     "outputPerM": 3.036,
     "cacheReadPerM": 0.1932,
     "cacheWritePerM": null,
-    "outputSpeed": 135.4,
+    "outputSpeed": 134.6,
     "latencySeconds": 2.1
   },
   {
@@ -1460,7 +1460,7 @@
     "outputPerM": 12,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": 2.5,
-    "outputSpeed": 107.2,
+    "outputSpeed": 113.3,
     "latencySeconds": 0.8
   },
   {
@@ -1484,8 +1484,8 @@
     "outputPerM": 2.34,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 98.1,
-    "latencySeconds": 34.7
+    "outputSpeed": 80.8,
+    "latencySeconds": 41.5
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -1508,8 +1508,8 @@
     "outputPerM": 1.2,
     "cacheReadPerM": 0.02,
     "cacheWritePerM": 0.25,
-    "outputSpeed": 163.6,
-    "latencySeconds": 1.5
+    "outputSpeed": 137.6,
+    "latencySeconds": 1.8
   },
   {
     "id": "qwen/qwen3.5-122b-a10b",
@@ -1532,8 +1532,8 @@
     "outputPerM": 2.08,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 133.5,
-    "latencySeconds": 17.3
+    "outputSpeed": 130.7,
+    "latencySeconds": 17.6
   },
   {
     "id": "qwen/qwen3.5-397b-a17b",
@@ -1556,8 +1556,8 @@
     "outputPerM": 2.34,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 95.3,
-    "latencySeconds": 2.1
+    "outputSpeed": 83.5,
+    "latencySeconds": 2.2
   },
   {
     "id": "qwen/qwen3.6-35b-a3b",
@@ -1580,8 +1580,8 @@
     "outputPerM": 1,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "outputSpeed": 123.8,
-    "latencySeconds": 45.6
+    "outputSpeed": 125.7,
+    "latencySeconds": 45
   },
   {
     "id": "deepseek/deepseek-v4-pro",
@@ -1600,12 +1600,12 @@
     "omniscience": -29.9,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 1.32,
-    "outputPerM": 3.96,
-    "cacheReadPerM": 0.044,
+    "inputPerM": 1.44,
+    "outputPerM": 2.88,
+    "cacheReadPerM": 0.1215,
     "cacheWritePerM": null,
-    "outputSpeed": 81.2,
-    "latencySeconds": 1.7
+    "outputSpeed": 84.2,
+    "latencySeconds": 1.9
   },
   {
     "id": "inclusionai/ring-2.6-1t",
@@ -1648,12 +1648,12 @@
     "omniscience": -53.2,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.3,
-    "outputPerM": 2,
-    "cacheReadPerM": 0.03,
+    "inputPerM": 0.6,
+    "outputPerM": 3.6,
+    "cacheReadPerM": 0.12,
     "cacheWritePerM": null,
-    "outputSpeed": 57.1,
-    "latencySeconds": 3.6
+    "outputSpeed": 56.9,
+    "latencySeconds": 3.7
   },
   {
     "id": "openai/o3",
@@ -1676,8 +1676,8 @@
     "outputPerM": 8,
     "cacheReadPerM": 0.5,
     "cacheWritePerM": null,
-    "outputSpeed": 125.3,
-    "latencySeconds": 8.9
+    "outputSpeed": 107.5,
+    "latencySeconds": 11.6
   },
   {
     "id": "stepfun/step-3.7-flash",
@@ -1700,8 +1700,8 @@
     "outputPerM": 1.15,
     "cacheReadPerM": 0.04,
     "cacheWritePerM": null,
-    "outputSpeed": 136.7,
-    "latencySeconds": 17.3
+    "outputSpeed": 109.3,
+    "latencySeconds": 21.1
   },
   {
     "id": "mistralai/mistral-medium-3-5",
@@ -1724,8 +1724,8 @@
     "outputPerM": 7.5,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 153.9,
-    "latencySeconds": 15.2
+    "outputSpeed": 138.7,
+    "latencySeconds": 16.7
   },
   {
     "id": "anthropic/claude-haiku-4.5",
@@ -1748,8 +1748,8 @@
     "outputPerM": 5,
     "cacheReadPerM": 0.1,
     "cacheWritePerM": 1.25,
-    "outputSpeed": 91.9,
-    "latencySeconds": 14.7
+    "outputSpeed": 97.2,
+    "latencySeconds": 15.4
   },
   {
     "id": "google/gemma-4-31b-it",
@@ -1772,8 +1772,8 @@
     "outputPerM": 0.34,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "outputSpeed": 35.8,
-    "latencySeconds": 49.6
+    "outputSpeed": 35.2,
+    "latencySeconds": 50.5
   },
   {
     "id": "deepseek/deepseek-v4-flash-0731",
@@ -1820,8 +1820,8 @@
     "outputPerM": 30,
     "cacheReadPerM": 0.5,
     "cacheWritePerM": null,
-    "outputSpeed": 142,
-    "latencySeconds": 15.1
+    "outputSpeed": 146.4,
+    "latencySeconds": 14.6
   },
   {
     "id": "xiaomi/mimo-v2.5-pro",
@@ -1844,8 +1844,8 @@
     "outputPerM": 0.87,
     "cacheReadPerM": 0.0036,
     "cacheWritePerM": null,
-    "outputSpeed": 54.3,
-    "latencySeconds": 2.9
+    "outputSpeed": 67.9,
+    "latencySeconds": 3.4
   },
   {
     "id": "qwen/qwen3.5-122b-a10b",
@@ -1868,8 +1868,8 @@
     "outputPerM": 2.08,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 147.5,
-    "latencySeconds": 2.3
+    "outputSpeed": 144.5,
+    "latencySeconds": 2.4
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -1892,7 +1892,7 @@
     "outputPerM": 1.2,
     "cacheReadPerM": 0.02,
     "cacheWritePerM": 0.25,
-    "outputSpeed": 156.4,
+    "outputSpeed": 143.9,
     "latencySeconds": 0.8
   },
   {
@@ -1940,8 +1940,8 @@
     "outputPerM": 0.4,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 131.8,
-    "latencySeconds": 17.1
+    "outputSpeed": 134.5,
+    "latencySeconds": 16.9
   },
   {
     "id": "x-ai/grok-4.3",
@@ -1964,7 +1964,7 @@
     "outputPerM": 2.5,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": null,
-    "outputSpeed": 103.7,
+    "outputSpeed": 107,
     "latencySeconds": 0.8
   },
   {
@@ -1988,7 +1988,7 @@
     "outputPerM": 1,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "outputSpeed": 144.5,
+    "outputSpeed": 145.1,
     "latencySeconds": 2.1
   },
   {
@@ -2008,11 +2008,11 @@
     "omniscience": -63,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.225,
-    "outputPerM": 1.8,
-    "cacheReadPerM": 0.225,
+    "inputPerM": 0.25,
+    "outputPerM": 1.25,
+    "cacheReadPerM": 0.25,
     "cacheWritePerM": null,
-    "outputSpeed": 171.4,
+    "outputSpeed": 175.1,
     "latencySeconds": 2.1
   },
   {
@@ -2036,8 +2036,8 @@
     "outputPerM": 0.17,
     "cacheReadPerM": 0.03,
     "cacheWritePerM": null,
-    "outputSpeed": 179.7,
-    "latencySeconds": 11.9
+    "outputSpeed": 157,
+    "latencySeconds": 13.6
   },
   {
     "id": "anthropic/claude-haiku-4.5",
@@ -2060,8 +2060,8 @@
     "outputPerM": 5,
     "cacheReadPerM": 0.1,
     "cacheWritePerM": 1.25,
-    "outputSpeed": 90.1,
-    "latencySeconds": 0.9
+    "outputSpeed": 94.4,
+    "latencySeconds": 1
   },
   {
     "id": "nvidia/nemotron-3.5-lightning",
@@ -2084,8 +2084,8 @@
     "outputPerM": 0.2,
     "cacheReadPerM": 0.04,
     "cacheWritePerM": null,
-    "outputSpeed": 298,
-    "latencySeconds": 7.7
+    "outputSpeed": 324.3,
+    "latencySeconds": 7.3
   },
   {
     "id": "google/gemma-4-31b-it",
@@ -2108,8 +2108,8 @@
     "outputPerM": 0.34,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "outputSpeed": 85.2,
-    "latencySeconds": 1.5
+    "outputSpeed": 79.3,
+    "latencySeconds": 1.4
   },
   {
     "id": "qwen/qwen3.5-9b",
@@ -2132,8 +2132,8 @@
     "outputPerM": 0.15,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 79.3,
-    "latencySeconds": 27.2
+    "outputSpeed": 75.9,
+    "latencySeconds": 28.2
   },
   {
     "id": "qwen/qwen3-coder-next",
@@ -2156,8 +2156,8 @@
     "outputPerM": 0.8,
     "cacheReadPerM": 0.07,
     "cacheWritePerM": null,
-    "outputSpeed": 133.2,
-    "latencySeconds": 1.3
+    "outputSpeed": 112.3,
+    "latencySeconds": 1.1
   },
   {
     "id": "amazon/nova-2-lite-v1",
@@ -2180,8 +2180,8 @@
     "outputPerM": 2.5,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 159.5,
-    "latencySeconds": 26.4
+    "outputSpeed": 159,
+    "latencySeconds": 27.4
   },
   {
     "id": "qwen/qwen3.5-9b",
@@ -2204,8 +2204,8 @@
     "outputPerM": 0.15,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 88.1,
-    "latencySeconds": 0.9
+    "outputSpeed": 88,
+    "latencySeconds": 0.8
   },
   {
     "id": "google/gemma-4-26b-a4b-it",
@@ -2228,8 +2228,8 @@
     "outputPerM": 0.34,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 67.6,
-    "latencySeconds": 1.1
+    "outputSpeed": 76.1,
+    "latencySeconds": 1.2
   },
   {
     "id": "mistralai/mistral-small-2603",
@@ -2252,8 +2252,8 @@
     "outputPerM": 0.6,
     "cacheReadPerM": 0.015,
     "cacheWritePerM": null,
-    "outputSpeed": 167.9,
-    "latencySeconds": 12.7
+    "outputSpeed": 152.4,
+    "latencySeconds": 14
   },
   {
     "id": "amazon/nova-2-lite-v1",
@@ -2276,8 +2276,8 @@
     "outputPerM": 2.5,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 169.3,
-    "latencySeconds": 28.3
+    "outputSpeed": 186.1,
+    "latencySeconds": 31.7
   },
   {
     "id": "amazon/nova-2-lite-v1",
@@ -2300,8 +2300,8 @@
     "outputPerM": 2.5,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 160.6,
-    "latencySeconds": 20.5
+    "outputSpeed": 173,
+    "latencySeconds": 20.6
   },
   {
     "id": "qwen/qwen3-next-80b-a3b-thinking",
@@ -2324,8 +2324,8 @@
     "outputPerM": 1.2,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 198.1,
-    "latencySeconds": 12.3
+    "outputSpeed": 203.5,
+    "latencySeconds": 12.1
   },
   {
     "id": "mistralai/mistral-large-2512",
@@ -2348,8 +2348,8 @@
     "outputPerM": 1.5,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "outputSpeed": 51.9,
-    "latencySeconds": 1.1
+    "outputSpeed": 48,
+    "latencySeconds": 1.2
   },
   {
     "id": "openai/gpt-oss-20b",
@@ -2372,8 +2372,8 @@
     "outputPerM": 0.13,
     "cacheReadPerM": 0.03,
     "cacheWritePerM": null,
-    "outputSpeed": 122.6,
-    "latencySeconds": 17.3
+    "outputSpeed": 132.9,
+    "latencySeconds": 16
   },
   {
     "id": "openai/gpt-oss-120b",
@@ -2396,8 +2396,8 @@
     "outputPerM": 0.17,
     "cacheReadPerM": 0.03,
     "cacheWritePerM": null,
-    "outputSpeed": 200.4,
-    "latencySeconds": 10.8
+    "outputSpeed": 152.1,
+    "latencySeconds": 14.1
   },
   {
     "id": "meta-llama/llama-4-maverick",
@@ -2420,8 +2420,8 @@
     "outputPerM": 0.8,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 120.8,
-    "latencySeconds": 1
+    "outputSpeed": 101.1,
+    "latencySeconds": 0.9
   },
   {
     "id": "nvidia/nemotron-3-nano-30b-a3b",
@@ -2444,8 +2444,8 @@
     "outputPerM": 0.2,
     "cacheReadPerM": 0.03,
     "cacheWritePerM": null,
-    "outputSpeed": 215.9,
-    "latencySeconds": 10.6
+    "outputSpeed": 237.8,
+    "latencySeconds": 9.5
   },
   {
     "id": "openai/gpt-oss-20b",
@@ -2468,8 +2468,8 @@
     "outputPerM": 0.13,
     "cacheReadPerM": 0.03,
     "cacheWritePerM": null,
-    "outputSpeed": 172,
-    "latencySeconds": 12.7
+    "outputSpeed": 138.7,
+    "latencySeconds": 15.5
   },
   {
     "id": "qwen/qwen3-next-80b-a3b-instruct",
@@ -2492,8 +2492,8 @@
     "outputPerM": 1.1,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 183.6,
-    "latencySeconds": 2.1
+    "outputSpeed": 199,
+    "latencySeconds": 2.2
   },
   {
     "id": "amazon/nova-premier-v1",
@@ -2516,7 +2516,7 @@
     "outputPerM": 12.5,
     "cacheReadPerM": 0.625,
     "cacheWritePerM": null,
-    "outputSpeed": 34.1,
+    "outputSpeed": 31.8,
     "latencySeconds": 2.8
   },
   {
@@ -2540,7 +2540,7 @@
     "outputPerM": 0.6,
     "cacheReadPerM": 0.015,
     "cacheWritePerM": null,
-    "outputSpeed": 149.3,
+    "outputSpeed": 136.9,
     "latencySeconds": 0.8
   },
   {
@@ -2564,8 +2564,8 @@
     "outputPerM": 2.5,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 146.4,
-    "latencySeconds": 1.1
+    "outputSpeed": 158.3,
+    "latencySeconds": 1
   },
   {
     "id": "mistralai/ministral-14b-2512",
@@ -2588,8 +2588,8 @@
     "outputPerM": 0.2,
     "cacheReadPerM": 0.02,
     "cacheWritePerM": null,
-    "outputSpeed": 94.8,
-    "latencySeconds": 0.8
+    "outputSpeed": 90.7,
+    "latencySeconds": 0.9
   },
   {
     "id": "meta-llama/llama-4-scout",
@@ -2612,7 +2612,7 @@
     "outputPerM": 0.3,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 134.6,
+    "outputSpeed": 135,
     "latencySeconds": 0.8
   },
   {
@@ -2636,7 +2636,7 @@
     "outputPerM": 0.15,
     "cacheReadPerM": 0.015,
     "cacheWritePerM": null,
-    "outputSpeed": 132.5,
+    "outputSpeed": 112.7,
     "latencySeconds": 0.7
   },
   {
@@ -2660,8 +2660,8 @@
     "outputPerM": 10,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "outputSpeed": 56.3,
-    "latencySeconds": 1.7
+    "outputSpeed": 68.1,
+    "latencySeconds": 1.8
   },
   {
     "id": "nvidia/nemotron-3-nano-30b-a3b",
@@ -2684,7 +2684,7 @@
     "outputPerM": 0.2,
     "cacheReadPerM": 0.03,
     "cacheWritePerM": null,
-    "outputSpeed": 202.5,
+    "outputSpeed": 224.3,
     "latencySeconds": 0.9
   },
   {
@@ -2708,31 +2708,7 @@
     "outputPerM": 0.1,
     "cacheReadPerM": 0.01,
     "cacheWritePerM": null,
-    "outputSpeed": 199.6,
+    "outputSpeed": 205.2,
     "latencySeconds": 0.6
-  },
-  {
-    "id": "ai21/jamba-large-1.7",
-    "name": "AI21: Jamba Large 1.7",
-    "family": "AI21 Labs",
-    "slug": "jamba-1-7-large",
-    "aaName": "Jamba 1.7 Large",
-    "effort": null,
-    "released": "2025-07-07",
-    "isReasoning": false,
-    "intelligenceIndex": 5,
-    "codingIndex": null,
-    "agenticIndex": null,
-    "tau2": 0.1,
-    "hle": 0,
-    "omniscience": -54.9,
-    "contextTokens": 256000,
-    "openWeights": true,
-    "inputPerM": 2,
-    "outputPerM": 8,
-    "cacheReadPerM": null,
-    "cacheWritePerM": null,
-    "outputSpeed": null,
-    "latencySeconds": null
   }
 ]
