@@ -12,6 +12,10 @@ export const DEFAULT_RETRIES = 3
 export const DEFAULT_RETRY_DELAY = 1_000
 export const DEFAULT_LEADERBOARD_MAX_AGE_MS = 24 * 60 * 60 * 1000
 
+function isRetryable(status: number): boolean {
+  return status === 429 || status >= 500
+}
+
 export async function get(
   url: string,
   opts: { headers?: Record<string, string>; timeout?: number; retries?: number; retryDelay?: number } = {},
@@ -27,12 +31,22 @@ export async function get(
         signal: controller.signal,
       })
       clearTimeout(timer)
-      if (!res.ok) throw new Error(`GET ${url} -> ${res.status} ${res.statusText}`)
+      if (!res.ok) {
+        if (!isRetryable(res.status) || attempt === retries) {
+          throw new Error(`GET ${url} -> ${res.status} ${res.statusText}`)
+        }
+        const backoff = retryDelay * Math.pow(2, attempt - 1)
+        const jitter = Math.random() * backoff * 0.5
+        await new Promise((r) => setTimeout(r, backoff + jitter))
+        continue
+      }
       return await res.text()
     } catch (e) {
       lastError = e as Error
       if (attempt < retries) {
-        await new Promise((r) => setTimeout(r, retryDelay * attempt))
+        const backoff = retryDelay * Math.pow(2, attempt - 1)
+        const jitter = Math.random() * backoff * 0.5
+        await new Promise((r) => setTimeout(r, backoff + jitter))
       }
     }
   }

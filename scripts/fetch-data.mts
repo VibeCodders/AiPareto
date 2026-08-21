@@ -11,10 +11,13 @@
  *
  * Flags:
  *   --force           Bypass all caches (download everything fresh).
- *   --no-cache        Do not write cache files (.tmp/).
+ *   --no-cache        Do not read or write cache files (.tmp/).
  *   --concurrency N   Parallel workers for detail page crawling (default 4).
  *   --delay MS        Delay between requests per worker (default 400).
+ *   --timeout MS      HTTP request timeout (default 30000).
+ *   --retries N       HTTP retry attempts (default 3).
  *   --older-than HOURS  Only refresh leaderboards cache if older than this (default 24).
+ *   --verbose         Print extra diagnostics.
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -33,6 +36,7 @@ interface Flags {
   concurrency: number
   delayMs: number
   timeout: number
+  retries: number
   leaderboardMaxAgeMs: number
   verbose: boolean
 }
@@ -45,6 +49,7 @@ function parseFlags(): Flags {
     concurrency: 4,
     delayMs: 400,
     timeout: DEFAULT_TIMEOUT,
+    retries: DEFAULT_RETRIES,
     leaderboardMaxAgeMs: DEFAULT_LEADERBOARD_MAX_AGE_MS,
     verbose: false,
   }
@@ -55,7 +60,11 @@ function parseFlags(): Flags {
     else if (a === '--concurrency' && args[i + 1]) flags.concurrency = Math.max(1, parseInt(args[++i], 10) || 4)
     else if (a === '--delay' && args[i + 1]) flags.delayMs = Math.max(0, parseInt(args[++i], 10) || 400)
     else if (a === '--timeout' && args[i + 1]) flags.timeout = Math.max(1000, parseInt(args[++i], 10) || DEFAULT_TIMEOUT)
-    else if (a === '--older-than' && args[i + 1]) flags.leaderboardMaxAgeMs = Math.max(1, parseInt(args[++i], 10) || 24) * 60 * 60 * 1000
+    else if (a === '--retries' && args[i + 1]) flags.retries = Math.max(0, parseInt(args[++i], 10) || DEFAULT_RETRIES)
+    else if (a === '--older-than' && args[i + 1]) {
+      const v = parseInt(args[++i], 10)
+      flags.leaderboardMaxAgeMs = Number.isNaN(v) ? DEFAULT_LEADERBOARD_MAX_AGE_MS : Math.max(1, v) * 60 * 60 * 1000
+    }
     else if (a === '--verbose') flags.verbose = true
   }
   return flags
@@ -77,13 +86,17 @@ interface ORModel {
   }
 }
 
-async function fetchOpenRouter(): Promise<ORModel[]> {
-  const json = JSON.parse(await get('https://openrouter.ai/api/v1/models', { headers: { 'Accept': 'application/json' } })) as { data: ORModel[] }
+async function fetchOpenRouter(flags: Flags): Promise<ORModel[]> {
+  const json = JSON.parse(await get('https://openrouter.ai/api/v1/models', {
+    headers: { 'Accept': 'application/json' },
+    timeout: flags.timeout,
+    retries: flags.retries,
+  })) as { data: ORModel[] }
   return json.data
 }
 
-async function fetchAAModelsPage(): Promise<{ registry: AAModelMeta[]; scored: AAModelData[] }> {
-  const html = await get('https://artificialanalysis.ai/models')
+async function fetchAAModelsPage(flags: Flags): Promise<{ registry: AAModelMeta[]; scored: AAModelData[] }> {
+  const html = await get('https://artificialanalysis.ai/models', { timeout: flags.timeout, retries: flags.retries })
   const raw = extractFlightChunks(html).join('')
   const registry = parseModelRegistry(raw)
   const scored = extractModelObjects(raw)
@@ -98,16 +111,20 @@ async function fetchAALeaderboards(flags: Flags): Promise<AAModelData[]> {
   if (useCache) {
     html = fs.readFileSync(file, 'utf8')
   } else {
-    html = await get('https://artificialanalysis.ai/leaderboards/models', { timeout: flags.timeout })
+    html = await get('https://artificialanalysis.ai/leaderboards/models', { timeout: flags.timeout, retries: flags.retries })
     if (!flags.noCache) fs.writeFileSync(file, html)
   }
   return extractObjectsContaining(extractFlightChunks(html).join(''), '"codingIndex"')
 }
 
+function slugToFile(slug: string): string {
+  return path.join(PAGES_DIR, `${slug.replace(/[\\/:*?"<>|]/g, '_')}.html`)
+}
+
 async function getDetailHtml(slug: string, flags: Flags): Promise<string> {
-  const file = path.join(PAGES_DIR, `${slug}.html`)
-  if (!flags.force && fs.existsSync(file)) return fs.readFileSync(file, 'utf8')
-  const html = await get(`https://artificialanalysis.ai/models/${slug}`)
+  const file = slugToFile(slug)
+  if (!flags.noCache && !flags.force && fs.existsSync(file)) return fs.readFileSync(file, 'utf8')
+  const html = await get(`https://artificialanalysis.ai/models/${slug}`, { timeout: flags.timeout, retries: flags.retries })
   if (!flags.noCache) fs.writeFileSync(file, html)
   return html
 }
@@ -137,13 +154,15 @@ async function crawlDetails(slugs: string[], flags: Flags): Promise<Map<string, 
       if (!slug) return
       let attempts = 0
       let result: DetailResult | undefined
-      while (attempts < 2 && !result) {
+      while (attempts < 3 && !result) {
         try {
           result = await fetchAADetail(slug, flags)
         } catch (e) {
           attempts++
-          if (attempts < 2) {
-            await new Promise((r) => setTimeout(r, flags.delayMs * attempts))
+          if (attempts < 3) {
+            const backoff = flags.delayMs * Math.pow(2, attempts - 1)
+            const jitter = Math.random() * backoff * 0.5
+            await new Promise((r) => setTimeout(r, backoff + jitter))
           }
         }
       }
@@ -153,10 +172,11 @@ async function crawlDetails(slugs: string[], flags: Flags): Promise<Map<string, 
       } else {
         console.warn(`  [${++done}/${queue.length}] ${slug} FAILED after ${attempts} attempts`)
       }
-      await new Promise((r) => setTimeout(r, flags.delayMs))
+      const nextDelay = flags.delayMs * (1 + Math.random() * 0.5)
+      await new Promise((r) => setTimeout(r, nextDelay))
     }
   }
-  await Promise.all(Array.from({ length: Math.min(flags.concurrency, queue.length) }, worker))
+  await Promise.all(Array.from({ length: Math.min(flags.concurrency, Math.max(1, queue.length)) }, worker))
   return results
 }
 
@@ -241,7 +261,6 @@ const KNOWN_PARAMS: Record<string, { parameters: number; activeParameters?: numb
   'jamba-1-7-mini': { parameters: 8e9 },
   'jamba-1-7-large': { parameters: 52e9, activeParameters: 12e9 },
   'jamba-reasoning-3b': { parameters: 3e9 },
-  // Additional known parameter counts for models in the mapping whose names don't encode the count.
   'command-a': { parameters: 111e9 },
   'kimi-k2-7-code': { parameters: 1e12, activeParameters: 32e9 },
   'kimi-k3': { parameters: 2800e9, activeParameters: 104e9 },
@@ -264,7 +283,6 @@ function matchKnownParams(text: string): { parameters: number | null; activePara
   return null
 }
 
-/** Extract parameter counts embedded in model name text (e.g. "122B A10B", "2.4T A95B", "NxM MoE"). */
 function parseNameParams(text: string): { parameters: number | null; activeParameters: number | null } {
   const t = text.toLowerCase().replace(/[–—]/g, '-').replace(/\s+/g, ' ')
 
@@ -306,11 +324,6 @@ function parseNameParams(text: string): { parameters: number | null; activeParam
   return { parameters: null, activeParameters: null }
 }
 
-/** Extract parameter counts from Artificial Analysis model data.
-  * AA reports total/active params in BILLIONS via different field names depending on
-  * the source: leaderboard objects use `totalParameters`/`activeParameters`, while
-  * detail-page objects use `parameters`/`inferenceParametersActiveBillions`.
-  */
 function extractParamsFromAA(data: AAModelData | null | undefined): { parameters: number | null; activeParameters: number | null } {
   if (!data) return { parameters: null, activeParameters: null }
   const totalBillions = data.totalParameters ?? data.parameters ?? null
@@ -321,11 +334,6 @@ function extractParamsFromAA(data: AAModelData | null | undefined): { parameters
   }
 }
 
-/** Determine parameter counts using a priority cascade:
-  * 1. Artificial Analysis model data (totalParameters/activeParameters or parameters/inferenceParametersActiveBillions).
-  * 2. KNOWN_PARAMS table (curated values for models whose names don't encode the count).
-  * 3. Name text parsing (NxM MoE patterns, "aN B" active markers, last number+unit).
-  */
 function parseParams(text: string, data: AAModelData | null | undefined): { parameters: number | null; activeParameters: number | null } {
   const result = extractParamsFromAA(data)
 
@@ -342,17 +350,37 @@ function parseParams(text: string, data: AAModelData | null | undefined): { para
   return result
 }
 
+async function fetchPerfForSlug(slug: string, details: Map<string, DetailResult>, flags: Flags): Promise<{ outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null } | null> {
+  const cached = details.get(slug)
+  let attempts = 0
+  while (attempts < 2) {
+    try {
+      const html = cached?.html ?? await getDetailHtml(slug, flags)
+      const perf = extractPerfFromDetail(html, slug)
+      return perf
+    } catch (e) {
+      attempts++
+      if (attempts < 2) {
+        await new Promise((r) => setTimeout(r, flags.delayMs))
+      } else {
+        return null
+      }
+    }
+  }
+  return null
+}
+
 async function main() {
   const flags = parseFlags()
   fs.mkdirSync(PAGES_DIR, { recursive: true })
   fs.mkdirSync(OUT_DIR, { recursive: true })
 
-  console.log(`— fetching OpenRouter models (timeout=${DEFAULT_TIMEOUT}ms, retries=${DEFAULT_RETRIES})…`)
-  const orModels = await fetchOpenRouter()
+  console.log(`— fetching OpenRouter models (timeout=${flags.timeout}ms, retries=${flags.retries})…`)
+  const orModels = await fetchOpenRouter(flags)
   console.log(`  ${orModels.length} models`)
 
   console.log('— fetching Artificial Analysis models page…')
-  const { registry, scored } = await fetchAAModelsPage()
+  const { registry, scored } = await fetchAAModelsPage(flags)
   console.log(`  registry: ${registry.length} models, ${scored.length} scored on page`)
 
   console.log('— fetching Artificial Analysis leaderboards page…')
@@ -435,38 +463,19 @@ async function main() {
     })
   }
 
-  let perfOk = 0
-  let perfMissing = 0
+  console.log(`— extracting perf for ${rows.length} models (concurrency=${flags.concurrency})…`)
+  const perfResults = await extractPerfParallel(rows, details, flags)
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i] as Record<string, unknown>
-    const slug = row.slug as string
-    const cached = details.get(slug)
-    let attempts = 0
-    let done = false
-    while (attempts < 2 && !done) {
-      try {
-        const html = cached?.html ?? await getDetailHtml(slug, flags)
-        const perf = extractPerfFromDetail(html, slug)
-        row.outputSpeed = perf.outputSpeed != null ? round1(perf.outputSpeed) : null
-        row.latencySeconds = perf.latencySeconds != null ? round1(perf.latencySeconds) : null
-        if (row.contextTokens == null && perf.contextWindowTokens != null) row.contextTokens = perf.contextWindowTokens
-        if (perf.outputSpeed != null || perf.latencySeconds != null) perfOk++
-        else perfMissing++
-        console.log(`  [${i + 1}/${rows.length}] perf ${slug}: speed=${row.outputSpeed ?? '-'} lat=${row.latencySeconds ?? '-'}${attempts > 0 ? ' (retry)' : ''}`)
-        done = true
-      } catch (e) {
-        attempts++
-        if (attempts < 2) {
-          await new Promise((r) => setTimeout(r, flags.delayMs))
-        } else {
-          perfMissing++
-          console.warn(`  [${i + 1}/${rows.length}] perf FAILED ${slug}: ${(e as Error).message}`)
-          done = true
-        }
-      }
+    const perf = perfResults[i]
+    if (perf) {
+      row.outputSpeed = perf.outputSpeed != null ? round1(perf.outputSpeed) : null
+      row.latencySeconds = perf.latencySeconds != null ? round1(perf.latencySeconds) : null
+      if ((row.contextTokens as number | null) == null && perf.contextWindowTokens != null) row.contextTokens = perf.contextWindowTokens
     }
-    if (!cached) await new Promise((r) => setTimeout(r, flags.delayMs))
   }
+  const perfOk = perfResults.filter((p) => p != null && (p.outputSpeed != null || p.latencySeconds != null)).length
+  const perfMissing = perfResults.filter((p) => p == null || (p.outputSpeed == null && p.latencySeconds == null)).length
   console.log(`  perf ok: ${perfOk}, missing both: ${perfMissing}`)
 
   const paramRows = rows as Array<Record<string, unknown>>
@@ -475,11 +484,6 @@ async function main() {
   const activeFromAA = paramRows.filter((r) => r.activeParameters != null).length
   console.log(`  parameters: ${paramFromAA}/${paramRows.length} filled, ${paramNull} null (${activeFromAA} active filled)`)
 
-
-  // Deterministic multi-key sort. intelligenceIndex is rounded to 0.1 via round1(),
-  // so many rows tie on the primary key; without stable tie-breakers the relative
-  // order otherwise falls back to source insertion order (which drifts between
-  // runs) and produces spurious array reshuffles in models.json.
   rows.sort((a, b) => {
     const ai = a.intelligenceIndex as number
     const bi = b.intelligenceIndex as number
@@ -550,6 +554,31 @@ async function main() {
   if (githubStepSummary) {
     fs.appendFileSync(githubStepSummary, `## AI Pareto data refresh\n\n${summaryLines.map((l) => `- ${l}`).join('\n')}\n`)
   }
+}
+
+async function extractPerfParallel(
+  rows: Array<Record<string, unknown>>,
+  details: Map<string, DetailResult>,
+  flags: Flags,
+): Promise<Array<{ outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null } | null>> {
+  const results = new Array<(null | { outputSpeed: number; latencySeconds: number; contextWindowTokens: number })>(rows.length)
+  const queue: number[] = []
+  for (let i = 0; i < rows.length; i++) queue.push(i)
+  let next = 0
+  const worker = async () => {
+    while (true) {
+      const idx = queue[next++]
+      if (idx == null) return
+      const row = rows[idx] as Record<string, unknown>
+      const slug = row.slug as string
+      const perf = await fetchPerfForSlug(slug, details, flags)
+      results[idx] = perf
+      console.log(`  [${idx + 1}/${rows.length}] perf ${slug}: speed=${perf?.outputSpeed ?? '-'} lat=${perf?.latencySeconds ?? '-'}`)
+    }
+  }
+  const workers = Math.min(flags.concurrency, Math.max(1, rows.length))
+  await Promise.all(Array.from({ length: workers }, worker))
+  return results
 }
 
 function round1(n: number): number {
