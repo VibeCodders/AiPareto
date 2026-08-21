@@ -18,13 +18,14 @@ import { extractFlightChunks, parseModelRegistry } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
 import { CREATOR_WHITELIST, get } from './shared.mts'
 
-function parseFlags(): { timeout: number; retries: number } {
+function parseFlags(): { timeout: number; retries: number; verbose: boolean } {
   const args = process.argv.slice(2)
-  const flags = { timeout: 30000, retries: 3 }
+  const flags = { timeout: 30000, retries: 3, verbose: false }
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
     if (a === '--timeout' && args[i + 1]) flags.timeout = Math.max(1000, parseInt(args[++i], 10) || 30000)
     else if (a === '--retries' && args[i + 1]) flags.retries = Math.max(0, parseInt(args[++i], 10) || 3)
+    else if (a === '--verbose') flags.verbose = true
   }
   return flags
 }
@@ -46,6 +47,16 @@ async function main() {
 
   const unmapped = recent.filter((m) => !(m.slug in AA_TO_OR))
   const staleMappings = [...new Set(Object.values(AA_TO_OR))].filter((id) => !orIds.has(id))
+
+  const mappedCount = recent.length - unmapped.length
+  console.log(`\n${mappedCount}/${recent.length} recent AA models correctly mapped.`)
+  if (flags.verbose && mappedCount > 0) {
+    const mapped = recent.filter((m) => (m.slug in AA_TO_OR))
+    for (const m of mapped.slice(0, 20)) {
+      console.log(`   ${m.slug.padEnd(40)} ${m.creator?.name ?? '?'} — ${m.name}`)
+    }
+    if (mapped.length > 20) console.log(`   ... and ${mapped.length - 20} more`)
+  }
 
   console.log(`\n${unmapped.length} recent AA model(s) with no entry in scripts/model-map.ts:`)
   for (const m of unmapped) {

@@ -32,7 +32,9 @@ interface Flags {
   noCache: boolean
   concurrency: number
   delayMs: number
+  timeout: number
   leaderboardMaxAgeMs: number
+  verbose: boolean
 }
 
 function parseFlags(): Flags {
@@ -42,7 +44,9 @@ function parseFlags(): Flags {
     noCache: false,
     concurrency: 4,
     delayMs: 400,
+    timeout: DEFAULT_TIMEOUT,
     leaderboardMaxAgeMs: DEFAULT_LEADERBOARD_MAX_AGE_MS,
+    verbose: false,
   }
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
@@ -50,7 +54,9 @@ function parseFlags(): Flags {
     else if (a === '--no-cache') flags.noCache = true
     else if (a === '--concurrency' && args[i + 1]) flags.concurrency = Math.max(1, parseInt(args[++i], 10) || 4)
     else if (a === '--delay' && args[i + 1]) flags.delayMs = Math.max(0, parseInt(args[++i], 10) || 400)
+    else if (a === '--timeout' && args[i + 1]) flags.timeout = Math.max(1000, parseInt(args[++i], 10) || DEFAULT_TIMEOUT)
     else if (a === '--older-than' && args[i + 1]) flags.leaderboardMaxAgeMs = Math.max(1, parseInt(args[++i], 10) || 24) * 60 * 60 * 1000
+    else if (a === '--verbose') flags.verbose = true
   }
   return flags
 }
@@ -72,7 +78,7 @@ interface ORModel {
 }
 
 async function fetchOpenRouter(): Promise<ORModel[]> {
-  const json = JSON.parse(await get('https://openrouter.ai/api/v1/models')) as { data: ORModel[] }
+  const json = JSON.parse(await get('https://openrouter.ai/api/v1/models', { headers: { 'Accept': 'application/json' } })) as { data: ORModel[] }
   return json.data
 }
 
@@ -92,7 +98,7 @@ async function fetchAALeaderboards(flags: Flags): Promise<AAModelData[]> {
   if (useCache) {
     html = fs.readFileSync(file, 'utf8')
   } else {
-    html = await get('https://artificialanalysis.ai/leaderboards/models', { timeout: 60000 })
+    html = await get('https://artificialanalysis.ai/leaderboards/models', { timeout: flags.timeout })
     if (!flags.noCache) fs.writeFileSync(file, html)
   }
   return extractObjectsContaining(extractFlightChunks(html).join(''), '"codingIndex"')
@@ -123,17 +129,29 @@ async function crawlDetails(slugs: string[], flags: Flags): Promise<Map<string, 
   const results = new Map<string, DetailResult>()
   const queue = [...slugs]
   let next = 0
+  let done = 0
   const worker = async () => {
     while (true) {
       const i = next++
       const slug = queue[i]
       if (!slug) return
-      try {
-        const result = await fetchAADetail(slug, flags)
+      let attempts = 0
+      let result: DetailResult | undefined
+      while (attempts < 2 && !result) {
+        try {
+          result = await fetchAADetail(slug, flags)
+        } catch (e) {
+          attempts++
+          if (attempts < 2) {
+            await new Promise((r) => setTimeout(r, flags.delayMs * attempts))
+          }
+        }
+      }
+      if (result) {
         results.set(slug, result)
-        console.log(`  [${i + 1}/${queue.length}] ${slug} ${result.data?.intelligenceIndex != null ? `II=${result.data.intelligenceIndex.toFixed(1)}` : '(no score)'}`)
-      } catch (e) {
-        console.warn(`  [${i + 1}/${queue.length}] ${slug} FAILED: ${(e as Error).message}`)
+        console.log(`  [${++done}/${queue.length}] ${slug} ${result.data?.intelligenceIndex != null ? `II=${result.data.intelligenceIndex.toFixed(1)}` : '(no score)'}${attempts > 0 ? ' (retry)' : ''}`)
+      } else {
+        console.warn(`  [${++done}/${queue.length}] ${slug} FAILED after ${attempts} attempts`)
       }
       await new Promise((r) => setTimeout(r, flags.delayMs))
     }
@@ -355,6 +373,11 @@ async function main() {
   console.log(`— crawling ${crawlSlugs.length} detail pages (concurrency=${flags.concurrency}, delay=${flags.delayMs}ms, already have ${topSlugs.length})…`)
   const details = await crawlDetails(crawlSlugs, flags)
   console.log(`  got scores for ${details.size} detail pages`)
+  const skippedNoScore = recent.filter((m) => scoreBySlug.get(m.slug)?.intelligenceIndex == null)
+  console.log(`  skipped (no II): ${skippedNoScore.length}/${recent.length}`)
+  if (flags.verbose && skippedNoScore.length) {
+    for (const m of skippedNoScore) console.log(`    ${m.slug} (${m.creator?.name ?? '?'} ${m.name})`)
+  }
 
   const scoreBySlug = new Map<string, AAModelData>()
   for (const o of scored) if (o.release?.slug) scoreBySlug.set(o.release.slug, o)
@@ -417,18 +440,29 @@ async function main() {
     const row = rows[i] as Record<string, unknown>
     const slug = row.slug as string
     const cached = details.get(slug)
-    try {
-      const html = cached?.html ?? await getDetailHtml(slug, flags)
-      const perf = extractPerfFromDetail(html, slug)
-      row.outputSpeed = perf.outputSpeed != null ? round1(perf.outputSpeed) : null
-      row.latencySeconds = perf.latencySeconds != null ? round1(perf.latencySeconds) : null
-      if (row.contextTokens == null && perf.contextWindowTokens != null) row.contextTokens = perf.contextWindowTokens
-      if (perf.outputSpeed != null || perf.latencySeconds != null) perfOk++
-      else perfMissing++
-      console.log(`  [${i + 1}/${rows.length}] perf ${slug}: speed=${row.outputSpeed ?? '-'} lat=${row.latencySeconds ?? '-'}`)
-    } catch (e) {
-      perfMissing++
-      console.warn(`  [${i + 1}/${rows.length}] perf FAILED ${slug}: ${(e as Error).message}`)
+    let attempts = 0
+    let done = false
+    while (attempts < 2 && !done) {
+      try {
+        const html = cached?.html ?? await getDetailHtml(slug, flags)
+        const perf = extractPerfFromDetail(html, slug)
+        row.outputSpeed = perf.outputSpeed != null ? round1(perf.outputSpeed) : null
+        row.latencySeconds = perf.latencySeconds != null ? round1(perf.latencySeconds) : null
+        if (row.contextTokens == null && perf.contextWindowTokens != null) row.contextTokens = perf.contextWindowTokens
+        if (perf.outputSpeed != null || perf.latencySeconds != null) perfOk++
+        else perfMissing++
+        console.log(`  [${i + 1}/${rows.length}] perf ${slug}: speed=${row.outputSpeed ?? '-'} lat=${row.latencySeconds ?? '-'}${attempts > 0 ? ' (retry)' : ''}`)
+        done = true
+      } catch (e) {
+        attempts++
+        if (attempts < 2) {
+          await new Promise((r) => setTimeout(r, flags.delayMs))
+        } else {
+          perfMissing++
+          console.warn(`  [${i + 1}/${rows.length}] perf FAILED ${slug}: ${(e as Error).message}`)
+          done = true
+        }
+      }
     }
     if (!cached) await new Promise((r) => setTimeout(r, flags.delayMs))
   }
