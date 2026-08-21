@@ -476,7 +476,21 @@ async function main() {
   console.log(`  parameters: ${paramFromAA}/${paramRows.length} filled, ${paramNull} null (${activeFromAA} active filled)`)
 
 
-  rows.sort((a, b) => (b.intelligenceIndex as number) - (a.intelligenceIndex as number))
+  // Deterministic multi-key sort. intelligenceIndex is rounded to 0.1 via round1(),
+  // so many rows tie on the primary key; without stable tie-breakers the relative
+  // order otherwise falls back to source insertion order (which drifts between
+  // runs) and produces spurious array reshuffles in models.json.
+  rows.sort((a, b) => {
+    const ai = a.intelligenceIndex as number
+    const bi = b.intelligenceIndex as number
+    if (bi !== ai) return bi - ai
+    const ar = (a.released as string) ?? ''
+    const br = (b.released as string) ?? ''
+    if (ar !== br) return ar < br ? 1 : -1
+    const aid = (a.id as string) ?? ''
+    const bid = (b.id as string) ?? ''
+    return aid < bid ? -1 : aid > bid ? 1 : 0
+  })
 
   const modelsPath = path.join(OUT_DIR, 'models.json')
   const metaPath = path.join(OUT_DIR, 'meta.json')
