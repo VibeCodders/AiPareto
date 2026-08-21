@@ -561,7 +561,7 @@ async function extractPerfParallel(
   details: Map<string, DetailResult>,
   flags: Flags,
 ): Promise<Array<{ outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null } | null>> {
-  const results = new Array<(null | { outputSpeed: number; latencySeconds: number; contextWindowTokens: number })>(rows.length)
+  const results = new Array<(null | { outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null })>(rows.length)
   const queue: number[] = []
   for (let i = 0; i < rows.length; i++) queue.push(i)
   let next = 0
