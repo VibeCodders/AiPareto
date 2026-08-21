@@ -373,11 +373,6 @@ async function main() {
   console.log(`— crawling ${crawlSlugs.length} detail pages (concurrency=${flags.concurrency}, delay=${flags.delayMs}ms, already have ${topSlugs.length})…`)
   const details = await crawlDetails(crawlSlugs, flags)
   console.log(`  got scores for ${details.size} detail pages`)
-  const skippedNoScore = recent.filter((m) => scoreBySlug.get(m.slug)?.intelligenceIndex == null)
-  console.log(`  skipped (no II): ${skippedNoScore.length}/${recent.length}`)
-  if (flags.verbose && skippedNoScore.length) {
-    for (const m of skippedNoScore) console.log(`    ${m.slug} (${m.creator?.name ?? '?'} ${m.name})`)
-  }
 
   const scoreBySlug = new Map<string, AAModelData>()
   for (const o of scored) if (o.release?.slug) scoreBySlug.set(o.release.slug, o)
@@ -392,6 +387,12 @@ async function main() {
     } else if (d.data) {
       scoreBySlug.set(slug, { ...d.data, ...prev, agenticIndex: prev.agenticIndex ?? d.data.agenticIndex })
     }
+  }
+
+  const skippedNoScore = recent.filter((m) => scoreBySlug.get(m.slug)?.intelligenceIndex == null)
+  console.log(`  skipped (no II): ${skippedNoScore.length}/${recent.length}`)
+  if (flags.verbose && skippedNoScore.length) {
+    for (const m of skippedNoScore) console.log(`    ${m.slug} (${m.creator?.name ?? '?'} ${m.name})`)
   }
 
   const orById = new Map(orModels.map((m) => [m.id, m]))
