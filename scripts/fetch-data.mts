@@ -17,13 +17,15 @@
  *   --timeout MS      HTTP request timeout (default 30000).
  *   --retries N       HTTP retry attempts (default 3).
  *   --older-than HOURS  Only refresh leaderboards cache if older than this (default 24).
+ *   --detail-max-age HOURS Only refresh detail page cache if older than this (default 24).
+ *   --refresh         Incremental refresh: only re-crawl models with missing or stale scores.
  *   --verbose         Print extra diagnostics.
  */
 import fs from 'node:fs'
 import path from 'node:path'
 import { extractFlightChunks, extractModelObjects, extractObjectsContaining, extractPerfFromDetail, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
-import { CREATOR_WHITELIST, DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, get } from './shared.mts'
+import { CREATOR_WHITELIST, DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, get } from './shared.mts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
 const TMP = path.join(ROOT, '.tmp')
@@ -38,6 +40,8 @@ interface Flags {
   timeout: number
   retries: number
   leaderboardMaxAgeMs: number
+  detailMaxAgeMs: number
+  refresh: boolean
   verbose: boolean
 }
 
@@ -51,6 +55,8 @@ function parseFlags(): Flags {
     timeout: DEFAULT_TIMEOUT,
     retries: DEFAULT_RETRIES,
     leaderboardMaxAgeMs: DEFAULT_LEADERBOARD_MAX_AGE_MS,
+    detailMaxAgeMs: DEFAULT_DETAIL_MAX_AGE_MS,
+    refresh: false,
     verbose: false,
   }
   for (let i = 0; i < args.length; i++) {
@@ -65,6 +71,11 @@ function parseFlags(): Flags {
       const v = parseInt(args[++i], 10)
       flags.leaderboardMaxAgeMs = Number.isNaN(v) ? DEFAULT_LEADERBOARD_MAX_AGE_MS : Math.max(1, v) * 60 * 60 * 1000
     }
+    else if (a === '--detail-max-age' && args[i + 1]) {
+      const v = parseInt(args[++i], 10)
+      flags.detailMaxAgeMs = Number.isNaN(v) ? DEFAULT_DETAIL_MAX_AGE_MS : Math.max(1, v) * 60 * 60 * 1000
+    }
+    else if (a === '--refresh') flags.refresh = true
     else if (a === '--verbose') flags.verbose = true
   }
   return flags
@@ -123,7 +134,9 @@ function slugToFile(slug: string): string {
 
 async function getDetailHtml(slug: string, flags: Flags): Promise<string> {
   const file = slugToFile(slug)
-  if (!flags.noCache && !flags.force && fs.existsSync(file)) return fs.readFileSync(file, 'utf8')
+  const now = Date.now()
+  const useCache = !flags.noCache && !flags.force && fs.existsSync(file) && (now - fs.statSync(file).mtimeMs) < flags.detailMaxAgeMs
+  if (useCache) return fs.readFileSync(file, 'utf8')
   const html = await get(`https://artificialanalysis.ai/models/${slug}`, { timeout: flags.timeout, retries: flags.retries })
   if (!flags.noCache) fs.writeFileSync(file, html)
   return html
@@ -397,17 +410,33 @@ async function main() {
   const haveSlugs = new Set(scored.map((o) => o.release?.slug).filter((s): s is string => Boolean(s)))
   const topSlugs = [...haveSlugs]
 
-  const crawlSlugs = [...new Set([...recent.map((m) => m.slug), ...topSlugs])].filter((s) => !haveSlugs.has(s))
-  console.log(`— crawling ${crawlSlugs.length} detail pages (concurrency=${flags.concurrency}, delay=${flags.delayMs}ms, already have ${topSlugs.length})…`)
-  const details = await crawlDetails(crawlSlugs, flags)
-  console.log(`  got scores for ${details.size} detail pages`)
-
   const scoreBySlug = new Map<string, AAModelData>()
   for (const o of scored) if (o.release?.slug) scoreBySlug.set(o.release.slug, o)
   for (const o of leaderboard) {
     const key = o.slug ?? o.release?.slug
     if (key) scoreBySlug.set(key, o)
   }
+
+  let crawlSlugs: string[]
+  if (flags.refresh) {
+    const now = Date.now()
+    const staleOrMissing = recent.filter((m) => {
+      const file = slugToFile(m.slug)
+      if (flags.noCache || flags.force) return true
+      if (!fs.existsSync(file)) return true
+      const age = now - fs.statSync(file).mtimeMs
+      return age >= flags.detailMaxAgeMs
+    })
+    const missingScores = staleOrMissing.filter((m) => scoreBySlug.get(m.slug)?.intelligenceIndex == null)
+    console.log(`— refreshing ${missingScores.length} models with missing/old scores (concurrency=${flags.concurrency})…`)
+    crawlSlugs = [...new Set([...missingScores.map((m) => m.slug), ...staleOrMissing.filter((m) => !missingScores.includes(m)).map((m) => m.slug)])]
+  } else {
+    crawlSlugs = [...new Set([...recent.map((m) => m.slug), ...topSlugs])].filter((s) => !haveSlugs.has(s))
+    console.log(`— crawling ${crawlSlugs.length} detail pages (concurrency=${flags.concurrency}, delay=${flags.delayMs}ms, already have ${topSlugs.length})…`)
+  }
+  const details = await crawlDetails(crawlSlugs, flags)
+  console.log(`  got scores for ${details.size} detail pages`)
+
   for (const [slug, d] of details) {
     const prev = scoreBySlug.get(slug)
     if (!prev) {

@@ -11,6 +11,7 @@ export const DEFAULT_TIMEOUT = 30_000
 export const DEFAULT_RETRIES = 3
 export const DEFAULT_RETRY_DELAY = 1_000
 export const DEFAULT_LEADERBOARD_MAX_AGE_MS = 24 * 60 * 60 * 1000
+export const DEFAULT_DETAIL_MAX_AGE_MS = 24 * 60 * 60 * 1000
 
 function isRetryable(status: number): boolean {
   return status === 429 || status >= 500

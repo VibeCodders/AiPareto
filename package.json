@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "fetch-data": "tsx scripts/fetch-data.mts",
+    "refresh-data": "tsx scripts/refresh-data.mts",
     "check-freshness": "tsx scripts/check-freshness.mts"
   },
   "dependencies": {
