@@ -20,6 +20,7 @@
  *   --detail-max-age HOURS Only refresh detail page cache if older than this (default 24).
  *   --refresh         Incremental refresh: only re-crawl models with missing or stale scores.
  *   --verbose         Print extra diagnostics.
+ *   --dry-run         Run the full pipeline but skip writing files.
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -43,9 +44,10 @@ interface Flags {
   detailMaxAgeMs: number
   refresh: boolean
   verbose: boolean
+  dryRun: boolean
 }
 
-function parseFlags(): Flags {
+export function parseFlags(): Flags {
   const args = process.argv.slice(2)
   const flags: Flags = {
     force: false,
@@ -58,6 +60,7 @@ function parseFlags(): Flags {
     detailMaxAgeMs: DEFAULT_DETAIL_MAX_AGE_MS,
     refresh: false,
     verbose: false,
+    dryRun: false,
   }
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
@@ -77,6 +80,7 @@ function parseFlags(): Flags {
     }
     else if (a === '--refresh') flags.refresh = true
     else if (a === '--verbose') flags.verbose = true
+    else if (a === '--dry-run') flags.dryRun = true
   }
   return flags
 }
@@ -383,8 +387,7 @@ async function fetchPerfForSlug(slug: string, details: Map<string, DetailResult>
   return null
 }
 
-async function main() {
-  const flags = parseFlags()
+export async function run(flags: Flags): Promise<void> {
   fs.mkdirSync(PAGES_DIR, { recursive: true })
   fs.mkdirSync(OUT_DIR, { recursive: true })
 
@@ -418,6 +421,7 @@ async function main() {
   }
 
   let crawlSlugs: string[]
+  const refreshedSlugs: Set<string> | null = flags.refresh ? new Set<string>() : null
   if (flags.refresh) {
     const now = Date.now()
     const staleOrMissing = recent.filter((m) => {
@@ -430,6 +434,7 @@ async function main() {
     const missingScores = staleOrMissing.filter((m) => scoreBySlug.get(m.slug)?.intelligenceIndex == null)
     console.log(`— refreshing ${missingScores.length} models with missing/old scores (concurrency=${flags.concurrency})…`)
     crawlSlugs = [...new Set([...missingScores.map((m) => m.slug), ...staleOrMissing.filter((m) => !missingScores.includes(m)).map((m) => m.slug)])]
+    for (const s of crawlSlugs) refreshedSlugs!.add(s)
   } else {
     crawlSlugs = [...new Set([...recent.map((m) => m.slug), ...topSlugs])].filter((s) => !haveSlugs.has(s))
     console.log(`— crawling ${crawlSlugs.length} detail pages (concurrency=${flags.concurrency}, delay=${flags.delayMs}ms, already have ${topSlugs.length})…`)
@@ -442,7 +447,11 @@ async function main() {
     if (!prev) {
       scoreBySlug.set(slug, d.data!)
     } else if (d.data) {
-      scoreBySlug.set(slug, { ...d.data, ...prev, agenticIndex: prev.agenticIndex ?? d.data.agenticIndex })
+      const merged = { ...prev, ...d.data }
+      if (d.data.agenticIndex == null && prev.agenticIndex != null) {
+        merged.agenticIndex = prev.agenticIndex
+      }
+      scoreBySlug.set(slug, merged)
     }
   }
 
@@ -493,7 +502,23 @@ async function main() {
   }
 
   console.log(`— extracting perf for ${rows.length} models (concurrency=${flags.concurrency})…`)
-  const perfResults = await extractPerfParallel(rows, details, flags)
+
+  const modelsPath = path.join(OUT_DIR, 'models.json')
+  const metaPath = path.join(OUT_DIR, 'meta.json')
+  const previous = fs.existsSync(modelsPath) ? (JSON.parse(fs.readFileSync(modelsPath, 'utf8')) as Array<Record<string, unknown>>) : []
+  const existingPerfBySlug = new Map<string, { outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null }>()
+  for (const r of previous) {
+    const slug = r.slug as string | undefined
+    if (slug && (r.outputSpeed != null || r.latencySeconds != null)) {
+      existingPerfBySlug.set(slug, {
+        outputSpeed: r.outputSpeed as number | null,
+        latencySeconds: r.latencySeconds as number | null,
+        contextWindowTokens: r.contextTokens as number | null,
+      })
+    }
+  }
+
+  const perfResults = await extractPerfParallel(rows, details, flags, existingPerfBySlug, refreshedSlugs)
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i] as Record<string, unknown>
     const perf = perfResults[i]
@@ -525,10 +550,6 @@ async function main() {
     return aid < bid ? -1 : aid > bid ? 1 : 0
   })
 
-  const modelsPath = path.join(OUT_DIR, 'models.json')
-  const metaPath = path.join(OUT_DIR, 'meta.json')
-
-  const previous = fs.existsSync(modelsPath) ? (JSON.parse(fs.readFileSync(modelsPath, 'utf8')) as Array<Record<string, unknown>>) : []
   const MIN_RETENTION = 0.7
   if (previous.length > 0 && rows.length < previous.length * MIN_RETENTION) {
     console.error(
@@ -553,10 +574,13 @@ async function main() {
     note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends).',
   }
 
-  fs.writeFileSync(modelsPath, JSON.stringify(rows, null, 2))
-  fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2))
-
-  console.log(`\n— wrote ${rows.length} models to src/data/models.json (+${added.length} / -${removed.length} vs previous run)`)
+  if (flags.dryRun) {
+    console.log(`\n— dry-run: skipping write to ${modelsPath} and ${metaPath}`)
+  } else {
+    fs.writeFileSync(modelsPath, JSON.stringify(rows, null, 2))
+    fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2))
+    console.log(`\n— wrote ${rows.length} models to src/data/models.json (+${added.length} / -${removed.length} vs previous run)`)
+  }
   if (added.length) console.log(`  added:   ${added.slice(0, 30).join(', ')}${added.length > 30 ? ', …' : ''}`)
   if (removed.length) console.log(`  removed: ${removed.slice(0, 30).join(', ')}${removed.length > 30 ? ', …' : ''}`)
   if (unmatched.length) {
@@ -570,18 +594,20 @@ async function main() {
     removed.length ? `Removed: ${removed.join(', ')}` : null,
   ].filter((l): l is string => l != null)
 
-  const githubOutput = process.env.GITHUB_OUTPUT
-  if (githubOutput) {
-    const changed = added.length > 0 || removed.length > 0 || rows.length !== previous.length
-    fs.appendFileSync(githubOutput, `changed=${changed}\n`)
-    fs.appendFileSync(githubOutput, `added_count=${added.length}\n`)
-    fs.appendFileSync(githubOutput, `removed_count=${removed.length}\n`)
-    fs.appendFileSync(githubOutput, `total_count=${rows.length}\n`)
-    fs.appendFileSync(githubOutput, `summary<<EOF\n${summaryLines.join('\n')}\nEOF\n`)
-  }
-  const githubStepSummary = process.env.GITHUB_STEP_SUMMARY
-  if (githubStepSummary) {
-    fs.appendFileSync(githubStepSummary, `## AI Pareto data refresh\n\n${summaryLines.map((l) => `- ${l}`).join('\n')}\n`)
+  if (!flags.dryRun) {
+    const githubOutput = process.env.GITHUB_OUTPUT
+    if (githubOutput) {
+      const changed = added.length > 0 || removed.length > 0 || rows.length !== previous.length
+      fs.appendFileSync(githubOutput, `changed=${changed}\n`)
+      fs.appendFileSync(githubOutput, `added_count=${added.length}\n`)
+      fs.appendFileSync(githubOutput, `removed_count=${removed.length}\n`)
+      fs.appendFileSync(githubOutput, `total_count=${rows.length}\n`)
+      fs.appendFileSync(githubOutput, `summary<<EOF\n${summaryLines.join('\n')}\nEOF\n`)
+    }
+    const githubStepSummary = process.env.GITHUB_STEP_SUMMARY
+    if (githubStepSummary) {
+      fs.appendFileSync(githubStepSummary, `## AI Pareto data refresh\n\n${summaryLines.map((l) => `- ${l}`).join('\n')}\n`)
+    }
   }
 }
 
@@ -589,24 +615,38 @@ async function extractPerfParallel(
   rows: Array<Record<string, unknown>>,
   details: Map<string, DetailResult>,
   flags: Flags,
+  existingPerfBySlug: Map<string, { outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null }> | null = null,
+  refreshedSlugs: Set<string> | null = null,
 ): Promise<Array<{ outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null } | null>> {
   const results = new Array<(null | { outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null })>(rows.length)
   const queue: number[] = []
   for (let i = 0; i < rows.length; i++) queue.push(i)
   let next = 0
+  const failures: string[] = []
   const worker = async () => {
     while (true) {
       const idx = queue[next++]
       if (idx == null) return
       const row = rows[idx] as Record<string, unknown>
       const slug = row.slug as string
+      const existing = existingPerfBySlug?.get(slug)
+      if (existing && refreshedSlugs && !refreshedSlugs.has(slug)) {
+        results[idx] = existing
+        continue
+      }
       const perf = await fetchPerfForSlug(slug, details, flags)
       results[idx] = perf
+      if (perf == null || (perf.outputSpeed == null && perf.latencySeconds == null)) {
+        failures.push(slug)
+      }
       console.log(`  [${idx + 1}/${rows.length}] perf ${slug}: speed=${perf?.outputSpeed ?? '-'} lat=${perf?.latencySeconds ?? '-'}`)
     }
   }
   const workers = Math.min(flags.concurrency, Math.max(1, rows.length))
   await Promise.all(Array.from({ length: workers }, worker))
+  if (failures.length) {
+    console.warn(`  perf extraction failed for: ${failures.slice(0, 20).join(', ')}${failures.length > 20 ? ', …' : ''}`)
+  }
   return results
 }
 
@@ -619,7 +659,12 @@ function usd(n: number | null | undefined): number | null {
   return Math.round(n * 1e6 * 10000) / 10000
 }
 
-main().catch((e) => {
-  console.error(e)
-  process.exit(1)
-})
+function main() {
+  const flags = parseFlags()
+  run(flags).catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
+}
+
+main()

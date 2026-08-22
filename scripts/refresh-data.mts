@@ -5,21 +5,30 @@
  * only re-crawls model detail pages that have missing or stale scores,
  * instead of re-downloading everything from scratch.
  *
+ * Forwards signals (SIGINT/SIGTERM) and reports errors.
+ *
  * Passes through any additional flags to `fetch-data.mts`.
  */
-import { spawn } from 'node:child_process'
-import path from 'node:path'
+import { run } from './fetch-data.mts'
+import { parseFlags } from './fetch-data.mts'
 
-const root = path.resolve(import.meta.dirname, '..')
-const script = path.join(root, 'scripts', 'fetch-data.mts')
+const rawArgs = process.argv.slice(2)
+const flags = parseFlags()
+flags.refresh = true
+const merged = ['--refresh', ...rawArgs.filter((a) => a !== '--refresh')]
 
-const args = ['--refresh', ...process.argv.slice(2)]
+console.log(`— refresh-data: running fetch-data ${merged.join(' ')}`)
 
-const child = spawn('node', [path.join(root, 'node_modules', '.bin', 'tsx'), script, ...args], {
-  stdio: 'inherit',
-  cwd: root,
-})
+const shutdown = () => {
+  process.exit(1)
+}
 
-child.on('exit', (code) => {
-  process.exit(code ?? 0)
-})
+process.on('SIGINT', shutdown)
+process.on('SIGTERM', shutdown)
+
+try {
+  await run(flags)
+} catch (e) {
+  console.error(`\n✗ refresh-data failed: ${e}`)
+  process.exit(1)
+}
