@@ -12,7 +12,6 @@
 import { run, parseFlags } from './fetch-data.mts'
 
 const rawArgs = process.argv.slice(2)
-const flags = parseFlags()
 
 if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
   console.log(`
@@ -22,11 +21,14 @@ Incremental refresh wrapper. Runs fetch-data with --refresh enabled by default.
 
 Flags:
   --no-refresh       Disable incremental refresh (run full fetch).
+  --skip-perf        Skip performance extraction (faster).
   --help, -h         Show this help message.
   [all fetch-data flags are also supported]
 `)
   process.exit(0)
 }
+
+const flags = parseFlags()
 
 const useRefresh = !rawArgs.includes('--no-refresh')
 flags.refresh = useRefresh

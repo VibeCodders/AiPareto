@@ -47,6 +47,7 @@ interface Flags {
   refresh: boolean
   verbose: boolean
   dryRun: boolean
+  skipPerf: boolean
 }
 
 export function parseFlags(): Flags {
@@ -63,6 +64,7 @@ export function parseFlags(): Flags {
     refresh: false,
     verbose: false,
     dryRun: false,
+    skipPerf: false,
   }
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
@@ -83,6 +85,7 @@ export function parseFlags(): Flags {
     else if (a === '--refresh') flags.refresh = true
     else if (a === '--verbose') flags.verbose = true
     else if (a === '--dry-run') flags.dryRun = true
+    else if (a === '--skip-perf') flags.skipPerf = true
     else if (a === '--help' || a === '-h') {
       console.log(`
 Usage: npm run fetch-data [flags]
@@ -97,6 +100,7 @@ Flags:
   --older-than HOURS Only refresh leaderboards cache if older than this (default 24).
   --detail-max-age HOURS Only refresh detail page cache if older than this (default 24).
   --refresh          Incremental refresh: only re-crawl models with missing or stale scores.
+  --skip-perf        Skip performance extraction (faster incremental updates).
   --verbose          Print extra diagnostics.
   --dry-run          Run the full pipeline but skip writing files.
   --help, -h         Show this help message.
@@ -212,7 +216,7 @@ async function crawlDetails(slugs: string[], flags: Flags): Promise<Map<string, 
       if (!slug) return
       let attempts = 0
       let result: DetailResult | undefined
-      while (attempts < 3 && !result) {
+      while (attempts < flags.retries && !result) {
         try {
           result = await fetchAADetail(slug, flags)
         } catch (e) {
@@ -462,7 +466,6 @@ export async function run(flags: Flags): Promise<void> {
   }
 
   let crawlSlugs: string[]
-  const refreshedSlugs: Set<string> | null = flags.refresh ? new Set<string>() : null
   if (flags.refresh) {
     const now = Date.now()
     const staleOrMissing = recent.filter((m) => {
@@ -472,10 +475,8 @@ export async function run(flags: Flags): Promise<void> {
       const age = now - fs.statSync(file).mtimeMs
       return age >= flags.detailMaxAgeMs
     })
-    const missingScores = staleOrMissing.filter((m) => scoreBySlug.get(m.slug)?.intelligenceIndex == null)
-    console.log(`— refreshing ${missingScores.length} models with missing/old scores (concurrency=${flags.concurrency})…`)
-    crawlSlugs = [...new Set([...missingScores.map((m) => m.slug), ...staleOrMissing.filter((m) => !missingScores.includes(m)).map((m) => m.slug)])]
-    for (const s of crawlSlugs) refreshedSlugs!.add(s)
+    console.log(`— refreshing ${staleOrMissing.length} models with stale/missing cache (concurrency=${flags.concurrency})…`)
+    crawlSlugs = [...new Set(staleOrMissing.map((m) => m.slug))]
   } else {
     crawlSlugs = [...new Set([...recent.map((m) => m.slug), ...topSlugs])].filter((s) => !haveSlugs.has(s))
     console.log(`— crawling ${crawlSlugs.length} detail pages (concurrency=${flags.concurrency}, delay=${flags.delayMs}ms, already have ${topSlugs.length})…`)
@@ -547,31 +548,36 @@ export async function run(flags: Flags): Promise<void> {
   const modelsPath = path.join(OUT_DIR, 'models.json')
   const metaPath = path.join(OUT_DIR, 'meta.json')
   const previous = fs.existsSync(modelsPath) ? (JSON.parse(fs.readFileSync(modelsPath, 'utf8')) as Array<Record<string, unknown>>) : []
-  const existingPerfBySlug = new Map<string, { outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null }>()
-  for (const r of previous) {
-    const slug = r.slug as string | undefined
-    if (slug && (r.outputSpeed != null || r.latencySeconds != null)) {
-      existingPerfBySlug.set(slug, {
-        outputSpeed: r.outputSpeed as number | null,
-        latencySeconds: r.latencySeconds as number | null,
-        contextWindowTokens: r.contextTokens as number | null,
-      })
-    }
-  }
 
-  const perfResults = await extractPerfParallel(rows, details, flags, existingPerfBySlug, refreshedSlugs)
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i] as Record<string, unknown>
-    const perf = perfResults[i]
-    if (perf) {
-      row.outputSpeed = perf.outputSpeed != null ? round1(perf.outputSpeed) : null
-      row.latencySeconds = perf.latencySeconds != null ? round1(perf.latencySeconds) : null
-      if ((row.contextTokens as number | null) == null && perf.contextWindowTokens != null) row.contextTokens = perf.contextWindowTokens
+  if (!flags.skipPerf) {
+    const existingPerfBySlug = new Map<string, { outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null }>()
+    for (const r of previous) {
+      const slug = r.slug as string | undefined
+      if (slug && (r.outputSpeed != null || r.latencySeconds != null)) {
+        existingPerfBySlug.set(slug, {
+          outputSpeed: r.outputSpeed as number | null,
+          latencySeconds: r.latencySeconds as number | null,
+          contextWindowTokens: r.contextTokens as number | null,
+        })
+      }
     }
+
+    const perfResults = await extractPerfParallel(rows, details, flags, existingPerfBySlug)
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i] as Record<string, unknown>
+      const perf = perfResults[i]
+      if (perf) {
+        row.outputSpeed = perf.outputSpeed != null ? round1(perf.outputSpeed) : null
+        row.latencySeconds = perf.latencySeconds != null ? round1(perf.latencySeconds) : null
+        if ((row.contextTokens as number | null) == null && perf.contextWindowTokens != null) row.contextTokens = perf.contextWindowTokens
+      }
+    }
+    const perfOk = perfResults.filter((p) => p != null && (p.outputSpeed != null || p.latencySeconds != null)).length
+    const perfMissing = perfResults.filter((p) => p == null || (p.outputSpeed == null && p.latencySeconds == null)).length
+    console.log(`  perf ok: ${perfOk}, missing both: ${perfMissing}`)
+  } else {
+    console.log(`  perf extraction skipped`)
   }
-  const perfOk = perfResults.filter((p) => p != null && (p.outputSpeed != null || p.latencySeconds != null)).length
-  const perfMissing = perfResults.filter((p) => p == null || (p.outputSpeed == null && p.latencySeconds == null)).length
-  console.log(`  perf ok: ${perfOk}, missing both: ${perfMissing}`)
 
   const paramRows = rows as Array<Record<string, unknown>>
   const paramFromAA = paramRows.filter((r) => r.parameters != null).length
@@ -657,7 +663,6 @@ async function extractPerfParallel(
   details: Map<string, DetailResult>,
   flags: Flags,
   existingPerfBySlug: Map<string, { outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null }> | null = null,
-  refreshedSlugs: Set<string> | null = null,
 ): Promise<Array<{ outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null } | null>> {
   const results = new Array<(null | { outputSpeed: number | null; latencySeconds: number | null; contextWindowTokens: number | null })>(rows.length)
   const queue: number[] = []
@@ -670,10 +675,12 @@ async function extractPerfParallel(
       if (idx == null) return
       const row = rows[idx] as Record<string, unknown>
       const slug = row.slug as string
-      const existing = existingPerfBySlug?.get(slug)
-      if (existing && refreshedSlugs && !refreshedSlugs.has(slug)) {
-        results[idx] = existing
-        continue
+      if (!details.has(slug) && existingPerfBySlug) {
+        const existing = existingPerfBySlug.get(slug)
+        if (existing) {
+          results[idx] = existing
+          continue
+        }
       }
       const perf = await fetchPerfForSlug(slug, details, flags)
       results[idx] = perf
