@@ -32,6 +32,8 @@ const ROOT = path.resolve(import.meta.dirname, '..')
 const TMP = path.join(ROOT, '.tmp')
 const PAGES_DIR = path.join(TMP, 'aa_pages')
 const OUT_DIR = path.join(ROOT, 'src', 'data')
+const OR_CACHE = path.join(TMP, 'openrouter.json')
+const AA_MODELS_CACHE = path.join(TMP, 'aa_models.html')
 
 interface Flags {
   force: boolean
@@ -81,6 +83,29 @@ export function parseFlags(): Flags {
     else if (a === '--refresh') flags.refresh = true
     else if (a === '--verbose') flags.verbose = true
     else if (a === '--dry-run') flags.dryRun = true
+    else if (a === '--help' || a === '-h') {
+      console.log(`
+Usage: npm run fetch-data [flags]
+
+Flags:
+  --force            Bypass all caches (download everything fresh).
+  --no-cache         Do not read or write cache files (.tmp/).
+  --concurrency N    Parallel workers for detail page crawling (default 4).
+  --delay MS         Delay between requests per worker (default 400).
+  --timeout MS       HTTP request timeout (default 30000).
+  --retries N        HTTP retry attempts (default 3).
+  --older-than HOURS Only refresh leaderboards cache if older than this (default 24).
+  --detail-max-age HOURS Only refresh detail page cache if older than this (default 24).
+  --refresh          Incremental refresh: only re-crawl models with missing or stale scores.
+  --verbose          Print extra diagnostics.
+  --dry-run          Run the full pipeline but skip writing files.
+  --help, -h         Show this help message.
+`)
+      process.exit(0)
+    }
+  }
+  if (flags.concurrency > 10) {
+    console.warn(`⚠ concurrency=${flags.concurrency} is high; consider lowering to avoid rate limits`)
   }
   return flags
 }
@@ -102,16 +127,32 @@ interface ORModel {
 }
 
 async function fetchOpenRouter(flags: Flags): Promise<ORModel[]> {
+  const now = Date.now()
+  const useCache = !flags.noCache && !flags.force && fs.existsSync(OR_CACHE) && (now - fs.statSync(OR_CACHE).mtimeMs) < flags.leaderboardMaxAgeMs
+  if (useCache) {
+    console.log(`  using cached OpenRouter data (${OR_CACHE})`)
+    return JSON.parse(fs.readFileSync(OR_CACHE, 'utf8')) as ORModel[]
+  }
   const json = JSON.parse(await get('https://openrouter.ai/api/v1/models', {
     headers: { 'Accept': 'application/json' },
     timeout: flags.timeout,
     retries: flags.retries,
   })) as { data: ORModel[] }
+  if (!flags.noCache) fs.writeFileSync(OR_CACHE, JSON.stringify(json.data, null, 2))
   return json.data
 }
 
 async function fetchAAModelsPage(flags: Flags): Promise<{ registry: AAModelMeta[]; scored: AAModelData[] }> {
-  const html = await get('https://artificialanalysis.ai/models', { timeout: flags.timeout, retries: flags.retries })
+  const now = Date.now()
+  const useCache = !flags.noCache && !flags.force && fs.existsSync(AA_MODELS_CACHE) && (now - fs.statSync(AA_MODELS_CACHE).mtimeMs) < flags.leaderboardMaxAgeMs
+  let html: string
+  if (useCache) {
+    console.log(`  using cached AA models page (${AA_MODELS_CACHE})`)
+    html = fs.readFileSync(AA_MODELS_CACHE, 'utf8')
+  } else {
+    html = await get('https://artificialanalysis.ai/models', { timeout: flags.timeout, retries: flags.retries })
+    if (!flags.noCache) fs.writeFileSync(AA_MODELS_CACHE, html)
+  }
   const raw = extractFlightChunks(html).join('')
   const registry = parseModelRegistry(raw)
   const scored = extractModelObjects(raw)
@@ -661,8 +702,14 @@ function usd(n: number | null | undefined): number | null {
 
 function main() {
   const flags = parseFlags()
+  const shutdown = () => {
+    console.log('\n— interrupted, exiting…')
+    process.exit(130)
+  }
+  process.on('SIGINT', shutdown)
+  process.on('SIGTERM', shutdown)
   run(flags).catch((e) => {
-    console.error(e)
+    console.error(`\n✗ fetch-data failed: ${e}`)
     process.exit(1)
   })
 }

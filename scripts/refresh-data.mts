@@ -9,18 +9,34 @@
  *
  * Passes through any additional flags to `fetch-data.mts`.
  */
-import { run } from './fetch-data.mts'
-import { parseFlags } from './fetch-data.mts'
+import { run, parseFlags } from './fetch-data.mts'
 
 const rawArgs = process.argv.slice(2)
 const flags = parseFlags()
-flags.refresh = true
-const merged = ['--refresh', ...rawArgs.filter((a) => a !== '--refresh')]
+
+if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+  console.log(`
+Usage: npm run refresh-data [flags]
+
+Incremental refresh wrapper. Runs fetch-data with --refresh enabled by default.
+
+Flags:
+  --no-refresh       Disable incremental refresh (run full fetch).
+  --help, -h         Show this help message.
+  [all fetch-data flags are also supported]
+`)
+  process.exit(0)
+}
+
+const useRefresh = !rawArgs.includes('--no-refresh')
+flags.refresh = useRefresh
+const merged = useRefresh ? ['--refresh', ...rawArgs.filter((a) => a !== '--refresh' && a !== '--no-refresh')] : rawArgs.filter((a) => a !== '--no-refresh')
 
 console.log(`— refresh-data: running fetch-data ${merged.join(' ')}`)
 
 const shutdown = () => {
-  process.exit(1)
+  console.log('\n— refresh-data interrupted, exiting…')
+  process.exit(130)
 }
 
 process.on('SIGINT', shutdown)
