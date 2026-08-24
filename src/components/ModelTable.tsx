@@ -15,6 +15,7 @@ type SortKey =
   | 'cacheWritePerM'
   | 'blended'
   | 'contextTokens'
+  | 'maxCompletionTokens'
   | 'released'
   | 'outputSpeed'
   | 'latencySeconds'
@@ -26,9 +27,9 @@ type SortKey =
   | 'frontierDelta'
   | 'dominates'
 
-type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta' | 'cacheWritePerM' | 'dominates'
+type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta' | 'cacheWritePerM' | 'dominates' | 'maxCompletionTokens'
 
-const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' | 'cacheWrite' | 'dominates' }> = [
+const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' | 'cacheWrite' | 'dominates' | 'maxOutputTokens' }> = [
   { key: 'subscription', labelKey: 'subscriptions' },
   { key: 'cacheWritePerM', labelKey: 'cacheWrite' },
   { key: 'codingIndex', labelKey: 'coding' },
@@ -37,6 +38,7 @@ const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latenc
   { key: 'latencySeconds', labelKey: 'latency' },
   { key: 'frontierDelta', labelKey: 'vsFrontier' },
   { key: 'dominates', labelKey: 'dominates' },
+  { key: 'maxCompletionTokens', labelKey: 'maxOutputTokens' },
 ]
 
 interface Props {
@@ -91,6 +93,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
     { key: 'blended', label: t.blended, num: true },
     ...OPTIONAL_COLS.filter((c) => c.key !== 'subscription' && c.key !== 'cacheWritePerM' && visibleCols.has(c.key)).map((c) => ({ key: c.key, label: t[c.labelKey], num: true })),
     { key: 'contextTokens', label: t.context, num: true },
+    { key: 'maxCompletionTokens', label: t.maxOutputTokens, num: true },
     { key: 'released', label: t.release, num: true },
   ]
 

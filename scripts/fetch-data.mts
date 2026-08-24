@@ -118,6 +118,7 @@ interface ORModel {
   id: string
   name: string
   context: number | null
+  top_provider: { max_completion_tokens: number | null } | null
   pricing: {
     prompt: number | null
     completion: number | null
@@ -433,20 +434,24 @@ async function fetchPerfForSlug(slug: string, details: Map<string, DetailResult>
 }
 
 export async function run(flags: Flags): Promise<void> {
+  const t0 = Date.now()
   fs.mkdirSync(PAGES_DIR, { recursive: true })
   fs.mkdirSync(OUT_DIR, { recursive: true })
 
   console.log(`— fetching OpenRouter models (timeout=${flags.timeout}ms, retries=${flags.retries})…`)
+  const t1 = Date.now()
   const orModels = await fetchOpenRouter(flags)
-  console.log(`  ${orModels.length} models`)
+  console.log(`  ${orModels.length} models (${Date.now() - t1}ms)`)
 
   console.log('— fetching Artificial Analysis models page…')
+  const t2 = Date.now()
   const { registry, scored } = await fetchAAModelsPage(flags)
-  console.log(`  registry: ${registry.length} models, ${scored.length} scored on page`)
+  console.log(`  registry: ${registry.length} models, ${scored.length} scored on page (${Date.now() - t2}ms)`)
 
   console.log('— fetching Artificial Analysis leaderboards page…')
+  const t3 = Date.now()
   const leaderboard = await fetchAALeaderboards(flags)
-  console.log(`  ${leaderboard.length} full model objects (coding index etc.)`)
+  console.log(`  ${leaderboard.length} full model objects (coding index etc.) (${Date.now() - t3}ms)`)
 
   const active = registry.filter((m) => !m.deprecated)
   const whitelisted = active.filter(
@@ -539,9 +544,12 @@ export async function run(flags: Flags): Promise<void> {
       outputPerM: usd(or.pricing.completion),
       cacheReadPerM: usd(or.pricing.input_cache_read),
       cacheWritePerM: usd(or.pricing.input_cache_write),
+      maxCompletionTokens: or.top_provider?.max_completion_tokens ?? null,
       ...parseParams(`${or.id} ${or.name} ${m.name}`, data),
     })
   }
+
+  console.log(`— building rows: ${rows.length} models`)
 
   console.log(`— extracting perf for ${rows.length} models (concurrency=${flags.concurrency})…`)
 
@@ -584,6 +592,9 @@ export async function run(flags: Flags): Promise<void> {
   const paramNull = paramRows.filter((r) => r.parameters == null).length
   const activeFromAA = paramRows.filter((r) => r.activeParameters != null).length
   console.log(`  parameters: ${paramFromAA}/${paramRows.length} filled, ${paramNull} null (${activeFromAA} active filled)`)
+
+  const maxCompFromOR = rows.filter((r) => r.maxCompletionTokens != null).length
+  console.log(`  maxCompletionTokens: ${maxCompFromOR}/${rows.length} from OpenRouter`)
 
   rows.sort((a, b) => {
     const ai = a.intelligenceIndex as number
@@ -656,6 +667,8 @@ export async function run(flags: Flags): Promise<void> {
       fs.appendFileSync(githubStepSummary, `## AI Pareto data refresh\n\n${summaryLines.map((l) => `- ${l}`).join('\n')}\n`)
     }
   }
+
+  console.log(`\n— done in ${Date.now() - t0}ms`)
 }
 
 async function extractPerfParallel(

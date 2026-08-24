@@ -37,6 +37,7 @@ export interface Model {
   outputPerM: number | null
   cacheReadPerM: number | null
   cacheWritePerM: number | null
+  maxCompletionTokens: number | null
   parameters: number | null
   activeParameters: number | null
   valueScore: number | null

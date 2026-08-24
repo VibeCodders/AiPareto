@@ -24,6 +24,7 @@ const BENCHMARK_ROWS: Row[] = [
   { labelKey: 'outputSpeed', higherIsBetter: true, value: (m) => m.outputSpeed, format: (v) => formatMetric('outputSpeed', v), estMetric: 'outputSpeed' },
   { labelKey: 'latency', higherIsBetter: false, value: (m) => m.latencySeconds, format: (v) => formatMetric('latencySeconds', v), estMetric: 'latencySeconds' },
   { labelKey: 'context', higherIsBetter: true, value: (m) => m.contextTokens, format: (v) => formatTokens(v), estMetric: 'contextTokens' },
+  { labelKey: 'maxOutputTokens', higherIsBetter: true, value: (m) => m.maxCompletionTokens, format: (v) => formatTokens(v), estField: 'maxCompletionTokens' },
   { labelKey: 'parameters', higherIsBetter: true, value: (m) => m.parameters, format: (v) => formatParams(v), estField: 'parameters' },
   { labelKey: 'activeParameters', higherIsBetter: true, value: (m) => m.activeParameters, format: (v) => formatParams(v), estField: 'activeParameters' },
 ]

@@ -26,6 +26,7 @@ export interface Strings {
   cache: string
   blended: string
   context: string
+  maxOutputTokens: string
   openWeights: string
   release: string
   reasoning: string
@@ -176,6 +177,7 @@ export const STRINGS: Record<Lang, Strings> = {
     cache: 'Cache read',
     blended: '80/20',
     context: 'Contesto',
+    maxOutputTokens: 'Max output',
     openWeights: 'Open',
     release: 'Rilascio',
     reasoning: 'Reasoning',
@@ -324,6 +326,7 @@ export const STRINGS: Record<Lang, Strings> = {
     cache: 'Cache read',
     blended: '80/20',
     context: 'Context',
+    maxOutputTokens: 'Max output',
     openWeights: 'Open',
     release: 'Release',
     reasoning: 'Reasoning',

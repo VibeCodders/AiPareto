@@ -26,6 +26,7 @@ export type EstimableField =
   | 'outputPerM'
   | 'cacheReadPerM'
   | 'cacheWritePerM'
+  | 'maxCompletionTokens'
   | 'parameters'
   | 'activeParameters'
 
@@ -43,6 +44,7 @@ export const ESTIMABLE_FIELDS: EstimableField[] = [
   'outputPerM',
   'cacheReadPerM',
   'cacheWritePerM',
+  'maxCompletionTokens',
   'parameters',
   'activeParameters',
 ]
@@ -62,6 +64,7 @@ const DISTANCE_FEATURES: EstimableField[] = [
   'contextTokens',
   'inputPerM',
   'outputPerM',
+  'maxCompletionTokens',
   'parameters',
   'activeParameters',
 ]
@@ -81,6 +84,7 @@ const FEATURE_WEIGHTS: Record<EstimableField, Partial<Record<EstimableField, num
   outputPerM: { inputPerM: 3.0, intelligenceIndex: 1.8, codingIndex: 1.2 },
   cacheReadPerM: { inputPerM: 3.0, outputPerM: 1.5 },
   cacheWritePerM: { inputPerM: 3.0, outputPerM: 1.5 },
+  maxCompletionTokens: { contextTokens: 2.0, inputPerM: 0.8, outputPerM: 0.8, parameters: 1.0 },
   parameters: { intelligenceIndex: 2.5, contextTokens: 1.5, inputPerM: 1.2, activeParameters: 1.0 },
   activeParameters: { parameters: 3.0, intelligenceIndex: 1.0 },
 }
@@ -89,7 +93,7 @@ const FEATURE_WEIGHTS: Record<EstimableField, Partial<Record<EstimableField, num
 function featureValue(m: Model, k: EstimableField): number | null {
   const v = m[k]
   if (v == null || !Number.isFinite(v)) return null
-  if (k === 'contextTokens' || k === 'inputPerM' || k === 'outputPerM' || k === 'cacheReadPerM' || k === 'cacheWritePerM' || k === 'outputSpeed' || k === 'latencySeconds' || k === 'parameters' || k === 'activeParameters') {
+  if (k === 'contextTokens' || k === 'inputPerM' || k === 'outputPerM' || k === 'cacheReadPerM' || k === 'cacheWritePerM' || k === 'outputSpeed' || k === 'latencySeconds' || k === 'maxCompletionTokens' || k === 'parameters' || k === 'activeParameters') {
     return Math.log10(Math.max(v, 0.0001))
   }
   return v
@@ -454,6 +458,8 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
         v = Math.max(1, Number(v.toFixed(1)))
       } else if (x === 'contextTokens') {
         v = Math.max(1024, Math.round(v / 1000) * 1000)
+      } else if (x === 'maxCompletionTokens') {
+        v = Math.max(1024, Math.round(v / 1024) * 1024)
       } else if (x === 'inputPerM' || x === 'outputPerM' || x === 'cacheReadPerM' || x === 'cacheWritePerM') {
         v = Math.max(0.001, Number(v.toFixed(4)))
       } else if (x === 'parameters' || x === 'activeParameters') {
