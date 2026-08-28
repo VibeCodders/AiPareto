@@ -34,6 +34,7 @@ const PAGES_DIR = path.join(TMP, 'aa_pages')
 const OUT_DIR = path.join(ROOT, 'src', 'data')
 const OR_CACHE = path.join(TMP, 'openrouter.json')
 const AA_MODELS_CACHE = path.join(TMP, 'aa_models.html')
+const KNOWN_SLUGS_FILE = path.join(TMP, 'known_slugs.json')
 
 interface Flags {
   force: boolean
@@ -45,6 +46,7 @@ interface Flags {
   leaderboardMaxAgeMs: number
   detailMaxAgeMs: number
   refresh: boolean
+  refreshKnown: boolean
   verbose: boolean
   dryRun: boolean
   skipPerf: boolean
@@ -62,6 +64,7 @@ export function parseFlags(): Flags {
     leaderboardMaxAgeMs: DEFAULT_LEADERBOARD_MAX_AGE_MS,
     detailMaxAgeMs: DEFAULT_DETAIL_MAX_AGE_MS,
     refresh: false,
+    refreshKnown: false,
     verbose: false,
     dryRun: false,
     skipPerf: false,
@@ -83,6 +86,7 @@ export function parseFlags(): Flags {
       flags.detailMaxAgeMs = Number.isNaN(v) ? DEFAULT_DETAIL_MAX_AGE_MS : Math.max(1, v) * 60 * 60 * 1000
     }
     else if (a === '--refresh') flags.refresh = true
+    else if (a === '--refresh-known') flags.refreshKnown = true
     else if (a === '--verbose') flags.verbose = true
     else if (a === '--dry-run') flags.dryRun = true
     else if (a === '--skip-perf') flags.skipPerf = true
@@ -100,6 +104,7 @@ Flags:
   --older-than HOURS Only refresh leaderboards cache if older than this (default 24).
   --detail-max-age HOURS Only refresh detail page cache if older than this (default 24).
   --refresh          Incremental refresh: only re-crawl models with missing or stale scores.
+  --refresh-known    Incremental refresh: re-crawl ALL known models, even if cache is fresh.
   --skip-perf        Skip performance extraction (faster incremental updates).
   --verbose          Print extra diagnostics.
   --dry-run          Run the full pipeline but skip writing files.
@@ -112,6 +117,59 @@ Flags:
     console.warn(`⚠ concurrency=${flags.concurrency} is high; consider lowering to avoid rate limits`)
   }
   return flags
+}
+
+function loadKnownSlugs(): Set<string> {
+  try {
+    if (fs.existsSync(KNOWN_SLUGS_FILE)) {
+      const raw = JSON.parse(fs.readFileSync(KNOWN_SLUGS_FILE, 'utf8')) as string[]
+      return new Set(raw.filter((s) => typeof s === 'string' && s.length > 0))
+    }
+  } catch {
+    // ignore corrupt known-slugs file and start fresh
+  }
+  return new Set()
+}
+
+function saveKnownSlugs(slugs: Set<string>): void {
+  fs.mkdirSync(TMP, { recursive: true })
+  fs.writeFileSync(KNOWN_SLUGS_FILE, JSON.stringify([...slugs], null, 2))
+}
+
+function mergeWithPrevious(
+  newRows: Array<Record<string, unknown>>,
+  previous: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
+  const prevBySlug = new Map<string, Record<string, unknown>>()
+  for (const r of previous) {
+    const slug = (r.slug as string | undefined) ?? (r.id as string | undefined)
+    if (slug) prevBySlug.set(slug, r)
+  }
+
+  const merged = new Map<string, Record<string, unknown>>()
+
+  for (const [slug, oldRow] of prevBySlug) {
+    merged.set(slug, { ...oldRow })
+  }
+
+  for (const newRow of newRows) {
+    const slug = newRow.slug as string
+    const oldRow = merged.get(slug)
+    if (oldRow) {
+      const updated = { ...oldRow }
+      for (const key of Object.keys(newRow)) {
+        const newVal = (newRow as Record<string, unknown>)[key]
+        if (newVal !== null && newVal !== undefined) {
+          (updated as Record<string, unknown>)[key] = newVal
+        }
+      }
+      merged.set(slug, updated)
+    } else {
+      merged.set(slug, { ...newRow })
+    }
+  }
+
+  return Array.from(merged.values())
 }
 
 interface ORModel {
@@ -438,6 +496,8 @@ export async function run(flags: Flags): Promise<void> {
   fs.mkdirSync(PAGES_DIR, { recursive: true })
   fs.mkdirSync(OUT_DIR, { recursive: true })
 
+  const knownSlugs = loadKnownSlugs()
+
   console.log(`— fetching OpenRouter models (timeout=${flags.timeout}ms, retries=${flags.retries})…`)
   const t1 = Date.now()
   const orModels = await fetchOpenRouter(flags)
@@ -480,8 +540,26 @@ export async function run(flags: Flags): Promise<void> {
       const age = now - fs.statSync(file).mtimeMs
       return age >= flags.detailMaxAgeMs
     })
-    console.log(`— refreshing ${staleOrMissing.length} models with stale/missing cache (concurrency=${flags.concurrency})…`)
-    crawlSlugs = [...new Set(staleOrMissing.map((m) => m.slug))]
+    let staleKnownOutsideRecent: string[] = []
+    if (knownSlugs.size > 0) {
+      for (const slug of knownSlugs) {
+        if (recent.some((m) => m.slug === slug)) continue
+        const file = slugToFile(slug)
+        if (flags.noCache || flags.force || flags.refreshKnown) {
+          staleKnownOutsideRecent.push(slug)
+          continue
+        }
+        if (!fs.existsSync(file)) {
+          staleKnownOutsideRecent.push(slug)
+          continue
+        }
+        const age = now - fs.statSync(file).mtimeMs
+        if (age >= flags.detailMaxAgeMs) staleKnownOutsideRecent.push(slug)
+      }
+    }
+    const totalRefresh = [...new Set([...staleOrMissing.map((m) => m.slug), ...staleKnownOutsideRecent])]
+    console.log(`— refreshing ${totalRefresh.length} models with stale/missing cache (concurrency=${flags.concurrency})…`)
+    crawlSlugs = totalRefresh
   } else {
     crawlSlugs = [...new Set([...recent.map((m) => m.slug), ...topSlugs])].filter((s) => !haveSlugs.has(s))
     console.log(`— crawling ${crawlSlugs.length} detail pages (concurrency=${flags.concurrency}, delay=${flags.delayMs}ms, already have ${topSlugs.length})…`)
@@ -608,8 +686,8 @@ export async function run(flags: Flags): Promise<void> {
     return aid < bid ? -1 : aid > bid ? 1 : 0
   })
 
-  // Safety check: warn if new data is drastically smaller than before,
-  // but DO NOT abort — we will merge with previous data so no model is ever lost.
+  // Safety check: warn if fetched data is drastically smaller than before,
+  // but DO NOT abort — mergeWithPrevious guarantees no model is ever lost.
   const MIN_RETENTION = 0.7
   if (previous.length > 0 && rows.length < previous.length * MIN_RETENTION) {
     console.warn(
@@ -619,39 +697,7 @@ export async function run(flags: Flags): Promise<void> {
     )
   }
 
-  // Merge new rows with previous data so that models can never be removed.
-  // Strategy: start with all previous models, then overlay fresh data for matching slugs.
-  // For each field, prefer the new value if it is not null/undefined; otherwise keep the old value.
-  const prevBySlug = new Map<string, Record<string, unknown>>()
-  for (const r of previous) {
-    const slug = r.slug as string | undefined
-    if (slug) prevBySlug.set(slug, r)
-  }
-
-  const merged = new Map<string, Record<string, unknown>>()
-
-  for (const [slug, oldRow] of prevBySlug) {
-    merged.set(slug, { ...oldRow })
-  }
-
-  for (const newRow of rows) {
-    const slug = newRow.slug as string
-    const oldRow = merged.get(slug)
-    if (oldRow) {
-      const updated = { ...oldRow }
-      for (const key of Object.keys(newRow)) {
-        const newVal = (newRow as Record<string, unknown>)[key]
-        if (newVal !== null && newVal !== undefined) {
-          (updated as Record<string, unknown>)[key] = newVal
-        }
-      }
-      merged.set(slug, updated)
-    } else {
-      merged.set(slug, { ...newRow })
-    }
-  }
-
-  const finalRows = Array.from(merged.values())
+  const finalRows = mergeWithPrevious(rows, previous)
   finalRows.sort((a, b) => {
     const ai = a.intelligenceIndex as number
     const bi = b.intelligenceIndex as number
@@ -664,10 +710,18 @@ export async function run(flags: Flags): Promise<void> {
     return aid < bid ? -1 : aid > bid ? 1 : 0
   })
 
-  const prevKeys = new Set(previous.map((r) => r.slug as string | undefined).filter((s): s is string => Boolean(s)))
-  const finalKeys = new Set(finalRows.map((r) => r.slug as string))
+  const prevKeys = new Set(previous.map((r) => (r.slug as string | undefined) ?? (r.id as string | undefined)).filter((s): s is string => Boolean(s)))
+  const finalKeys = new Set(finalRows.map((r) => (r.slug as string | undefined) ?? (r.id as string | undefined)).filter((s): s is string => Boolean(s)))
   const added = [...finalKeys].filter((k) => !prevKeys.has(k))
   const removed = [...prevKeys].filter((k) => !finalKeys.has(k))
+  const preserved = finalRows.filter((r) => {
+    const key = (r.slug as string | undefined) ?? (r.id as string | undefined)
+    return key != null && prevKeys.has(key)
+  }).length
+  const updated = finalRows.filter((r) => {
+    const key = (r.slug as string | undefined) ?? (r.id as string | undefined)
+    return key != null && prevKeys.has(key) && rows.some((nr) => (nr.slug as string) === key)
+  }).length
 
   if (removed.length > 0) {
     console.error(`\n✗ Internal error: ${removed.length} models were removed despite preservation logic. This should never happen.`)
@@ -690,7 +744,7 @@ export async function run(flags: Flags): Promise<void> {
   } else {
     fs.writeFileSync(modelsPath, JSON.stringify(finalRows, null, 2))
     fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2))
-    console.log(`\n— wrote ${finalRows.length} models to src/data/models.json (+${added.length} / -${removed.length} vs previous run)`)
+    console.log(`\n— wrote ${finalRows.length} models to src/data/models.json (+${added.length} new, ${updated} updated, ${preserved} preserved vs previous run)`)
   }
   if (added.length) console.log(`  added:   ${added.slice(0, 30).join(', ')}${added.length > 30 ? ', …' : ''}`)
   if (removed.length) console.log(`  removed: ${removed.slice(0, 30).join(', ')}${removed.length > 30 ? ', …' : ''}`)
@@ -700,12 +754,14 @@ export async function run(flags: Flags): Promise<void> {
   }
 
   const summaryLines = [
-    `Fetched ${finalRows.length} models (+${added.length} / -${removed.length}).`,
+    `Fetched ${finalRows.length} models (+${added.length} new, ${updated} updated, ${preserved} preserved).`,
     added.length ? `Added: ${added.join(', ')}` : null,
     removed.length ? `Removed: ${removed.join(', ')}` : null,
   ].filter((l): l is string => l != null)
 
   if (!flags.dryRun) {
+    for (const slug of finalKeys) knownSlugs.add(slug)
+    saveKnownSlugs(knownSlugs)
     const githubOutput = process.env.GITHUB_OUTPUT
     if (githubOutput) {
       fs.appendFileSync(githubOutput, `changed=${changed}\n`)

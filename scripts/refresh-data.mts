@@ -21,6 +21,7 @@ Incremental refresh wrapper. Runs fetch-data with --refresh enabled by default.
 
 Flags:
   --no-refresh       Disable incremental refresh (run full fetch).
+  --refresh-known    Re-crawl ALL known models, even if cache is fresh.
   --skip-perf        Skip performance extraction (faster).
   --help, -h         Show this help message.
   [all fetch-data flags are also supported]
