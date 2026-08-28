@@ -608,20 +608,71 @@ export async function run(flags: Flags): Promise<void> {
     return aid < bid ? -1 : aid > bid ? 1 : 0
   })
 
+  // Safety check: warn if new data is drastically smaller than before,
+  // but DO NOT abort — we will merge with previous data so no model is ever lost.
   const MIN_RETENTION = 0.7
   if (previous.length > 0 && rows.length < previous.length * MIN_RETENTION) {
-    console.error(
-      `\n✗ Aborting: fetched ${rows.length} models, but src/data/models.json currently has ${previous.length} ` +
+    console.warn(
+      `\n⚠ Warning: fetched ${rows.length} models, but src/data/models.json currently has ${previous.length} ` +
         `(< ${Math.round(MIN_RETENTION * 100)}% retained). This usually means a source page changed shape. ` +
-        `Not overwriting existing data — investigate before re-running.`,
+        `Preserving existing data and merging — investigate the source change.`,
     )
-    process.exit(1)
   }
 
-  const prevKeys = new Set(previous.map((r) => `${r.slug}`))
-  const newKeys = new Set(rows.map((r) => r.slug as string))
-  const added = [...newKeys].filter((k) => !prevKeys.has(k))
-  const removed = [...prevKeys].filter((k) => !newKeys.has(k))
+  // Merge new rows with previous data so that models can never be removed.
+  // Strategy: start with all previous models, then overlay fresh data for matching slugs.
+  // For each field, prefer the new value if it is not null/undefined; otherwise keep the old value.
+  const prevBySlug = new Map<string, Record<string, unknown>>()
+  for (const r of previous) {
+    const slug = r.slug as string | undefined
+    if (slug) prevBySlug.set(slug, r)
+  }
+
+  const merged = new Map<string, Record<string, unknown>>()
+
+  for (const [slug, oldRow] of prevBySlug) {
+    merged.set(slug, { ...oldRow })
+  }
+
+  for (const newRow of rows) {
+    const slug = newRow.slug as string
+    const oldRow = merged.get(slug)
+    if (oldRow) {
+      const updated = { ...oldRow }
+      for (const key of Object.keys(newRow)) {
+        const newVal = (newRow as Record<string, unknown>)[key]
+        if (newVal !== null && newVal !== undefined) {
+          (updated as Record<string, unknown>)[key] = newVal
+        }
+      }
+      merged.set(slug, updated)
+    } else {
+      merged.set(slug, { ...newRow })
+    }
+  }
+
+  const finalRows = Array.from(merged.values())
+  finalRows.sort((a, b) => {
+    const ai = a.intelligenceIndex as number
+    const bi = b.intelligenceIndex as number
+    if (bi !== ai) return bi - ai
+    const ar = (a.released as string) ?? ''
+    const br = (b.released as string) ?? ''
+    if (ar !== br) return ar < br ? 1 : -1
+    const aid = (a.id as string) ?? ''
+    const bid = (b.id as string) ?? ''
+    return aid < bid ? -1 : aid > bid ? 1 : 0
+  })
+
+  const prevKeys = new Set(previous.map((r) => r.slug as string | undefined).filter((s): s is string => Boolean(s)))
+  const finalKeys = new Set(finalRows.map((r) => r.slug as string))
+  const added = [...finalKeys].filter((k) => !prevKeys.has(k))
+  const removed = [...prevKeys].filter((k) => !finalKeys.has(k))
+
+  if (removed.length > 0) {
+    console.error(`\n✗ Internal error: ${removed.length} models were removed despite preservation logic. This should never happen.`)
+    process.exit(1)
+  }
 
   const meta = {
     fetchedAt: new Date().toISOString(),
@@ -632,12 +683,14 @@ export async function run(flags: Flags): Promise<void> {
     note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends).',
   }
 
+  const changed = added.length > 0 || JSON.stringify(finalRows) !== JSON.stringify(previous)
+
   if (flags.dryRun) {
     console.log(`\n— dry-run: skipping write to ${modelsPath} and ${metaPath}`)
   } else {
-    fs.writeFileSync(modelsPath, JSON.stringify(rows, null, 2))
+    fs.writeFileSync(modelsPath, JSON.stringify(finalRows, null, 2))
     fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2))
-    console.log(`\n— wrote ${rows.length} models to src/data/models.json (+${added.length} / -${removed.length} vs previous run)`)
+    console.log(`\n— wrote ${finalRows.length} models to src/data/models.json (+${added.length} / -${removed.length} vs previous run)`)
   }
   if (added.length) console.log(`  added:   ${added.slice(0, 30).join(', ')}${added.length > 30 ? ', …' : ''}`)
   if (removed.length) console.log(`  removed: ${removed.slice(0, 30).join(', ')}${removed.length > 30 ? ', …' : ''}`)
@@ -647,7 +700,7 @@ export async function run(flags: Flags): Promise<void> {
   }
 
   const summaryLines = [
-    `Fetched ${rows.length} models (+${added.length} / -${removed.length}).`,
+    `Fetched ${finalRows.length} models (+${added.length} / -${removed.length}).`,
     added.length ? `Added: ${added.join(', ')}` : null,
     removed.length ? `Removed: ${removed.join(', ')}` : null,
   ].filter((l): l is string => l != null)
@@ -655,11 +708,10 @@ export async function run(flags: Flags): Promise<void> {
   if (!flags.dryRun) {
     const githubOutput = process.env.GITHUB_OUTPUT
     if (githubOutput) {
-      const changed = added.length > 0 || removed.length > 0 || rows.length !== previous.length
       fs.appendFileSync(githubOutput, `changed=${changed}\n`)
       fs.appendFileSync(githubOutput, `added_count=${added.length}\n`)
       fs.appendFileSync(githubOutput, `removed_count=${removed.length}\n`)
-      fs.appendFileSync(githubOutput, `total_count=${rows.length}\n`)
+      fs.appendFileSync(githubOutput, `total_count=${finalRows.length}\n`)
       fs.appendFileSync(githubOutput, `summary<<EOF\n${summaryLines.join('\n')}\nEOF\n`)
     }
     const githubStepSummary = process.env.GITHUB_STEP_SUMMARY
