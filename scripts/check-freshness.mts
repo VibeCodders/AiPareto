@@ -65,8 +65,12 @@ async function main() {
 
   const mappedCount = recent.length - unmapped.length
 
+  // A model is only a hard failure when its curated mapping points at an
+  // OpenRouter id that no longer exists — that's a real config error. Models
+  // with no OpenRouter counterpart are still ingested by fetch-data as synthetic
+  // entries (with estimated prices), so they are reported but not failed.
   const result = {
-    ok: trulyUnmatched.length === 0 && staleMappings.length === 0,
+    ok: staleMappings.length === 0,
     registryTotal: registry.length,
     active: active.length,
     recent: recent.length,
@@ -101,7 +105,7 @@ async function main() {
   }
 
   if (trulyUnmatched.length > 0) {
-    console.log(`\n${trulyUnmatched.length} recent AA model(s) with no OpenRouter match:`)
+    console.log(`\n${trulyUnmatched.length} recent AA model(s) with no OpenRouter match (still ingested as synthetic entries; prices estimated at runtime):`)
     for (const m of trulyUnmatched) {
       console.log(`   ${m.slug.padEnd(40)} ${m.creator ?? '?'} — ${m.name} (${m.releaseDate ?? 'no date'})`)
     }
@@ -112,13 +116,13 @@ async function main() {
     console.log(`   ${id}`)
   }
 
-  if (trulyUnmatched.length === 0 && staleMappings.length === 0) {
-    console.log('\n✓ Mapping is up to date with both sources.')
+  if (staleMappings.length === 0) {
+    console.log('\n✓ No stale curated mappings. (Unmatched models are ingested as synthetic entries with estimated prices.)')
     if (autoMatchable.length > 0) {
       console.log(`  ${autoMatchable.length} model(s) are auto-matchable; add them to scripts/model-map.ts for explicit control.`)
     }
   } else {
-    console.log('\nRun `npm run fetch-data` after updating scripts/model-map.ts to pick these up.')
+    console.log('\nFix the stale mappings in scripts/model-map.ts and re-run.')
     process.exitCode = 1
   }
 }

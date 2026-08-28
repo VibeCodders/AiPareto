@@ -843,7 +843,37 @@ export async function run(flags: Flags): Promise<void> {
     }
     const or = orById.get(orId)
     if (!or) {
-      unmatched.push(`${m.slug} -> ${orId} (not on OpenRouter)`)
+      // Stale mapping: the curated/auto-matched OpenRouter id is no longer (or
+      // never was) on OpenRouter. The model may still carry Artificial Analysis
+      // scores, so ingest it as a synthetic entry instead of dropping it outright.
+      // Missing prices are estimated at runtime by the similarity model.
+      unmatched.push(`${m.slug} -> ${orId} (not on OpenRouter; ingested as synthetic entry)`)
+      if (!flags.allowIncomplete && score == null) continue
+      if (score == null) includedWithoutScore.push(`${m.slug} (no OR match, synthetic entry)`)
+      rows.push({
+        id: `aa:${m.slug}`,
+        name: m.name,
+        family: m.creator?.name ?? 'Unknown',
+        slug: m.slug,
+        aaName: m.name,
+        effort: parseEffort(m.name),
+        released: m.releaseDate,
+        isReasoning: m.isReasoning,
+        intelligenceIndex: score != null ? round1(score) : null,
+        codingIndex: data?.codingIndex != null ? round1(data.codingIndex) : null,
+        agenticIndex: data?.agenticIndex != null ? round1(data.agenticIndex) : null,
+        tau2: data?.tau2 != null ? round1(data.tau2) : null,
+        hle: data?.hle != null ? round1(data.hle) : null,
+        omniscience: data?.omniscience != null ? round1(data.omniscience) : null,
+        contextTokens: data?.contextWindowTokens ?? null,
+        openWeights: data?.isOpenWeights === true || data?.openSourceCategorization === 'open' || m.name.toLowerCase().includes('oss'),
+        inputPerM: null,
+        outputPerM: null,
+        cacheReadPerM: null,
+        cacheWritePerM: null,
+        maxCompletionTokens: null,
+        ...parseParams(`${m.slug} ${m.name}`, data),
+      })
       continue
     }
 
