@@ -9,6 +9,13 @@
  * Output: src/data/models.json (rows merged by curated mapping), src/data/meta.json.
  * Detail pages are cached in .tmp/aa_pages so re-runs are cheap.
  *
+ * Preservation guarantee:
+ *  - Existing models in src/data/models.json are NEVER removed, even if a source
+ *    page changes shape or a model drops out of the live feed.
+ *  - mergeWithPrevious() seeds the output with every previously known row and only
+ *    updates fields when fresh data is available.
+ *  - If the merged output would lose any model, the script aborts with exit code 1.
+ *
  * Flags:
  *   --force           Bypass all caches (download everything fresh).
  *   --no-cache        Do not read or write cache files (.tmp/).
@@ -19,8 +26,11 @@
  *   --older-than HOURS  Only refresh leaderboards cache if older than this (default 24).
  *   --detail-max-age HOURS Only refresh detail page cache if older than this (default 24).
  *   --refresh         Incremental refresh: only re-crawl models with missing or stale scores.
+ *   --refresh-known   Incremental refresh: re-crawl ALL known models, even if cache is fresh.
+ *   --skip-perf       Skip performance extraction (faster incremental updates).
  *   --verbose         Print extra diagnostics.
  *   --dry-run         Run the full pipeline but skip writing files.
+ *   --help, -h        Show this help message.
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -120,15 +130,35 @@ Flags:
 }
 
 function loadKnownSlugs(): Set<string> {
+  const slugs = new Set<string>()
   try {
     if (fs.existsSync(KNOWN_SLUGS_FILE)) {
       const raw = JSON.parse(fs.readFileSync(KNOWN_SLUGS_FILE, 'utf8')) as string[]
-      return new Set(raw.filter((s) => typeof s === 'string' && s.length > 0))
+      for (const s of raw) {
+        if (typeof s === 'string' && s.length > 0) slugs.add(s)
+      }
     }
   } catch {
     // ignore corrupt known-slugs file and start fresh
   }
-  return new Set()
+
+  // Seed from existing models.json so refresh mode knows about every previously tracked model
+  try {
+    const modelsPath = path.join(OUT_DIR, 'models.json')
+    if (fs.existsSync(modelsPath)) {
+      const previous = JSON.parse(fs.readFileSync(modelsPath, 'utf8')) as Array<Record<string, unknown>>
+      for (const r of previous) {
+        const slug = r.slug as string | undefined
+        const id = r.id as string | undefined
+        if (slug) slugs.add(slug)
+        if (id) slugs.add(id)
+      }
+    }
+  } catch {
+    // ignore corrupt models.json
+  }
+
+  return slugs
 }
 
 function saveKnownSlugs(slugs: Set<string>): void {
@@ -140,32 +170,33 @@ function mergeWithPrevious(
   newRows: Array<Record<string, unknown>>,
   previous: Array<Record<string, unknown>>,
 ): Array<Record<string, unknown>> {
-  const prevBySlug = new Map<string, Record<string, unknown>>()
+  const prevByKey = new Map<string, Record<string, unknown>>()
   for (const r of previous) {
-    const slug = (r.slug as string | undefined) ?? (r.id as string | undefined)
-    if (slug) prevBySlug.set(slug, r)
+    const key = (r.slug as string | undefined) ?? (r.id as string | undefined)
+    if (key) prevByKey.set(key, r)
   }
 
   const merged = new Map<string, Record<string, unknown>>()
 
-  for (const [slug, oldRow] of prevBySlug) {
-    merged.set(slug, { ...oldRow })
+  for (const [key, oldRow] of prevByKey) {
+    merged.set(key, { ...oldRow })
   }
 
   for (const newRow of newRows) {
-    const slug = newRow.slug as string
-    const oldRow = merged.get(slug)
+    const key = (newRow.slug as string | undefined) ?? (newRow.id as string | undefined)
+    if (!key) continue
+    const oldRow = merged.get(key)
     if (oldRow) {
       const updated = { ...oldRow }
-      for (const key of Object.keys(newRow)) {
-        const newVal = (newRow as Record<string, unknown>)[key]
+      for (const k of Object.keys(newRow)) {
+        const newVal = (newRow as Record<string, unknown>)[k]
         if (newVal !== null && newVal !== undefined) {
-          (updated as Record<string, unknown>)[key] = newVal
+          (updated as Record<string, unknown>)[k] = newVal
         }
       }
-      merged.set(slug, updated)
+      merged.set(key, updated)
     } else {
-      merged.set(slug, { ...newRow })
+      merged.set(key, { ...newRow })
     }
   }
 
@@ -742,6 +773,9 @@ export async function run(flags: Flags): Promise<void> {
   if (flags.dryRun) {
     console.log(`\n— dry-run: skipping write to ${modelsPath} and ${metaPath}`)
   } else {
+    if (fs.existsSync(modelsPath)) {
+      fs.copyFileSync(modelsPath, modelsPath + '.bak')
+    }
     fs.writeFileSync(modelsPath, JSON.stringify(finalRows, null, 2))
     fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2))
     console.log(`\n— wrote ${finalRows.length} models to src/data/models.json (+${added.length} new, ${updated} updated, ${preserved} preserved vs previous run)`)

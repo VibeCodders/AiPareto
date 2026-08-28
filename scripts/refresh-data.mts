@@ -32,7 +32,7 @@ Flags:
 const flags = parseFlags()
 
 const useRefresh = !rawArgs.includes('--no-refresh')
-flags.refresh = useRefresh
+const finalFlags = { ...flags, refresh: useRefresh }
 const merged = useRefresh ? ['--refresh', ...rawArgs.filter((a) => a !== '--refresh' && a !== '--no-refresh')] : rawArgs.filter((a) => a !== '--no-refresh')
 
 console.log(`— refresh-data: running fetch-data ${merged.join(' ')}`)
@@ -46,8 +46,10 @@ process.on('SIGINT', shutdown)
 process.on('SIGTERM', shutdown)
 
 try {
-  await run(flags)
+  await run(finalFlags)
 } catch (e) {
   console.error(`\n✗ refresh-data failed: ${e}`)
   process.exit(1)
 }
+
+
