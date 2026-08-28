@@ -717,17 +717,6 @@ export async function run(flags: Flags): Promise<void> {
     return aid < bid ? -1 : aid > bid ? 1 : 0
   })
 
-  // Safety check: warn if fetched data is drastically smaller than before,
-  // but DO NOT abort — mergeWithPrevious guarantees no model is ever lost.
-  const MIN_RETENTION = 0.7
-  if (previous.length > 0 && rows.length < previous.length * MIN_RETENTION) {
-    console.warn(
-      `\n⚠ Warning: fetched ${rows.length} models, but src/data/models.json currently has ${previous.length} ` +
-        `(< ${Math.round(MIN_RETENTION * 100)}% retained). This usually means a source page changed shape. ` +
-        `Preserving existing data and merging — investigate the source change.`,
-    )
-  }
-
   const finalRows = mergeWithPrevious(rows, previous)
   finalRows.sort((a, b) => {
     const ai = a.intelligenceIndex as number
@@ -759,6 +748,14 @@ export async function run(flags: Flags): Promise<void> {
     process.exit(1)
   }
 
+  const preservedWithScore = finalRows.filter((r) => {
+    const key = (r.slug as string | undefined) ?? (r.id as string | undefined)
+    return key != null && prevKeys.has(key) && (r.intelligenceIndex != null || r.outputSpeed != null || r.latencySeconds != null)
+  }).length
+  const preservedWithoutScore = preserved - preservedWithScore
+
+  console.log(`\n— preservation check: ${preserved} kept from previous run (${preservedWithScore} with data, ${preservedWithoutScore} preserved without fresh scores)`)
+
   const meta = {
     fetchedAt: new Date().toISOString(),
     sources: {
@@ -766,6 +763,13 @@ export async function run(flags: Flags): Promise<void> {
       artificialAnalysis: 'https://artificialanalysis.ai/models',
     },
     note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends).',
+    preservation: {
+      total: finalRows.length,
+      added,
+      updated,
+      preserved,
+      removed,
+    },
   }
 
   const changed = added.length > 0 || JSON.stringify(finalRows) !== JSON.stringify(previous)
@@ -788,9 +792,10 @@ export async function run(flags: Flags): Promise<void> {
   }
 
   const summaryLines = [
-    `Fetched ${finalRows.length} models (+${added.length} new, ${updated} updated, ${preserved} preserved).`,
+    `Fetched ${finalRows.length} models (+${added.length} new, ${updated} updated, ${preserved} preserved from previous run).`,
     added.length ? `Added: ${added.join(', ')}` : null,
     removed.length ? `Removed: ${removed.join(', ')}` : null,
+    preservedWithoutScore > 0 ? `Preserved without fresh scores: ${preservedWithoutScore} models kept from previous data` : null,
   ].filter((l): l is string => l != null)
 
   if (!flags.dryRun) {
@@ -802,6 +807,7 @@ export async function run(flags: Flags): Promise<void> {
       fs.appendFileSync(githubOutput, `added_count=${added.length}\n`)
       fs.appendFileSync(githubOutput, `removed_count=${removed.length}\n`)
       fs.appendFileSync(githubOutput, `total_count=${finalRows.length}\n`)
+      fs.appendFileSync(githubOutput, `preserved_count=${preserved}\n`)
       fs.appendFileSync(githubOutput, `summary<<EOF\n${summaryLines.join('\n')}\nEOF\n`)
     }
     const githubStepSummary = process.env.GITHUB_STEP_SUMMARY
