@@ -820,7 +820,14 @@ export async function run(flags: Flags): Promise<void> {
 
   const forcePreserve = loadForcePreserve()
   if (forcePreserve.size > 0) {
-    const missingForcePreserve = [...forcePreserve].filter((slug) => !finalKeys.has(slug))
+    const finalAllKeys = new Set<string>()
+    for (const r of finalRows) {
+      const slug = (r.slug as string | undefined)?.trim()
+      const id = (r.id as string | undefined)?.trim()
+      if (slug) finalAllKeys.add(slug)
+      if (id) finalAllKeys.add(id)
+    }
+    const missingForcePreserve = [...forcePreserve].filter((s) => !finalAllKeys.has(s.trim()))
     if (missingForcePreserve.length > 0) {
       console.warn(`\n⚠ force-preserve: ${missingForcePreserve.length} models listed in preserve-models.json are missing from output:`)
       for (const s of missingForcePreserve.slice(0, 20)) console.warn(`    ${s}`)
