@@ -38,8 +38,8 @@ async function main() {
   const aaHtml = await get('https://artificialanalysis.ai/models', { timeout: flags.timeout, retries: flags.retries })
   const registry = parseModelRegistry(extractFlightChunks(aaHtml).join(''))
   const active = registry.filter((m) => !m.deprecated)
-  const recent = active.filter((m) => (m.releaseDate ?? '') >= '2025-01-01')
-  console.log(`  ${registry.length} total, ${active.length} active, ${recent.length} released >= 2025-01-01`)
+  const recent = active.filter((m) => !m.releaseDate || m.releaseDate >= '2025-01-01')
+  console.log(`  ${registry.length} total, ${active.length} active, ${recent.length} candidate (undated or released >= 2025-01-01)`)
 
   console.log('— fetching OpenRouter model catalog…')
   const orJson = JSON.parse(await get('https://openrouter.ai/api/v1/models', { timeout: flags.timeout, retries: flags.retries })) as { data: Array<{ id: string }> }

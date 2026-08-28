@@ -65,7 +65,7 @@ const scoredSlugs = new Set(
 // plus models from the registry that are in scope and recently released
 for (const m of aaActive) {
   if (m.deprecated) continue
-  if ((m.releaseDate ?? '') >= '2025-01-01' && inScope(m.creator?.name)) {
+  if ((!m.releaseDate || m.releaseDate >= '2025-01-01') && inScope(m.creator?.name)) {
     scoredSlugs.add(m.slug)
   }
 }

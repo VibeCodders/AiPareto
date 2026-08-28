@@ -620,8 +620,13 @@ export async function run(flags: Flags): Promise<void> {
   console.log(`  ${leaderboard.length} full model objects (coding index etc.) (${Date.now() - t3}ms)`)
 
   const active = registry.filter((m) => !m.deprecated)
-  const recent = active.filter((m) => (m.releaseDate ?? '') >= '2025-01-01')
-  console.log(`  active: ${active.length}, released >= 2025: ${recent.length}`)
+  // A model is a candidate for ingestion when it is undated (newly added and not
+  // yet dated by the source) or released on/after the cutoff. New releases often
+  // lack a releaseDate, so we must not drop them here — missing values are
+  // estimated at runtime by the similarity model, so partial data is fine.
+  const recentCutoff = '2025-01-01'
+  const recent = active.filter((m) => !m.releaseDate || m.releaseDate >= recentCutoff)
+  console.log(`  active: ${active.length}, candidate (undated or >= ${recentCutoff}): ${recent.length}`)
   if (!flags.noCache) {
     fs.writeFileSync(path.join(TMP, 'aa_active.json'), JSON.stringify(active, null, 2))
   }
@@ -717,35 +722,37 @@ export async function run(flags: Flags): Promise<void> {
       }
     }
     if (!orId) {
-      if (data) {
-        const syntheticId = `aa:${m.slug}`
-        const family = m.creator?.name ?? null
-        includedWithoutScore.push(`${m.slug} (no OR match, synthetic entry)`)
-        rows.push({
-          id: syntheticId,
-          name: m.name,
-          family,
-          slug: m.slug,
-          aaName: m.name,
-          effort: parseEffort(m.name),
-          released: m.releaseDate,
-          isReasoning: m.isReasoning,
-          intelligenceIndex: score != null ? round1(score) : null,
-          codingIndex: data?.codingIndex != null ? round1(data.codingIndex) : null,
-          agenticIndex: data?.agenticIndex != null ? round1(data.agenticIndex) : null,
-          tau2: data?.tau2 != null ? round1(data.tau2) : null,
-          hle: data?.hle != null ? round1(data.hle) : null,
-          omniscience: data?.omniscience != null ? round1(data.omniscience) : null,
-          contextTokens: data?.contextWindowTokens ?? null,
-          openWeights: data?.isOpenWeights === true || data?.openSourceCategorization === 'open' || m.name.toLowerCase().includes('oss'),
-          inputPerM: null,
-          outputPerM: null,
-          cacheReadPerM: null,
-          cacheWritePerM: null,
-          maxCompletionTokens: null,
-          ...parseParams(`${m.slug} ${m.name}`, data),
-        })
-      }
+      // No OpenRouter counterpart (or auto-matching disabled): still ingest the
+      // Artificial Analysis entry as a synthetic row. Missing benchmark/spec
+      // values are estimated at runtime, so we don't require an AA score.
+      if (!flags.allowIncomplete) continue
+      const syntheticId = `aa:${m.slug}`
+      const family = m.creator?.name ?? null
+      if (score == null) includedWithoutScore.push(`${m.slug} (no OR match, synthetic entry)`)
+      rows.push({
+        id: syntheticId,
+        name: m.name,
+        family,
+        slug: m.slug,
+        aaName: m.name,
+        effort: parseEffort(m.name),
+        released: m.releaseDate,
+        isReasoning: m.isReasoning,
+        intelligenceIndex: score != null ? round1(score) : null,
+        codingIndex: data?.codingIndex != null ? round1(data.codingIndex) : null,
+        agenticIndex: data?.agenticIndex != null ? round1(data.agenticIndex) : null,
+        tau2: data?.tau2 != null ? round1(data.tau2) : null,
+        hle: data?.hle != null ? round1(data.hle) : null,
+        omniscience: data?.omniscience != null ? round1(data.omniscience) : null,
+        contextTokens: data?.contextWindowTokens ?? null,
+        openWeights: data?.isOpenWeights === true || data?.openSourceCategorization === 'open' || m.name.toLowerCase().includes('oss'),
+        inputPerM: null,
+        outputPerM: null,
+        cacheReadPerM: null,
+        cacheWritePerM: null,
+        maxCompletionTokens: null,
+        ...parseParams(`${m.slug} ${m.name}`, data),
+      })
       continue
     }
     const or = orById.get(orId)
@@ -796,7 +803,10 @@ export async function run(flags: Flags): Promise<void> {
     const family = orProviders.has(provider) ? OR_PROVIDER_FAMILY[provider] : provider.charAt(0).toUpperCase() + provider.slice(1)
     const rest = or.id.split('/').slice(1).join('/')
     if (rest.includes('embed') || rest.includes('rerank')) continue
-    if (or.pricing?.prompt == null && or.pricing?.completion == null) continue
+    // Require at least one price to anchor the model, unless --allow-incomplete is
+    // set (the default): in that case missing prices are estimated at runtime, so
+    // even unpriced OpenRouter models can be ingested, not silently dropped.
+    if (!flags.allowIncomplete && or.pricing?.prompt == null && or.pricing?.completion == null) continue
 
     rows.push({
       id: or.id,
