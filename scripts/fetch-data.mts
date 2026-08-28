@@ -36,7 +36,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { extractFlightChunks, extractModelObjects, extractObjectsContaining, extractPerfFromDetail, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
-import { CREATOR_WHITELIST, DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, OR_PROVIDER_FAMILY, autoMatchORId, autoMatchSlug, familyFromORId, get, isReasoningFromORName, norm, openWeightsFromORId } from './shared.mts'
+import { CREATOR_WHITELIST, DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, OR_PROVIDER_FAMILY, autoMatchSlug, familyFromORId, get, isReasoningFromORName, norm, openWeightsFromORId } from './shared.mts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
 const TMP = path.join(ROOT, '.tmp')
@@ -700,7 +700,7 @@ export async function run(flags: Flags): Promise<void> {
   const orById = new Map(orModels.map((m) => [m.id, m]))
   const orIdSet = new Set(orById.keys())
 
-  const rows: Array<Record<string, unknown>> = []
+  let rows: Array<Record<string, unknown>> = []
   const unmatched: string[] = []
   const autoMatched: string[] = []
   const includedWithoutScore: string[] = []
@@ -798,6 +798,21 @@ export async function run(flags: Flags): Promise<void> {
       ...parseParams(`${or.id} ${or.name}`, null),
     })
     orOnlyAdded.push(or.id)
+  }
+
+  // Deduplicate by (id, slug) key — guards against edge cases where
+  // auto-matching and OR-only inclusion could produce overlapping rows.
+  // Effort variants (same id, different slug) are intentionally kept.
+  const seenKeys = new Set<string>()
+  const beforeDedup = rows.length
+  rows = rows.filter((r) => {
+    const key = `${String(r.id)}|${String(r.slug)}`
+    if (seenKeys.has(key)) return false
+    seenKeys.add(key)
+    return true
+  })
+  if (rows.length < beforeDedup) {
+    console.warn(`  removed ${beforeDedup - rows.length} duplicate row(s) by (id, slug)`)
   }
 
   console.log(`— building rows: ${rows.length} models (${rows.filter((r) => r.aaName != null).length} from AA, ${orOnlyAdded.length} OpenRouter-only, ${includedWithoutScore.length} without AA score)`)
