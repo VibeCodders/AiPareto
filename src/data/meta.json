@@ -1,15 +1,18 @@
 {
-  "fetchedAt": "2026-08-28T16:57:57.794Z",
+  "fetchedAt": "2026-08-28T18:36:44.634Z",
   "sources": {
     "openrouter": "https://openrouter.ai/api/v1/models",
     "artificialAnalysis": "https://artificialanalysis.ai/models"
   },
-  "note": "Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends).",
+  "note": "Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Missing values are estimated at runtime via k-NN similarity.",
   "preservation": {
-    "total": 112,
+    "total": 562,
     "added": [],
-    "updated": 112,
-    "preserved": 112,
+    "updated": 562,
+    "preserved": 562,
     "removed": []
-  }
+  },
+  "autoMatched": 25,
+  "orOnly": 295,
+  "withoutScore": 8
 }
