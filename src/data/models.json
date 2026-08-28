@@ -50,8 +50,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 55.4,
-    "latencySeconds": 38.8
+    "outputSpeed": 53.7,
+    "latencySeconds": 21.2
   },
   {
     "id": "anthropic/claude-fable-5",
@@ -104,8 +104,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 56.7,
-    "latencySeconds": 21.4
+    "outputSpeed": 54.4,
+    "latencySeconds": 18.5
   },
   {
     "id": "x-ai/grok-4.6",
@@ -128,7 +128,7 @@
     "outputPerM": 6,
     "cacheReadPerM": 0.5,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 450000,
     "parameters": null,
     "activeParameters": null,
     "outputSpeed": 68.7,
@@ -182,7 +182,7 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.3,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 1048576,
+    "maxCompletionTokens": 943718,
     "parameters": 2800000000000,
     "activeParameters": 104000000000,
     "outputSpeed": 34.3,
@@ -239,8 +239,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 67.6,
-    "latencySeconds": 51.5
+    "outputSpeed": 72.9,
+    "latencySeconds": 46.4
   },
   {
     "id": "anthropic/claude-opus-5",
@@ -266,8 +266,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 54.5,
-    "latencySeconds": 6.4
+    "outputSpeed": 53.8,
+    "latencySeconds": 5.1
   },
   {
     "id": "qwen/qwen3.8-max",
@@ -317,7 +317,7 @@
     "outputPerM": 6,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 262144,
     "parameters": 2400000000000,
     "activeParameters": 95000000000,
     "outputSpeed": 52.5,
@@ -347,8 +347,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 70.5,
-    "latencySeconds": 18.9
+    "outputSpeed": 73.6,
+    "latencySeconds": 10.3
   },
   {
     "id": "meta/muse-spark-1.2",
@@ -371,7 +371,7 @@
     "outputPerM": 4.25,
     "cacheReadPerM": 0.15,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 943718,
     "parameters": 1200000000,
     "activeParameters": null,
     "outputSpeed": null,
@@ -452,7 +452,7 @@
     "outputPerM": 6,
     "cacheReadPerM": 0.3,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 450000,
     "parameters": null,
     "activeParameters": null,
     "outputSpeed": 66.2,
@@ -482,8 +482,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 69.8,
-    "latencySeconds": 5.1
+    "outputSpeed": 72.3,
+    "latencySeconds": 4.7
   },
   {
     "id": "anthropic/claude-sonnet-5",
@@ -536,8 +536,8 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 382.4,
-    "latencySeconds": 4.4
+    "outputSpeed": 304.9,
+    "latencySeconds": 6.9
   },
   {
     "id": "deepseek/deepseek-v4-pro-0813",
@@ -556,11 +556,11 @@
     "omniscience": 0.8,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 1.122,
-    "outputPerM": 3.366,
-    "cacheReadPerM": 0.0374,
+    "inputPerM": 1.32,
+    "outputPerM": 3.96,
+    "cacheReadPerM": 0.044,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 384000,
     "parameters": 1600000000000,
     "activeParameters": 49000000000,
     "outputSpeed": 72.5,
@@ -590,8 +590,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 120.1,
-    "latencySeconds": 30.4
+    "outputSpeed": 103.3,
+    "latencySeconds": 20.7
   },
   {
     "id": "z-ai/glm-5.2",
@@ -614,7 +614,7 @@
     "outputPerM": 3.74,
     "cacheReadPerM": 0.221,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 262144,
     "parameters": 753000000000,
     "activeParameters": 40000000000,
     "outputSpeed": 84.2,
@@ -644,8 +644,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 54.7,
-    "latencySeconds": 3.6
+    "outputSpeed": 55,
+    "latencySeconds": 3
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -691,10 +691,10 @@
     "omniscience": -10,
     "contextTokens": 256000,
     "openWeights": true,
-    "inputPerM": 0.4,
-    "outputPerM": 3,
-    "cacheReadPerM": 0.05,
-    "cacheWritePerM": null,
+    "inputPerM": 0.425,
+    "outputPerM": 2.55,
+    "cacheReadPerM": 0.085,
+    "cacheWritePerM": 0.5313,
     "maxCompletionTokens": 131072,
     "parameters": 27000000000,
     "activeParameters": 27000000000,
@@ -718,11 +718,11 @@
     "omniscience": -14.3,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 0.14,
-    "outputPerM": 0.28,
-    "cacheReadPerM": 0.028,
+    "inputPerM": 0.06,
+    "outputPerM": 0.12,
+    "cacheReadPerM": 0.012,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 943718,
     "parameters": 284000000000,
     "activeParameters": 13000000000,
     "outputSpeed": 125.5,
@@ -779,7 +779,7 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 381.1,
+    "outputSpeed": 301.6,
     "latencySeconds": 1
   },
   {
@@ -806,8 +806,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 71.6,
-    "latencySeconds": 3.2
+    "outputSpeed": 73.7,
+    "latencySeconds": 2.7
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -833,8 +833,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 132.6,
-    "latencySeconds": null
+    "outputSpeed": 115.4,
+    "latencySeconds": 41.3
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -860,8 +860,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 119.4,
-    "latencySeconds": 3.1
+    "outputSpeed": 101.3,
+    "latencySeconds": 2.6
   },
   {
     "id": "moonshotai/kimi-k3",
@@ -884,11 +884,11 @@
     "outputPerM": 15,
     "cacheReadPerM": 0.3,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 1048576,
+    "maxCompletionTokens": 943718,
     "parameters": 2780000000000,
     "activeParameters": 104000000000,
-    "outputSpeed": 35.7,
-    "latencySeconds": 59.9
+    "outputSpeed": 36.3,
+    "latencySeconds": 60.8
   },
   {
     "id": "google/gemini-3.1-pro-preview",
@@ -941,8 +941,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 134.2,
-    "latencySeconds": 12.9
+    "outputSpeed": 118.4,
+    "latencySeconds": 15.1
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -968,8 +968,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 109.2,
-    "latencySeconds": 1.9
+    "outputSpeed": 95.6,
+    "latencySeconds": 1.7
   },
   {
     "id": "google/gemini-3.5-flash",
@@ -995,8 +995,8 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 212.1,
-    "latencySeconds": 15.4
+    "outputSpeed": 188.1,
+    "latencySeconds": 13.9
   },
   {
     "id": "openai/gpt-5.3-codex",
@@ -1069,9 +1069,9 @@
     "omniscience": -10.7,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 0.7903,
-    "outputPerM": 1.5806,
-    "cacheReadPerM": 0.0659,
+    "inputPerM": 0.87,
+    "outputPerM": 1.74,
+    "cacheReadPerM": 0.0725,
     "cacheWritePerM": null,
     "maxCompletionTokens": 384000,
     "parameters": 1600000000000,
@@ -1096,15 +1096,15 @@
     "omniscience": -10.6,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 0.7903,
-    "outputPerM": 1.5806,
-    "cacheReadPerM": 0.0659,
+    "inputPerM": 0.87,
+    "outputPerM": 1.74,
+    "cacheReadPerM": 0.0725,
     "cacheWritePerM": null,
     "maxCompletionTokens": 384000,
     "parameters": 1600000000000,
     "activeParameters": 49000000000,
-    "outputSpeed": 73.8,
-    "latencySeconds": 28.6
+    "outputSpeed": 62.6,
+    "latencySeconds": 33.5
   },
   {
     "id": "moonshotai/kimi-k2.7-code",
@@ -1123,11 +1123,11 @@
     "omniscience": -10.2,
     "contextTokens": 256000,
     "openWeights": true,
-    "inputPerM": 0.67,
+    "inputPerM": 0.66,
     "outputPerM": 3.4,
-    "cacheReadPerM": 0.19,
+    "cacheReadPerM": 0.18,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 1000000000000,
     "activeParameters": 32000000000,
     "outputSpeed": 49.5,
@@ -1184,8 +1184,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 69.8,
-    "latencySeconds": 1.8
+    "outputSpeed": 63.7,
+    "latencySeconds": 1.7
   },
   {
     "id": "tencent/hy3",
@@ -1238,8 +1238,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 62.1,
-    "latencySeconds": 1.3
+    "outputSpeed": 68.3,
+    "latencySeconds": 1.1
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -1265,8 +1265,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 120.5,
-    "latencySeconds": 1.4
+    "outputSpeed": 97.7,
+    "latencySeconds": 1.7
   },
   {
     "id": "qwen/qwen3.7-plus",
@@ -1319,8 +1319,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 133.8,
-    "latencySeconds": 2.4
+    "outputSpeed": 114.4,
+    "latencySeconds": 2.5
   },
   {
     "id": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -1339,15 +1339,15 @@
     "omniscience": -0.4,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.6,
-    "outputPerM": 3.6,
-    "cacheReadPerM": 0.2,
+    "inputPerM": 0.5,
+    "outputPerM": 2.2,
+    "cacheReadPerM": 0.1,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 16384,
     "parameters": 550000000000,
     "activeParameters": 55000000000,
-    "outputSpeed": 167,
-    "latencySeconds": 15.6
+    "outputSpeed": 150,
+    "latencySeconds": 17.3
   },
   {
     "id": "xiaomi/mimo-v2.5",
@@ -1420,11 +1420,11 @@
     "omniscience": -20,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.32,
-    "outputPerM": 3.2,
-    "cacheReadPerM": null,
+    "inputPerM": 0.6,
+    "outputPerM": 3.6,
+    "cacheReadPerM": 0.12,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 81920,
+    "maxCompletionTokens": 235929,
     "parameters": 27800000000,
     "activeParameters": 27800000000,
     "outputSpeed": 58.5,
@@ -1478,11 +1478,11 @@
     "outputPerM": 2.5,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 900000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 146.5,
-    "latencySeconds": 11.9
+    "outputSpeed": 108.3,
+    "latencySeconds": 9.1
   },
   {
     "id": "x-ai/grok-4.3",
@@ -1505,11 +1505,11 @@
     "outputPerM": 2.5,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 900000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 134.6,
-    "latencySeconds": 5.4
+    "outputSpeed": 114.8,
+    "latencySeconds": 5.5
   },
   {
     "id": "google/gemini-3.5-flash",
@@ -1535,8 +1535,8 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 185,
-    "latencySeconds": 0.8
+    "outputSpeed": 190.7,
+    "latencySeconds": 0.9
   },
   {
     "id": "meta/muse-glimmer-30b",
@@ -1559,7 +1559,7 @@
     "outputPerM": 1.5,
     "cacheReadPerM": 0.04,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 117964,
     "parameters": 30000000000,
     "activeParameters": 30000000000,
     "outputSpeed": 101.1,
@@ -1589,7 +1589,7 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 47.6,
+    "outputSpeed": 48.5,
     "latencySeconds": 1.6
   },
   {
@@ -1613,11 +1613,11 @@
     "outputPerM": 3.74,
     "cacheReadPerM": 0.221,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 262144,
     "parameters": 753000000000,
     "activeParameters": 40000000000,
-    "outputSpeed": 128.7,
-    "latencySeconds": 1.9
+    "outputSpeed": 96.7,
+    "latencySeconds": 2.2
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -1643,8 +1643,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 119.5,
-    "latencySeconds": 0.8
+    "outputSpeed": 96.5,
+    "latencySeconds": 0.9
   },
   {
     "id": "qwen/qwen3.5-397b-a17b",
@@ -1663,11 +1663,11 @@
     "omniscience": -30.7,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.5,
-    "outputPerM": 3.6,
+    "inputPerM": 0.39,
+    "outputPerM": 2.34,
     "cacheReadPerM": 0.3,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 65536,
     "parameters": 397000000000,
     "activeParameters": 17000000000,
     "outputSpeed": 79.9,
@@ -1697,8 +1697,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 132.3,
-    "latencySeconds": 1.6
+    "outputSpeed": 110.1,
+    "latencySeconds": 1.5
   },
   {
     "id": "qwen/qwen3.5-122b-a10b",
@@ -1721,7 +1721,7 @@
     "outputPerM": 2.08,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 125000000000,
     "activeParameters": 10000000000,
     "outputSpeed": 130.5,
@@ -1744,15 +1744,15 @@
     "omniscience": -37.9,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.5,
-    "outputPerM": 3.6,
+    "inputPerM": 0.39,
+    "outputPerM": 2.34,
     "cacheReadPerM": 0.3,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 65536,
     "parameters": 397000000000,
     "activeParameters": 17000000000,
-    "outputSpeed": 76.9,
-    "latencySeconds": 2.2
+    "outputSpeed": 88.7,
+    "latencySeconds": 2.3
   },
   {
     "id": "qwen/qwen3.6-35b-a3b",
@@ -1771,11 +1771,11 @@
     "omniscience": -22.2,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.14,
-    "outputPerM": 1,
+    "inputPerM": 0.1,
+    "outputPerM": 0.9,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 36000000000,
     "activeParameters": 3000000000,
     "outputSpeed": 120.5,
@@ -1798,15 +1798,15 @@
     "omniscience": -29.9,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 0.7903,
-    "outputPerM": 1.5806,
-    "cacheReadPerM": 0.0659,
+    "inputPerM": 0.87,
+    "outputPerM": 1.74,
+    "cacheReadPerM": 0.0725,
     "cacheWritePerM": null,
     "maxCompletionTokens": 384000,
     "parameters": 1600000000000,
     "activeParameters": 49000000000,
-    "outputSpeed": 72,
-    "latencySeconds": 1.8
+    "outputSpeed": 67.5,
+    "latencySeconds": 1.6
   },
   {
     "id": "qwen/qwen3.6-27b",
@@ -1825,15 +1825,15 @@
     "omniscience": -53.2,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.32,
-    "outputPerM": 3.2,
-    "cacheReadPerM": null,
+    "inputPerM": 0.6,
+    "outputPerM": 3.6,
+    "cacheReadPerM": 0.12,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 81920,
+    "maxCompletionTokens": 235929,
     "parameters": 27800000000,
     "activeParameters": 27800000000,
-    "outputSpeed": 57.6,
-    "latencySeconds": 3.8
+    "outputSpeed": 55.6,
+    "latencySeconds": 3.7
   },
   {
     "id": "openai/o3",
@@ -1883,7 +1883,7 @@
     "outputPerM": 1.15,
     "cacheReadPerM": 0.04,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 256000,
+    "maxCompletionTokens": 230400,
     "parameters": 198000000000,
     "activeParameters": 11000000000,
     "outputSpeed": 138.8,
@@ -1910,7 +1910,7 @@
     "outputPerM": 7.5,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 209715,
     "parameters": 128000000000,
     "activeParameters": 128000000000,
     "outputSpeed": 148.3,
@@ -1940,8 +1940,8 @@
     "maxCompletionTokens": 64000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 118.1,
-    "latencySeconds": 25.5
+    "outputSpeed": 119.2,
+    "latencySeconds": 16.6
   },
   {
     "id": "google/gemma-4-31b-it",
@@ -1960,11 +1960,11 @@
     "omniscience": -47.9,
     "contextTokens": 256000,
     "openWeights": true,
-    "inputPerM": 0.1,
+    "inputPerM": 0.09,
     "outputPerM": 0.34,
-    "cacheReadPerM": 0.1,
+    "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 16384,
     "parameters": 30700000000,
     "activeParameters": 30700000000,
     "outputSpeed": 35.2,
@@ -1987,11 +1987,11 @@
     "omniscience": -44,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 0.14,
-    "outputPerM": 0.28,
-    "cacheReadPerM": 0.028,
+    "inputPerM": 0.06,
+    "outputPerM": 0.12,
+    "cacheReadPerM": 0.012,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 943718,
     "parameters": 284000000000,
     "activeParameters": 13000000000,
     "outputSpeed": null,
@@ -2048,8 +2048,8 @@
     "maxCompletionTokens": 131072,
     "parameters": 1023000000000,
     "activeParameters": 41700000000,
-    "outputSpeed": 47.7,
-    "latencySeconds": 4
+    "outputSpeed": 37,
+    "latencySeconds": 7.5
   },
   {
     "id": "qwen/qwen3.5-122b-a10b",
@@ -2072,10 +2072,10 @@
     "outputPerM": 2.08,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 125000000000,
     "activeParameters": 10000000000,
-    "outputSpeed": 148.2,
+    "outputSpeed": 144.6,
     "latencySeconds": 2.3
   },
   {
@@ -2102,8 +2102,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 129.4,
-    "latencySeconds": 0.7
+    "outputSpeed": 106.7,
+    "latencySeconds": 0.9
   },
   {
     "id": "google/gemma-4-26b-a4b-it",
@@ -2180,10 +2180,10 @@
     "outputPerM": 2.5,
     "cacheReadPerM": 0.2,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 900000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 132.3,
+    "outputSpeed": 112.1,
     "latencySeconds": 0.7
   },
   {
@@ -2203,14 +2203,14 @@
     "omniscience": -60,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.14,
-    "outputPerM": 1,
+    "inputPerM": 0.1,
+    "outputPerM": 0.9,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 36000000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 141.1,
+    "outputSpeed": 135.4,
     "latencySeconds": 2
   },
   {
@@ -2234,10 +2234,10 @@
     "outputPerM": 1.25,
     "cacheReadPerM": 0.25,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 36000000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 175.9,
+    "outputSpeed": 163.9,
     "latencySeconds": 2
   },
   {
@@ -2288,7 +2288,7 @@
     "outputPerM": 0.17,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 117964,
     "parameters": 117000000000,
     "activeParameters": 5100000000,
     "outputSpeed": 187.2,
@@ -2311,11 +2311,11 @@
     "omniscience": -17.7,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 0.08,
-    "outputPerM": 0.2,
-    "cacheReadPerM": 0.04,
+    "inputPerM": 0.1,
+    "outputPerM": 0.25,
+    "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 235929,
     "parameters": 31600000000,
     "activeParameters": 3600000000,
     "outputSpeed": 317.4,
@@ -2338,14 +2338,14 @@
     "omniscience": -51.7,
     "contextTokens": 256000,
     "openWeights": true,
-    "inputPerM": 0.1,
+    "inputPerM": 0.09,
     "outputPerM": 0.34,
-    "cacheReadPerM": 0.1,
+    "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 16384,
     "parameters": 30700000000,
     "activeParameters": 30700000000,
-    "outputSpeed": 91.2,
+    "outputSpeed": 80.6,
     "latencySeconds": 1.3
   },
   {
@@ -2369,7 +2369,7 @@
     "outputPerM": 0.15,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 9650000000,
     "activeParameters": 9650000000,
     "outputSpeed": 81.3,
@@ -2396,7 +2396,7 @@
     "outputPerM": 0.8,
     "cacheReadPerM": 0.07,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 79700000000,
     "activeParameters": 3000000000,
     "outputSpeed": 145.7,
@@ -2426,8 +2426,8 @@
     "maxCompletionTokens": 65535,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 179.1,
-    "latencySeconds": 27.9
+    "outputSpeed": 173.5,
+    "latencySeconds": 26.7
   },
   {
     "id": "qwen/qwen3.5-9b",
@@ -2450,10 +2450,10 @@
     "outputPerM": 0.15,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 9650000000,
     "activeParameters": 9650000000,
-    "outputSpeed": 86.5,
+    "outputSpeed": 95.5,
     "latencySeconds": 0.8
   },
   {
@@ -2480,8 +2480,8 @@
     "maxCompletionTokens": 16384,
     "parameters": 25200000000,
     "activeParameters": 3800000000,
-    "outputSpeed": 73.2,
-    "latencySeconds": 1.1
+    "outputSpeed": 67.5,
+    "latencySeconds": 1.2
   },
   {
     "id": "mistralai/mistral-small-2603",
@@ -2504,7 +2504,7 @@
     "outputPerM": 0.6,
     "cacheReadPerM": 0.015,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 209715,
     "parameters": 119000000000,
     "activeParameters": 6500000000,
     "outputSpeed": 178.8,
@@ -2534,8 +2534,8 @@
     "maxCompletionTokens": 65535,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 192.9,
-    "latencySeconds": 28.4
+    "outputSpeed": 181.8,
+    "latencySeconds": 26.2
   },
   {
     "id": "amazon/nova-2-lite-v1",
@@ -2561,8 +2561,8 @@
     "maxCompletionTokens": 65535,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 180.7,
-    "latencySeconds": 20.2
+    "outputSpeed": 158.3,
+    "latencySeconds": 21.2
   },
   {
     "id": "qwen/qwen3-next-80b-a3b-thinking",
@@ -2588,8 +2588,8 @@
     "maxCompletionTokens": 32768,
     "parameters": 80000000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 204.4,
-    "latencySeconds": 12
+    "outputSpeed": 189.7,
+    "latencySeconds": 12.8
   },
   {
     "id": "mistralai/mistral-large-2512",
@@ -2612,7 +2612,7 @@
     "outputPerM": 1.5,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 209715,
     "parameters": 675000000000,
     "activeParameters": 41000000000,
     "outputSpeed": 44,
@@ -2639,7 +2639,7 @@
     "outputPerM": 0.13,
     "cacheReadPerM": 0.03,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 117964,
     "parameters": 21000000000,
     "activeParameters": 3600000000,
     "outputSpeed": 111,
@@ -2666,11 +2666,11 @@
     "outputPerM": 0.17,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 117964,
     "parameters": 117000000000,
     "activeParameters": 5100000000,
-    "outputSpeed": 242.5,
-    "latencySeconds": 9.1
+    "outputSpeed": 137.8,
+    "latencySeconds": 15.4
   },
   {
     "id": "nvidia/nemotron-3-nano-30b-a3b",
@@ -2691,13 +2691,13 @@
     "openWeights": true,
     "inputPerM": 0.05,
     "outputPerM": 0.2,
-    "cacheReadPerM": 0.03,
+    "cacheReadPerM": 0.025,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 228000,
     "parameters": 31600000000,
     "activeParameters": 3600000000,
-    "outputSpeed": 274,
-    "latencySeconds": 8.4
+    "outputSpeed": 226.6,
+    "latencySeconds": 10
   },
   {
     "id": "meta-llama/llama-4-maverick",
@@ -2747,11 +2747,11 @@
     "outputPerM": 0.13,
     "cacheReadPerM": 0.03,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 117964,
     "parameters": 21000000000,
     "activeParameters": 3600000000,
-    "outputSpeed": 110.3,
-    "latencySeconds": 19.3
+    "outputSpeed": 154.9,
+    "latencySeconds": 14.1
   },
   {
     "id": "qwen/qwen3-next-80b-a3b-instruct",
@@ -2774,7 +2774,7 @@
     "outputPerM": 1.1,
     "cacheReadPerM": 0.07,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 235929,
     "parameters": 80000000000,
     "activeParameters": 3000000000,
     "outputSpeed": 191.1,
@@ -2828,10 +2828,10 @@
     "outputPerM": 0.6,
     "cacheReadPerM": 0.015,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 209715,
     "parameters": 119000000000,
     "activeParameters": 6500000000,
-    "outputSpeed": 169.7,
+    "outputSpeed": 140.2,
     "latencySeconds": 0.8
   },
   {
@@ -2882,7 +2882,7 @@
     "outputPerM": 0.2,
     "cacheReadPerM": 0.02,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 209715,
     "parameters": 14000000000,
     "activeParameters": 14000000000,
     "outputSpeed": 98.3,
@@ -2905,11 +2905,11 @@
     "omniscience": -52.1,
     "contextTokens": 10000000,
     "openWeights": true,
-    "inputPerM": 0.1,
-    "outputPerM": 0.3,
-    "cacheReadPerM": null,
+    "inputPerM": 0.11,
+    "outputPerM": 0.34,
+    "cacheReadPerM": 0.055,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 16384,
+    "maxCompletionTokens": 8192,
     "parameters": 109000000000,
     "activeParameters": 17000000000,
     "outputSpeed": 133.6,
@@ -2936,7 +2936,7 @@
     "outputPerM": 0.15,
     "cacheReadPerM": 0.015,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 209715,
     "parameters": 8000000000,
     "activeParameters": 8000000000,
     "outputSpeed": 121.6,
@@ -2988,9 +2988,9 @@
     "openWeights": true,
     "inputPerM": 0.05,
     "outputPerM": 0.2,
-    "cacheReadPerM": 0.03,
+    "cacheReadPerM": 0.025,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 262144,
+    "maxCompletionTokens": 228000,
     "parameters": 31600000000,
     "activeParameters": 3600000000,
     "outputSpeed": 262.5,
@@ -3017,7 +3017,7 @@
     "outputPerM": 0.1,
     "cacheReadPerM": 0.01,
     "cacheWritePerM": null,
-    "maxCompletionTokens": null,
+    "maxCompletionTokens": 104857,
     "parameters": 3000000000,
     "activeParameters": 3000000000,
     "outputSpeed": 206.2,
