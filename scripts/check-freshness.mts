@@ -16,7 +16,7 @@
  */
 import { extractFlightChunks, parseModelRegistry } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
-import { CREATOR_WHITELIST, get } from './shared.mts'
+import { CREATOR_WHITELIST, autoMatchSlug, get } from './shared.mts'
 
 function parseFlags(): { timeout: number; retries: number; verbose: boolean; json: boolean; includeDeprecated: boolean } {
   const args = process.argv.slice(2)
@@ -51,10 +51,24 @@ async function main() {
   const unmapped = recent.filter((m) => !(m.slug in AA_TO_OR))
   const staleMappings = [...new Set(Object.values(AA_TO_OR))].filter((id) => !orIds.has(id))
 
+  // Classify unmapped models: those that can be auto-matched (and are thus
+  // safe — fetch-data will pick them up automatically) vs. those that truly
+  // have no OpenRouter counterpart.
+  const autoMatchable: Array<{ slug: string; name: string; creator: string | null; releaseDate: string | null; orId: string }> = []
+  const trulyUnmatched: Array<{ slug: string; name: string; creator: string | null; releaseDate: string | null }> = []
+  for (const m of unmapped) {
+    const matched = autoMatchSlug(m.slug, [...orIds])
+    if (matched) {
+      autoMatchable.push({ slug: m.slug, name: m.name, creator: m.creator?.name, releaseDate: m.releaseDate, orId: matched })
+    } else {
+      trulyUnmatched.push({ slug: m.slug, name: m.name, creator: m.creator?.name, releaseDate: m.releaseDate })
+    }
+  }
+
   const mappedCount = recent.length - unmapped.length
 
   const result = {
-    ok: unmapped.length === 0 && staleMappings.length === 0,
+    ok: trulyUnmatched.length === 0 && staleMappings.length === 0,
     registryTotal: registry.length,
     active: active.length,
     whitelisted: whitelisted.length,
@@ -62,7 +76,8 @@ async function main() {
     deprecatedInScope: deprecatedInScope.length,
     openRouterTotal: orIds.size,
     mappedCount,
-    unmapped: unmapped.map((m) => ({ slug: m.slug, name: m.name, creator: m.creator?.name, releaseDate: m.releaseDate })),
+    autoMatchable: autoMatchable.map((m) => ({ slug: m.slug, orId: m.orId })),
+    trulyUnmatched: trulyUnmatched.map((m) => ({ slug: m.slug, name: m.name, creator: m.creator, releaseDate: m.releaseDate })),
     staleMappings,
   }
 
@@ -81,9 +96,19 @@ async function main() {
     if (mapped.length > 20) console.log(`   ... and ${mapped.length - 20} more`)
   }
 
-  console.log(`\n${unmapped.length} recent AA model(s) with no entry in scripts/model-map.ts:`)
-  for (const m of unmapped) {
-    console.log(`   ${m.slug.padEnd(40)} ${m.creator?.name ?? '?'} — ${m.name} (${m.releaseDate ?? 'no date'})`)
+  if (autoMatchable.length > 0) {
+    console.log(`\n${autoMatchable.length} recent AA model(s) with no entry in scripts/model-map.ts but auto-matchable on OpenRouter:`)
+    for (const m of autoMatchable) {
+      console.log(`   ${m.slug.padEnd(40)} ${m.creator ?? '?'} — ${m.name} → ${m.orId} (${m.releaseDate ?? 'no date'})`)
+    }
+    console.log('  (fetch-data will auto-match these; add them to the map for explicit control.)')
+  }
+
+  if (trulyUnmatched.length > 0) {
+    console.log(`\n${trulyUnmatched.length} recent AA model(s) with no OpenRouter match:`)
+    for (const m of trulyUnmatched) {
+      console.log(`   ${m.slug.padEnd(40)} ${m.creator ?? '?'} — ${m.name} (${m.releaseDate ?? 'no date'})`)
+    }
   }
 
   console.log(`\n${staleMappings.length} mapped OpenRouter id(s) no longer found on OpenRouter:`)
@@ -91,8 +116,11 @@ async function main() {
     console.log(`   ${id}`)
   }
 
-  if (unmapped.length === 0 && staleMappings.length === 0) {
+  if (trulyUnmatched.length === 0 && staleMappings.length === 0) {
     console.log('\n✓ Mapping is up to date with both sources.')
+    if (autoMatchable.length > 0) {
+      console.log(`  ${autoMatchable.length} model(s) are auto-matchable; add them to scripts/model-map.ts for explicit control.`)
+    }
   } else {
     console.log('\nRun `npm run fetch-data` after updating scripts/model-map.ts to pick these up.')
     process.exitCode = 1

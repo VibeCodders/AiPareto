@@ -1,10 +1,13 @@
 /**
  * Prints the AA models we have scores for, plus candidate OpenRouter matches,
  * to drive the curated mapping in scripts/model-map.ts.
+ *
+ * Models that can be auto-matched (fuzzy name match on OpenRouter) are flagged
+ * with "(auto-matchable)" so you can decide whether to add an explicit entry.
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { CREATOR_WHITELIST } from './shared.mts'
+import { CREATOR_WHITELIST, norm } from './shared.mts'
 import { extractFlightChunks, parseModelRegistry } from './aa-utils.mts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
@@ -67,29 +70,37 @@ for (const m of aaActive) {
   }
 }
 
-function norm(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-}
-
-const orNorm = orModels.map((m) => ({ ...m, n: norm(m.id.split('/').slice(1).join('/')) }))
+const aaSlugs = [...scoredSlugs].sort()
 
 const flags = parseFlags()
-const rows: Array<{ slug: string; name: string; creator: string | null; releaseDate: string | null; candidates: Array<{ id: string; name: string }> }> = []
+const rows: Array<{ slug: string; name: string; creator: string | null; releaseDate: string | null; candidates: Array<{ id: string; name: string }>; autoMatched: boolean }> = []
 
-for (const slug of [...scoredSlugs].sort()) {
+for (const slug of aaSlugs) {
   const aa = aaActive.find((m) => m.slug === slug)
   if (!aa) continue
-  const n = norm(slug)
-  const exact = orNorm.find((m) => m.n === n)
-  const contains = orNorm.filter((m) => m.n.includes(n) || n.includes(m.n)).slice(0, 4)
-  const cands = exact ? [exact] : contains
+  const exact = orModels.find((m) => norm(m.id.split('/').slice(1).join('/')) === norm(slug))
+  let cands: Array<{ id: string; name: string }> = []
+  let autoMatched = false
+  if (exact) {
+    cands = [{ id: exact.id, name: exact.name }]
+  } else {
+    // Fuzzy: one direction contains the other
+    const fuzzy = orModels.filter((m) => {
+      const nn = norm(m.id.split('/').slice(1).join(''))
+      const ns = norm(slug)
+      return nn.includes(ns) || ns.includes(nn)
+    }).slice(0, 4)
+    cands = fuzzy.map((c) => ({ id: c.id, name: c.name }))
+    autoMatched = fuzzy.length > 0 && !exact
+  }
   if (cands.length === 0) continue
   rows.push({
     slug,
     name: aa.name,
     creator: aa.creator?.name ?? null,
     releaseDate: aa.releaseDate,
-    candidates: cands.map((c) => ({ id: c.id, name: c.name })),
+    candidates: cands,
+    autoMatched,
   })
 }
 
@@ -97,7 +108,8 @@ if (flags.json) {
   console.log(JSON.stringify(rows, null, 2))
 } else {
   for (const r of rows) {
-    console.log(`\n${r.slug}  [${r.name}]`)
+    const status = r.autoMatched ? '  (auto-matchable)' : ''
+    console.log(`\n${r.slug}  [${r.name}]${status}`)
     for (const c of r.candidates) console.log(`   OR: ${c.id}  (${c.name})`)
   }
 }

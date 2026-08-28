@@ -36,7 +36,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { extractFlightChunks, extractModelObjects, extractObjectsContaining, extractPerfFromDetail, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
-import { CREATOR_WHITELIST, DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, get } from './shared.mts'
+import { CREATOR_WHITELIST, DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, OR_PROVIDER_FAMILY, autoMatchORId, autoMatchSlug, familyFromORId, get, isReasoningFromORName, norm, openWeightsFromORId } from './shared.mts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
 const TMP = path.join(ROOT, '.tmp')
@@ -62,6 +62,8 @@ interface Flags {
   dryRun: boolean
   skipPerf: boolean
   status: boolean
+  autoMatch: boolean
+  allowIncomplete: boolean
 }
 
 export function parseFlags(): Flags {
@@ -81,6 +83,8 @@ export function parseFlags(): Flags {
     dryRun: false,
     skipPerf: false,
     status: false,
+    autoMatch: true,
+    allowIncomplete: true,
   }
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
@@ -104,6 +108,8 @@ export function parseFlags(): Flags {
     else if (a === '--dry-run') flags.dryRun = true
     else if (a === '--skip-perf') flags.skipPerf = true
     else if (a === '--status') flags.status = true
+    else if (a === '--no-auto-match') flags.autoMatch = false
+    else if (a === '--require-scores') flags.allowIncomplete = false
     else if (a === '--help' || a === '-h') {
       console.log(`
 Usage: npm run fetch-data [flags]
@@ -121,6 +127,10 @@ Flags:
   --refresh-known    Incremental refresh: re-crawl ALL known models, even if cache is fresh.
   --skip-perf        Skip performance extraction (faster incremental updates).
   --status           Preview refresh targets without crawling.
+  --auto-match       Auto-match unmapped AA slugs to OpenRouter by name (default).
+  --no-auto-match    Disable auto-matching; only use scripts/model-map.ts.
+  --allow-incomplete Accept models that lack AA benchmark scores (default; estimated at runtime).
+  --require-scores   Only include models that have an AA intelligenceIndex score.
   --verbose          Print extra diagnostics.
   --dry-run          Run the full pipeline but skip writing files.
   --help, -h         Show this help message.
@@ -687,37 +697,53 @@ export async function run(flags: Flags): Promise<void> {
     }
   }
 
-  const skippedNoScore = recent.filter((m) => scoreBySlug.get(m.slug)?.intelligenceIndex == null)
-  console.log(`  skipped (no II): ${skippedNoScore.length}/${recent.length}`)
-  if (flags.verbose && skippedNoScore.length) {
-    for (const m of skippedNoScore) console.log(`    ${m.slug} (${m.creator?.name ?? '?'} ${m.name})`)
-  }
-
   const orById = new Map(orModels.map((m) => [m.id, m]))
+  const orIdSet = new Set(orById.keys())
 
   const rows: Array<Record<string, unknown>> = []
   const unmatched: string[] = []
+  const autoMatched: string[] = []
+  const includedWithoutScore: string[] = []
+  const orOnlyAdded: string[] = []
+
   for (const m of recent) {
     const data = scoreBySlug.get(m.slug)
     const score = data?.intelligenceIndex
-    if (score == null) continue
-    const orId = AA_TO_OR[m.slug]
-    if (!orId) continue
-    const or = orById.get(orId)
-    if (!or) {
-      unmatched.push(`${m.slug} -> ${orId}`)
+
+    // Resolve the OpenRouter id: curated map first, then auto-match fallback
+    let orId = AA_TO_OR[m.slug]
+    if (!orId && flags.autoMatch) {
+      const matched = autoMatchSlug(m.slug, [...orIdSet])
+      if (matched) {
+        orId = matched
+        autoMatched.push(`${m.slug} -> ${orId}`)
+      }
+    }
+    if (!orId) {
+      if (data) unmatched.push(`${m.slug} (no OR match)`)
       continue
     }
+    const or = orById.get(orId)
+    if (!or) {
+      unmatched.push(`${m.slug} -> ${orId} (not on OpenRouter)`)
+      continue
+    }
+
+    // With --allow-incomplete (default) models without an AA intelligenceIndex
+    // are still included; missing benchmarks are estimated at runtime.
+    if (score == null && !flags.allowIncomplete) continue
+    if (score == null) includedWithoutScore.push(m.slug)
+
     rows.push({
       id: or.id,
       name: or.name,
-      family: m.creator?.name ?? null,
+      family: m.creator?.name ?? familyFromORId(or.id) ?? null,
       slug: m.slug,
       aaName: m.name,
       effort: parseEffort(m.name),
       released: m.releaseDate,
       isReasoning: m.isReasoning,
-      intelligenceIndex: round1(score),
+      intelligenceIndex: score != null ? round1(score) : null,
       codingIndex: data?.codingIndex != null ? round1(data.codingIndex) : null,
       agenticIndex: data?.agenticIndex != null ? round1(data.agenticIndex) : null,
       tau2: data?.tau2 != null ? round1(data.tau2) : null,
@@ -734,7 +760,61 @@ export async function run(flags: Flags): Promise<void> {
     })
   }
 
-  console.log(`— building rows: ${rows.length} models`)
+  // Step: include OpenRouter-only models (not present on AA) so new releases
+  // are not silently dropped. Benchmark/spec values are null and filled
+  // by the estimation system at runtime.
+  const knownORIds = new Set(rows.map((r) => r.id as string))
+  const orProviders = new Set(Object.keys(OR_PROVIDER_FAMILY))
+  for (const or of orModels) {
+    if (knownORIds.has(or.id)) continue
+    const provider = or.id.split('/')[0].toLowerCase()
+    if (!orProviders.has(provider)) continue
+    const rest = or.id.split('/').slice(1).join('/')
+    if (rest.includes('embed') || rest.includes('rerank')) continue
+    if (or.pricing?.prompt == null && or.pricing?.completion == null) continue
+
+    rows.push({
+      id: or.id,
+      name: or.name,
+      family: familyFromORId(or.id) ?? null,
+      slug: norm(rest) || rest,
+      aaName: null,
+      effort: null,
+      released: null,
+      isReasoning: isReasoningFromORName(or.name, or.id),
+      intelligenceIndex: null,
+      codingIndex: null,
+      agenticIndex: null,
+      tau2: null,
+      hle: null,
+      omniscience: null,
+      contextTokens: or.context,
+      openWeights: openWeightsFromORId(or.id),
+      inputPerM: usd(or.pricing.prompt),
+      outputPerM: usd(or.pricing.completion),
+      cacheReadPerM: usd(or.pricing.input_cache_read),
+      cacheWritePerM: usd(or.pricing.input_cache_write),
+      maxCompletionTokens: or.top_provider?.max_completion_tokens ?? null,
+      ...parseParams(`${or.id} ${or.name}`, null),
+    })
+    orOnlyAdded.push(or.id)
+  }
+
+  console.log(`— building rows: ${rows.length} models (${rows.filter((r) => r.aaName != null).length} from AA, ${orOnlyAdded.length} OpenRouter-only, ${includedWithoutScore.length} without AA score)`)
+  if (flags.verbose) {
+    if (autoMatched.length) {
+      console.log(`  auto-matched (${autoMatched.length}):`)
+      for (const a of autoMatched) console.log(`    ${a}`)
+    }
+    if (includedWithoutScore.length) {
+      console.log(`  included without AA score (${includedWithoutScore.length}):`)
+      for (const s of includedWithoutScore) console.log(`    ${s}`)
+    }
+    if (orOnlyAdded.length) {
+      console.log(`  OpenRouter-only models (${orOnlyAdded.length}):`)
+      for (const s of orOnlyAdded) console.log(`    ${s}`)
+    }
+  }
 
   console.log(`— extracting perf for ${rows.length} models (concurrency=${flags.concurrency})…`)
 
@@ -847,7 +927,7 @@ export async function run(flags: Flags): Promise<void> {
       openrouter: 'https://openrouter.ai/api/v1/models',
       artificialAnalysis: 'https://artificialanalysis.ai/models',
     },
-    note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends).',
+    note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Missing values are estimated at runtime via k-NN similarity.',
     preservation: {
       total: finalRows.length,
       added,
@@ -855,6 +935,9 @@ export async function run(flags: Flags): Promise<void> {
       preserved,
       removed,
     },
+    autoMatched: autoMatched.length,
+    orOnly: orOnlyAdded.length,
+    withoutScore: includedWithoutScore.length,
   }
 
   const changed = added.length > 0 || JSON.stringify(finalRows) !== JSON.stringify(previous)
@@ -872,7 +955,7 @@ export async function run(flags: Flags): Promise<void> {
   if (added.length) console.log(`  added:   ${added.slice(0, 30).join(', ')}${added.length > 30 ? ', …' : ''}`)
   if (removed.length) console.log(`  removed: ${removed.slice(0, 30).join(', ')}${removed.length > 30 ? ', …' : ''}`)
   if (unmatched.length) {
-    console.log(`\n${unmatched.length} AA models with scores but no OpenRouter match:`)
+    console.log(`\n${unmatched.length} AA models could not be matched to OpenRouter:`)
     for (const u of unmatched.slice(0, 60)) console.log('   ', u)
   }
 
@@ -881,6 +964,9 @@ export async function run(flags: Flags): Promise<void> {
     added.length ? `Added: ${added.join(', ')}` : null,
     removed.length ? `Removed: ${removed.join(', ')}` : null,
     preservedWithoutScore > 0 ? `Preserved without fresh scores: ${preservedWithoutScore} models kept from previous data` : null,
+    autoMatched.length ? `Auto-matched: ${autoMatched.length} AA→OpenRouter` : null,
+    orOnlyAdded.length ? `OpenRouter-only: ${orOnlyAdded.length} models added without AA scores` : null,
+    includedWithoutScore.length ? `Included without AA score: ${includedWithoutScore.length} models (estimated at runtime)` : null,
   ].filter((l): l is string => l != null)
 
   if (!flags.dryRun) {
@@ -893,6 +979,9 @@ export async function run(flags: Flags): Promise<void> {
       fs.appendFileSync(githubOutput, `removed_count=${removed.length}\n`)
       fs.appendFileSync(githubOutput, `total_count=${finalRows.length}\n`)
       fs.appendFileSync(githubOutput, `preserved_count=${preserved}\n`)
+      fs.appendFileSync(githubOutput, `auto_matched_count=${autoMatched.length}\n`)
+      fs.appendFileSync(githubOutput, `or_only_count=${orOnlyAdded.length}\n`)
+      fs.appendFileSync(githubOutput, `without_score_count=${includedWithoutScore.length}\n`)
       fs.appendFileSync(githubOutput, `summary<<EOF\n${summaryLines.join('\n')}\nEOF\n`)
     }
     const githubStepSummary = process.env.GITHUB_STEP_SUMMARY
@@ -925,6 +1014,12 @@ async function extractPerfParallel(
         const existing = existingPerfBySlug.get(slug)
         if (existing) {
           results[idx] = existing
+          continue
+        }
+        // Skip perf extraction for OpenRouter-only models (no AA detail page to crawl).
+        // Their outputSpeed/latencySeconds will be estimated at runtime.
+        if (row.aaName == null) {
+          results[idx] = null
           continue
         }
       }

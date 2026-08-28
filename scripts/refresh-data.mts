@@ -19,12 +19,14 @@ Usage: npm run refresh-data [flags]
 
 Incremental refresh wrapper. Runs fetch-data with --refresh enabled by default.
 
-Flags:
-  --no-refresh       Disable incremental refresh (run full fetch).
-  --refresh-known    Re-crawl ALL known models, even if cache is fresh.
-  --skip-perf        Skip performance extraction (faster).
-  --status           Preview refresh targets without crawling.
-  --help, -h         Show this help message.
+  Flags:
+  --no-refresh      Disable incremental refresh (run full fetch).
+  --refresh-known   Re-crawl ALL known models, even if cache is fresh.
+  --skip-perf       Skip performance extraction (faster).
+  --no-auto-match   Disable auto-matching of unmapped AA slugs to OpenRouter.
+  --require-scores  Only include models that have an AA intelligenceIndex score.
+  --status          Preview refresh targets without crawling.
+  --help, -h        Show this help message.
   [all fetch-data flags are also supported]
 `)
   process.exit(0)

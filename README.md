@@ -51,12 +51,21 @@ Lo script:
 1. scarica i modelli OpenRouter, la pagina Artificial Analysis e la pagina `/leaderboards/models`;
 2. usa le pagine dettaglio dei modelli (cache in `.tmp/aa_pages/`) per riempire i buchi;
 3. unisce le due fonti usando la mappa curata in `scripts/model-map.ts`
-   (slug Artificial Analysis → id OpenRouter);
-4. scrive `src/data/models.json` e `src/data/meta.json`.
+   (slug Artificial Analysis → id OpenRouter), con **auto-match di fallback**
+   per gli slug non mappati (corrispondenza per somiglianza del nome);
+4. include anche i modelli nuovi di OpenRouter assenti su Artificial Analysis
+   (valori mancanti stimati a runtime via k-NN);
+5. scrive `src/data/models.json` e `src/data/meta.json`.
+
+**Auto-match e modelli incompleti:** per impostazione predefinita `fetch-data` accetta
+modelli anche senza tutti i valori (benchmark o specifiche mancanti vengono stimati
+dall'app tramite k-NN). Per disabilitare l'auto-match usa `--no-auto-match`; per
+esigere che tutti i modelli abbiano un punteggio AA usa `--require-scores`.
 
 **Nota:** il crawl di Artificial Analysis è uno snapshot non ufficiale; la mappa dei modelli
 va aggiornata a mano quando escono modelli nuovi (vedi `scripts/match-models.mts` per trovare
-i candidati OpenRouter).
+i candidati OpenRouter). L'auto-match di fallback copre la maggior parte dei casi, ma
+aggiungere voci esplicite alla mappa garantisce corrispondenze più affidabili.
 
 ## Deploy su GitHub Pages
 
