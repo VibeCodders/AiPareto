@@ -766,7 +766,7 @@ export async function run(flags: Flags): Promise<void> {
   const maxCompFromOR = rows.filter((r) => r.maxCompletionTokens != null).length
   console.log(`  maxCompletionTokens: ${maxCompFromOR}/${rows.length} from OpenRouter`)
 
-  rows.sort((a, b) => {
+  const compareModels = (a: Record<string, unknown>, b: Record<string, unknown>): number => {
     const ai = a.intelligenceIndex as number
     const bi = b.intelligenceIndex as number
     if (bi !== ai) return bi - ai
@@ -776,21 +776,13 @@ export async function run(flags: Flags): Promise<void> {
     const aid = (a.id as string) ?? ''
     const bid = (b.id as string) ?? ''
     return aid < bid ? -1 : aid > bid ? 1 : 0
-  })
+  }
+
+  rows.sort(compareModels)
 
   const finalRows = mergeWithPrevious(rows, previous)
   verifyPreservation(finalRows, previous)
-  finalRows.sort((a, b) => {
-    const ai = a.intelligenceIndex as number
-    const bi = b.intelligenceIndex as number
-    if (bi !== ai) return bi - ai
-    const ar = (a.released as string) ?? ''
-    const br = (b.released as string) ?? ''
-    if (ar !== br) return ar < br ? 1 : -1
-    const aid = (a.id as string) ?? ''
-    const bid = (b.id as string) ?? ''
-    return aid < bid ? -1 : aid > bid ? 1 : 0
-  })
+  finalRows.sort(compareModels)
 
   const prevKeys = new Set(previous.map((r) => ((r.slug as string | undefined)?.trim() || (r.id as string | undefined)?.trim() || '')).filter((s): s is string => Boolean(s)))
   const finalKeys = new Set(finalRows.map((r) => ((r.slug as string | undefined)?.trim() || (r.id as string | undefined)?.trim() || '')).filter((s): s is string => Boolean(s)))

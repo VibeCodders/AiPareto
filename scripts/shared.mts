@@ -33,23 +33,27 @@ export async function get(
       })
       clearTimeout(timer)
       if (!res.ok) {
-        if (!isRetryable(res.status) || attempt === retries) {
-          throw new Error(`GET ${url} -> ${res.status} ${res.statusText}`)
+        const err = new Error(`GET ${url} -> ${res.status} ${res.statusText}`)
+        // Retry only on rate-limits / server errors. 4xx (except 429) are
+        // permanent, so fail fast instead of burning the remaining attempts.
+        if (isRetryable(res.status) && attempt < retries) {
+          await backoff(attempt, retryDelay)
+          continue
         }
-        const backoff = retryDelay * Math.pow(2, attempt - 1)
-        const jitter = Math.random() * backoff * 0.5
-        await new Promise((r) => setTimeout(r, backoff + jitter))
-        continue
+        throw err
       }
       return await res.text()
     } catch (e) {
       lastError = e as Error
-      if (attempt < retries) {
-        const backoff = retryDelay * Math.pow(2, attempt - 1)
-        const jitter = Math.random() * backoff * 0.5
-        await new Promise((r) => setTimeout(r, backoff + jitter))
-      }
+      // Network/DNS/timeout/abort errors are transient: retry them all.
+      if (attempt < retries) await backoff(attempt, retryDelay)
     }
   }
   throw lastError ?? new Error(`GET ${url} failed after ${retries} attempts`)
+}
+
+async function backoff(attempt: number, retryDelay: number): Promise<void> {
+  const base = retryDelay * Math.pow(2, attempt - 1)
+  const jitter = Math.random() * base * 0.5
+  await new Promise((r) => setTimeout(r, base + jitter))
 }

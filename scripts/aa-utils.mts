@@ -164,8 +164,8 @@ export interface AADetailPerf {
 }
 
 /** All JSON-LD benchmark datasets embedded in a page (rows keyed by detailsUrl). */
-export function extractJsonLdDatasets(html: string): Array<{ rows: Array<Record<string, unknown>> }> {
-  const out: Array<{ rows: Array<Record<string, unknown>> }> = []
+export function extractJsonLdDatasets(html: string): Array<{ description: string | null; rows: Array<Record<string, unknown>> }> {
+  const out: Array<{ description: string | null; rows: Array<Record<string, unknown>> }> = []
   let p = 0
   while (true) {
     const s = html.indexOf('"@type":"Dataset"', p)
@@ -175,11 +175,12 @@ export function extractJsonLdDatasets(html: string): Array<{ rows: Array<Record<
     const end = findObjectEnd(html, start)
     if (end === -1) break
     const block = html.slice(start, end)
+    const description = block.match(/"description"\s*:\s*"((?:[^"\\]|\\.)*)"/)?.[1] ?? null
     const dIdx = block.indexOf('"data":[')
     if (dIdx !== -1) {
       const dataStr = block.slice(dIdx + 7, block.length - 1)
       try {
-        out.push({ rows: JSON.parse(dataStr) as Array<Record<string, unknown>> })
+        out.push({ description, rows: JSON.parse(dataStr) as Array<Record<string, unknown>> })
       } catch {
         /* skip malformed */
       }

@@ -4,8 +4,14 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
+import { CREATOR_WHITELIST } from './shared.mts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
+
+function inScope(creatorName: string | null | undefined): boolean {
+  if (!creatorName) return false
+  return CREATOR_WHITELIST.some((c) => creatorName.toLowerCase().includes(c.toLowerCase()))
+}
 
 const orModels = JSON.parse(fs.readFileSync(path.join(ROOT, '.tmp/openrouter.json'), 'utf8')) as Array<{
   id: string
@@ -23,12 +29,15 @@ const aaActive = JSON.parse(fs.readFileSync(path.join(ROOT, '.tmp/aa_active.json
 }>
 
 // AA scores from crawled detail pages
-const scoreFiles = fs.readdirSync(path.join(ROOT, '.tmp/aa_pages')).filter((f) => f.endsWith('.html'))
-const scoredSlugs = new Set(scoreFiles.map((f) => f.replace(/\.html$/, '')))
-// plus the 28 from the models page
+const scoredSlugs = new Set(
+  fs.readdirSync(path.join(ROOT, '.tmp/aa_pages'))
+    .filter((f) => f.endsWith('.html'))
+    .map((f) => f.replace(/\.html$/, '')),
+)
+// plus models from the registry that are in scope and recently released
 for (const m of aaActive) {
   if (m.deprecated) continue
-  if ((m.releaseDate ?? '') >= '2025-01-01' && m.creator && ['OpenAI', 'Anthropic', 'Google', 'Meta', 'DeepSeek', 'SpaceXAI', 'Alibaba', 'Mistral', 'Amazon', 'NVIDIA', 'Z AI', 'MiniMax', 'StepFun', 'Tencent', 'Baidu', 'ByteDance Seed', 'Cohere', 'AI21 Labs', 'Perplexity', 'Microsoft', 'Naver', 'Xiaomi', 'Moonshot', 'Kimi', 'InclusionAI', 'Moonshot AI'].some((c) => m.creator!.name.toLowerCase().includes(c.toLowerCase()))) {
+  if ((m.releaseDate ?? '') >= '2025-01-01' && inScope(m.creator?.name)) {
     scoredSlugs.add(m.slug)
   }
 }
