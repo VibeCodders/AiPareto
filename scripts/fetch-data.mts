@@ -36,7 +36,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { extractFlightChunks, extractModelObjects, extractObjectsContaining, extractPerfFromDetail, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
-import { CREATOR_WHITELIST, DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, OR_PROVIDER_FAMILY, autoMatchSlug, familyFromORId, get, isReasoningFromORName, norm, openWeightsFromORId } from './shared.mts'
+import { DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, OR_PROVIDER_FAMILY, autoMatchSlug, familyFromORId, get, isReasoningFromORName, norm, openWeightsFromORId } from './shared.mts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
 const TMP = path.join(ROOT, '.tmp')
@@ -620,11 +620,8 @@ export async function run(flags: Flags): Promise<void> {
   console.log(`  ${leaderboard.length} full model objects (coding index etc.) (${Date.now() - t3}ms)`)
 
   const active = registry.filter((m) => !m.deprecated)
-  const whitelisted = active.filter(
-    (m) => m.creator && CREATOR_WHITELIST.some((c) => m.creator!.name.toLowerCase().includes(c.toLowerCase())),
-  )
-  const recent = whitelisted.filter((m) => (m.releaseDate ?? '') >= '2025-01-01')
-  console.log(`  whitelisted active: ${whitelisted.length}, released >= 2025: ${recent.length}`)
+  const recent = active.filter((m) => (m.releaseDate ?? '') >= '2025-01-01')
+  console.log(`  active: ${active.length}, released >= 2025: ${recent.length}`)
   if (!flags.noCache) {
     fs.writeFileSync(path.join(TMP, 'aa_active.json'), JSON.stringify(active, null, 2))
   }
@@ -720,7 +717,35 @@ export async function run(flags: Flags): Promise<void> {
       }
     }
     if (!orId) {
-      if (data) unmatched.push(`${m.slug} (no OR match)`)
+      if (data) {
+        const syntheticId = `aa:${m.slug}`
+        const family = m.creator?.name ?? null
+        includedWithoutScore.push(`${m.slug} (no OR match, synthetic entry)`)
+        rows.push({
+          id: syntheticId,
+          name: m.name,
+          family,
+          slug: m.slug,
+          aaName: m.name,
+          effort: parseEffort(m.name),
+          released: m.releaseDate,
+          isReasoning: m.isReasoning,
+          intelligenceIndex: score != null ? round1(score) : null,
+          codingIndex: data?.codingIndex != null ? round1(data.codingIndex) : null,
+          agenticIndex: data?.agenticIndex != null ? round1(data.agenticIndex) : null,
+          tau2: data?.tau2 != null ? round1(data.tau2) : null,
+          hle: data?.hle != null ? round1(data.hle) : null,
+          omniscience: data?.omniscience != null ? round1(data.omniscience) : null,
+          contextTokens: data?.contextWindowTokens ?? null,
+          openWeights: data?.isOpenWeights === true || data?.openSourceCategorization === 'open' || m.name.toLowerCase().includes('oss'),
+          inputPerM: null,
+          outputPerM: null,
+          cacheReadPerM: null,
+          cacheWritePerM: null,
+          maxCompletionTokens: null,
+          ...parseParams(`${m.slug} ${m.name}`, data),
+        })
+      }
       continue
     }
     const or = orById.get(orId)
@@ -768,7 +793,7 @@ export async function run(flags: Flags): Promise<void> {
   for (const or of orModels) {
     if (knownORIds.has(or.id)) continue
     const provider = or.id.split('/')[0].toLowerCase()
-    if (!orProviders.has(provider)) continue
+    const family = orProviders.has(provider) ? OR_PROVIDER_FAMILY[provider] : provider.charAt(0).toUpperCase() + provider.slice(1)
     const rest = or.id.split('/').slice(1).join('/')
     if (rest.includes('embed') || rest.includes('rerank')) continue
     if (or.pricing?.prompt == null && or.pricing?.completion == null) continue
@@ -776,7 +801,7 @@ export async function run(flags: Flags): Promise<void> {
     rows.push({
       id: or.id,
       name: or.name,
-      family: familyFromORId(or.id) ?? null,
+      family,
       slug: norm(rest) || rest,
       aaName: null,
       effort: null,

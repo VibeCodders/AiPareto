@@ -16,7 +16,7 @@
  */
 import { extractFlightChunks, parseModelRegistry } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
-import { CREATOR_WHITELIST, autoMatchSlug, get } from './shared.mts'
+import { autoMatchSlug, get } from './shared.mts'
 
 function parseFlags(): { timeout: number; retries: number; verbose: boolean; json: boolean; includeDeprecated: boolean } {
   const args = process.argv.slice(2)
@@ -38,10 +38,8 @@ async function main() {
   const aaHtml = await get('https://artificialanalysis.ai/models', { timeout: flags.timeout, retries: flags.retries })
   const registry = parseModelRegistry(extractFlightChunks(aaHtml).join(''))
   const active = registry.filter((m) => !m.deprecated)
-  const whitelisted = active.filter((m) => m.creator && CREATOR_WHITELIST.some((c) => m.creator!.name.toLowerCase().includes(c.toLowerCase())))
-  const recent = whitelisted.filter((m) => (m.releaseDate ?? '') >= '2025-01-01')
-  const deprecatedInScope = flags.includeDeprecated ? registry.filter((m) => m.deprecated && m.creator && CREATOR_WHITELIST.some((c) => m.creator!.name.toLowerCase().includes(c.toLowerCase()))) : []
-  console.log(`  ${registry.length} total, ${active.length} active, ${whitelisted.length} in-scope vendors, ${recent.length} released >= 2025-01-01${flags.includeDeprecated ? `, ${deprecatedInScope.length} deprecated in-scope` : ''}`)
+  const recent = active.filter((m) => (m.releaseDate ?? '') >= '2025-01-01')
+  console.log(`  ${registry.length} total, ${active.length} active, ${recent.length} released >= 2025-01-01`)
 
   console.log('— fetching OpenRouter model catalog…')
   const orJson = JSON.parse(await get('https://openrouter.ai/api/v1/models', { timeout: flags.timeout, retries: flags.retries })) as { data: Array<{ id: string }> }
@@ -59,9 +57,9 @@ async function main() {
   for (const m of unmapped) {
     const matched = autoMatchSlug(m.slug, [...orIds])
     if (matched) {
-      autoMatchable.push({ slug: m.slug, name: m.name, creator: m.creator?.name, releaseDate: m.releaseDate, orId: matched })
+      autoMatchable.push({ slug: m.slug, name: m.name, creator: m.creator?.name ?? null, releaseDate: m.releaseDate, orId: matched })
     } else {
-      trulyUnmatched.push({ slug: m.slug, name: m.name, creator: m.creator?.name, releaseDate: m.releaseDate })
+      trulyUnmatched.push({ slug: m.slug, name: m.name, creator: m.creator?.name ?? null, releaseDate: m.releaseDate })
     }
   }
 
@@ -71,9 +69,7 @@ async function main() {
     ok: trulyUnmatched.length === 0 && staleMappings.length === 0,
     registryTotal: registry.length,
     active: active.length,
-    whitelisted: whitelisted.length,
     recent: recent.length,
-    deprecatedInScope: deprecatedInScope.length,
     openRouterTotal: orIds.size,
     mappedCount,
     autoMatchable: autoMatchable.map((m) => ({ slug: m.slug, orId: m.orId })),

@@ -168,7 +168,6 @@ const KNOWN_PARAMS_ESTIMATION: Record<string, { parameters: number; activeParame
   'jamba-1-7-mini': { parameters: 8e9 },
   'jamba-1-7-large': { parameters: 52e9, activeParameters: 12e9 },
   'jamba-reasoning-3b': { parameters: 3e9 },
-  // Additional known parameter counts for models whose names don't encode the count.
   'command-a': { parameters: 111e9 },
   'kimi-k2-7-code': { parameters: 1e12, activeParameters: 32e9 },
   'kimi-k3': { parameters: 2800e9, activeParameters: 104e9 },
@@ -176,6 +175,15 @@ const KNOWN_PARAMS_ESTIMATION: Record<string, { parameters: number; activeParame
   'qwen3.7-plus': { parameters: 17e9 },
   'minimax-m3': { parameters: 428e9, activeParameters: 23e9 },
   'ling-3-0-flash': { parameters: 124e9, activeParameters: 5.1e9 },
+  'ling-3-0-tiny': { parameters: 7.9e9, activeParameters: 1.3e9 },
+  'hy3': { parameters: 299e9, activeParameters: 21e9 },
+  'mimo-v2-5-pro': { parameters: 1023e9, activeParameters: 42e9 },
+  'gpt-5': { parameters: 1000e9 },
+  'gpt-5-mini': { parameters: 200e9 },
+  'claude-opus-5': { parameters: 800e9 },
+  'claude-sonnet-5': { parameters: 400e9 },
+  'gemini-3-pro': { parameters: 600e9 },
+  'gemini-2.5-pro': { parameters: 400e9 },
 }
 
 function extractActiveFromText(text: string): number | null {
@@ -242,6 +250,35 @@ function estimateMoERatio(text: string, total: number): number | null {
   if (t.includes('mimo-v2')) return 15e9 / total
 
   return null
+}
+
+function computeGlobalAverage(models: Model[], field: EstimableField): number | null {
+  const vals = models.map((m) => m[field] as number | null).filter((v): v is number => v != null)
+  if (vals.length === 0) return null
+  const sum = vals.reduce((s, v) => s + v, 0)
+  return sum / vals.length
+}
+
+function computeFamilyAverage(models: Model[], family: string | null, field: EstimableField): number | null {
+  if (!family) return null
+  const vals = models.filter((m) => m.family === family).map((m) => m[field] as number | null).filter((v): v is number => v != null)
+  if (vals.length === 0) return null
+  const sum = vals.reduce((s, v) => s + v, 0)
+  return sum / vals.length
+}
+
+function clampAndRound(field: EstimableField, v: number, min: number, max: number): number {
+  if (field === 'tau2') return Math.min(1, Math.max(0, Number(v.toFixed(3))))
+  if (field === 'latencySeconds') return Math.max(0.1, Number(v.toFixed(2)))
+  if (field === 'outputSpeed') return Math.max(1, Number(v.toFixed(1)))
+  if (field === 'contextTokens') return Math.max(1024, Math.round(v / 1000) * 1000)
+  if (field === 'maxCompletionTokens') return Math.max(1024, Math.round(v / 1024) * 1024)
+  if (field === 'inputPerM' || field === 'outputPerM' || field === 'cacheReadPerM' || field === 'cacheWritePerM') return Math.max(0.001, Number(v.toFixed(4)))
+  if (field === 'parameters' || field === 'activeParameters') {
+    const step = v >= 1e12 ? 1e8 : v >= 1e11 ? 1e7 : v >= 1e10 ? 1e6 : v >= 1e9 ? 1e6 : 1e5
+    return Math.max(1, Math.round(v / step) * step)
+  }
+  return Math.min(max ?? 100, Math.max(min ?? 0, Number(v.toFixed(2))))
 }
 
 function modelDistance(
@@ -424,7 +461,20 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
         .sort((a, b) => a.d - b.d)
         .slice(0, K)
 
-      if (candidates.length === 0) continue
+      if (candidates.length === 0) {
+        const famAvg = computeFamilyAverage(models, m.family, x)
+        if (famAvg != null) {
+          out[x] = clampAndRound(x, famAvg, targetMin[x] ?? 0, targetMax[x] ?? 100)
+          estimatedMetrics.add(x)
+        } else {
+          const globalAvg = computeGlobalAverage(models, x)
+          if (globalAvg != null) {
+            out[x] = clampAndRound(x, globalAvg, targetMin[x] ?? 0, targetMax[x] ?? 100)
+            estimatedMetrics.add(x)
+          }
+        }
+        continue
+      }
 
       // Gaussian decay kernel weights for smoother and more realistic interpolation
       const sigma = 0.45
@@ -451,23 +501,21 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
       }
 
       if (x === 'tau2') {
-        v = Math.min(1, Math.max(0, Number(v.toFixed(3))))
+        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
       } else if (x === 'latencySeconds') {
-        v = Math.max(0.1, Number(v.toFixed(2)))
+        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
       } else if (x === 'outputSpeed') {
-        v = Math.max(1, Number(v.toFixed(1)))
+        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
       } else if (x === 'contextTokens') {
-        v = Math.max(1024, Math.round(v / 1000) * 1000)
+        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
       } else if (x === 'maxCompletionTokens') {
-        v = Math.max(1024, Math.round(v / 1024) * 1024)
+        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
       } else if (x === 'inputPerM' || x === 'outputPerM' || x === 'cacheReadPerM' || x === 'cacheWritePerM') {
-        v = Math.max(0.001, Number(v.toFixed(4)))
+        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
       } else if (x === 'parameters' || x === 'activeParameters') {
-        // Round to an appropriate precision based on magnitude.
-        const step = v >= 1e12 ? 1e8 : v >= 1e11 ? 1e7 : v >= 1e10 ? 1e6 : v >= 1e9 ? 1e6 : 1e5
-        v = Math.max(1, Math.round(v / step) * step)
+        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
       } else {
-        v = Math.min(targetMax[x] ?? 100, Math.max(targetMin[x] ?? 0, Number(v.toFixed(2))))
+        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
       }
 
       out[x] = v

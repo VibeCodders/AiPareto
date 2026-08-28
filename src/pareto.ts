@@ -18,14 +18,18 @@ export function costOf(m: Model, view: CostView, taskInput = 3000, taskOutput = 
     case 'blended': {
       const i = m.inputPerM
       const o = m.outputPerM
-      if (i == null || o == null) return null
-      return 0.8 * i + 0.2 * o
+      if (i != null && o != null) return 0.8 * i + 0.2 * o
+      if (i != null) return i
+      if (o != null) return o
+      return null
     }
     case 'task': {
       const i = m.inputPerM
       const o = m.outputPerM
-      if (i == null || o == null) return null
-      return (taskInput / 1e6) * i + (taskOutput / 1e6) * o
+      if (i != null && o != null) return (taskInput / 1e6) * i + (taskOutput / 1e6) * o
+      if (i != null) return (taskInput / 1e6) * i
+      if (o != null) return (taskOutput / 1e6) * o
+      return null
     }
   }
 }
