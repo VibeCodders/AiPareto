@@ -45,6 +45,7 @@ const OUT_DIR = path.join(ROOT, 'src', 'data')
 const OR_CACHE = path.join(TMP, 'openrouter.json')
 const AA_MODELS_CACHE = path.join(TMP, 'aa_models.html')
 const KNOWN_SLUGS_FILE = path.join(TMP, 'known_slugs.json')
+const FORCE_PRESERVE_FILE = path.join(ROOT, 'scripts', 'preserve-models.json')
 
 interface Flags {
   force: boolean
@@ -132,6 +133,16 @@ Flags:
 function loadKnownSlugs(): Set<string> {
   const slugs = new Set<string>()
   try {
+    if (fs.existsSync(FORCE_PRESERVE_FILE)) {
+      const raw = JSON.parse(fs.readFileSync(FORCE_PRESERVE_FILE, 'utf8')) as string[]
+      for (const s of raw) {
+        if (typeof s === 'string' && s.length > 0) slugs.add(s)
+      }
+    }
+  } catch {
+    // ignore corrupt force-preserve file
+  }
+  try {
     if (fs.existsSync(KNOWN_SLUGS_FILE)) {
       const raw = JSON.parse(fs.readFileSync(KNOWN_SLUGS_FILE, 'utf8')) as string[]
       for (const s of raw) {
@@ -148,8 +159,8 @@ function loadKnownSlugs(): Set<string> {
     if (fs.existsSync(modelsPath)) {
       const previous = JSON.parse(fs.readFileSync(modelsPath, 'utf8')) as Array<Record<string, unknown>>
       for (const r of previous) {
-        const slug = r.slug as string | undefined
-        const id = r.id as string | undefined
+        const slug = (r.slug as string | undefined)?.trim() || ''
+        const id = (r.id as string | undefined)?.trim() || ''
         if (slug) slugs.add(slug)
         if (id) slugs.add(id)
       }
@@ -166,14 +177,32 @@ function saveKnownSlugs(slugs: Set<string>): void {
   fs.writeFileSync(KNOWN_SLUGS_FILE, JSON.stringify([...slugs], null, 2))
 }
 
+function loadForcePreserve(): Set<string> {
+  const slugs = new Set<string>()
+  try {
+    if (fs.existsSync(FORCE_PRESERVE_FILE)) {
+      const raw = JSON.parse(fs.readFileSync(FORCE_PRESERVE_FILE, 'utf8')) as string[]
+      for (const s of raw) {
+        if (typeof s === 'string' && s.length > 0) slugs.add(s)
+      }
+    }
+  } catch {
+    // ignore corrupt force-preserve file
+  }
+  return slugs
+}
+
 function mergeWithPrevious(
   newRows: Array<Record<string, unknown>>,
   previous: Array<Record<string, unknown>>,
 ): Array<Record<string, unknown>> {
   const prevByKey = new Map<string, Record<string, unknown>>()
   for (const r of previous) {
-    const key = (r.slug as string | undefined) ?? (r.id as string | undefined)
-    if (key) prevByKey.set(key, r)
+    const slug = (r.slug as string | undefined)?.trim() || ''
+    const id = (r.id as string | undefined)?.trim() || ''
+    const key = slug || id
+    if (!key) continue
+    prevByKey.set(key, r)
   }
 
   const merged = new Map<string, Record<string, unknown>>()
@@ -183,7 +212,9 @@ function mergeWithPrevious(
   }
 
   for (const newRow of newRows) {
-    const key = (newRow.slug as string | undefined) ?? (newRow.id as string | undefined)
+    const slug = (newRow.slug as string | undefined)?.trim() || ''
+    const id = (newRow.id as string | undefined)?.trim() || ''
+    const key = slug || id
     if (!key) continue
     const oldRow = merged.get(key)
     if (oldRow) {
@@ -201,6 +232,36 @@ function mergeWithPrevious(
   }
 
   return Array.from(merged.values())
+}
+
+function verifyPreservation(
+  finalRows: Array<Record<string, unknown>>,
+  previous: Array<Record<string, unknown>>,
+): void {
+  const finalByKey = new Map<string, Record<string, unknown>>()
+  for (const r of finalRows) {
+    const slug = (r.slug as string | undefined)?.trim() || ''
+    const id = (r.id as string | undefined)?.trim() || ''
+    const key = slug || id
+    if (key) finalByKey.set(key, r)
+  }
+
+  const missing: string[] = []
+  for (const r of previous) {
+    const slug = (r.slug as string | undefined)?.trim() || ''
+    const id = (r.id as string | undefined)?.trim() || ''
+    const key = slug || id
+    if (!key) continue
+    if (!finalByKey.has(key)) {
+      missing.push(key)
+    }
+  }
+
+  if (missing.length > 0) {
+    console.error(`\n✗ CRITICAL: ${missing.length} models were lost during merge despite preservation logic.`)
+    console.error(`  Missing: ${missing.slice(0, 30).join(', ')}${missing.length > 30 ? ', …' : ''}`)
+    process.exit(1)
+  }
 }
 
 interface ORModel {
@@ -718,6 +779,7 @@ export async function run(flags: Flags): Promise<void> {
   })
 
   const finalRows = mergeWithPrevious(rows, previous)
+  verifyPreservation(finalRows, previous)
   finalRows.sort((a, b) => {
     const ai = a.intelligenceIndex as number
     const bi = b.intelligenceIndex as number
@@ -730,17 +792,17 @@ export async function run(flags: Flags): Promise<void> {
     return aid < bid ? -1 : aid > bid ? 1 : 0
   })
 
-  const prevKeys = new Set(previous.map((r) => (r.slug as string | undefined) ?? (r.id as string | undefined)).filter((s): s is string => Boolean(s)))
-  const finalKeys = new Set(finalRows.map((r) => (r.slug as string | undefined) ?? (r.id as string | undefined)).filter((s): s is string => Boolean(s)))
+  const prevKeys = new Set(previous.map((r) => ((r.slug as string | undefined)?.trim() || (r.id as string | undefined)?.trim() || '')).filter((s): s is string => Boolean(s)))
+  const finalKeys = new Set(finalRows.map((r) => ((r.slug as string | undefined)?.trim() || (r.id as string | undefined)?.trim() || '')).filter((s): s is string => Boolean(s)))
   const added = [...finalKeys].filter((k) => !prevKeys.has(k))
   const removed = [...prevKeys].filter((k) => !finalKeys.has(k))
   const preserved = finalRows.filter((r) => {
-    const key = (r.slug as string | undefined) ?? (r.id as string | undefined)
-    return key != null && prevKeys.has(key)
+    const key = (r.slug as string | undefined)?.trim() || (r.id as string | undefined)?.trim() || ''
+    return key && prevKeys.has(key)
   }).length
   const updated = finalRows.filter((r) => {
-    const key = (r.slug as string | undefined) ?? (r.id as string | undefined)
-    return key != null && prevKeys.has(key) && rows.some((nr) => (nr.slug as string) === key)
+    const key = (r.slug as string | undefined)?.trim() || (r.id as string | undefined)?.trim() || ''
+    return key && prevKeys.has(key) && rows.some((nr) => ((nr.slug as string | undefined)?.trim() || (nr.id as string | undefined)?.trim() || '') === key)
   }).length
 
   if (removed.length > 0) {
@@ -749,12 +811,21 @@ export async function run(flags: Flags): Promise<void> {
   }
 
   const preservedWithScore = finalRows.filter((r) => {
-    const key = (r.slug as string | undefined) ?? (r.id as string | undefined)
-    return key != null && prevKeys.has(key) && (r.intelligenceIndex != null || r.outputSpeed != null || r.latencySeconds != null)
+    const key = (r.slug as string | undefined)?.trim() || (r.id as string | undefined)?.trim() || ''
+    return key && prevKeys.has(key) && (r.intelligenceIndex != null || r.outputSpeed != null || r.latencySeconds != null)
   }).length
   const preservedWithoutScore = preserved - preservedWithScore
 
   console.log(`\n— preservation check: ${preserved} kept from previous run (${preservedWithScore} with data, ${preservedWithoutScore} preserved without fresh scores)`)
+
+  const forcePreserve = loadForcePreserve()
+  if (forcePreserve.size > 0) {
+    const missingForcePreserve = [...forcePreserve].filter((slug) => !finalKeys.has(slug))
+    if (missingForcePreserve.length > 0) {
+      console.warn(`\n⚠ force-preserve: ${missingForcePreserve.length} models listed in preserve-models.json are missing from output:`)
+      for (const s of missingForcePreserve.slice(0, 20)) console.warn(`    ${s}`)
+    }
+  }
 
   const meta = {
     fetchedAt: new Date().toISOString(),
