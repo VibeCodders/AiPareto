@@ -813,7 +813,7 @@ export async function run(flags: Flags): Promise<void> {
       // values are estimated at runtime, so we don't require an AA score.
       if (!flags.allowIncomplete) continue
       const syntheticId = `aa:${m.slug}`
-      const family = m.creator?.name ?? null
+      const family = m.creator?.name ?? 'Unknown'
       if (score == null) includedWithoutScore.push(`${m.slug} (no OR match, synthetic entry)`)
       rows.push({
         id: syntheticId,
@@ -855,7 +855,7 @@ export async function run(flags: Flags): Promise<void> {
     rows.push({
       id: or.id,
       name: or.name,
-      family: m.creator?.name ?? familyFromORId(or.id) ?? null,
+      family: m.creator?.name ?? familyFromORId(or.id) ?? 'Unknown',
       slug: m.slug,
       aaName: m.name,
       effort: parseEffort(m.name),
@@ -899,7 +899,7 @@ export async function run(flags: Flags): Promise<void> {
       name: or.name,
       family,
       slug: norm(rest) || rest,
-      aaName: null,
+      aaName: or.name,
       effort: null,
       released: null,
       isReasoning: isReasoningFromORName(or.name, or.id),
@@ -988,9 +988,13 @@ export async function run(flags: Flags): Promise<void> {
   console.log(`  maxCompletionTokens: ${maxCompFromOR}/${rows.length} from OpenRouter`)
 
   const compareModels = (a: Record<string, unknown>, b: Record<string, unknown>): number => {
-    const ai = a.intelligenceIndex as number
-    const bi = b.intelligenceIndex as number
-    if (bi !== ai) return bi - ai
+    const ai = a.intelligenceIndex as number | null
+    const bi = b.intelligenceIndex as number | null
+    if (ai != null && bi != null) {
+      if (bi !== ai) return bi - ai
+    } else if (ai != null || bi != null) {
+      return ai != null ? -1 : 1
+    }
     const ar = (a.released as string) ?? ''
     const br = (b.released as string) ?? ''
     if (ar !== br) return ar < br ? 1 : -1

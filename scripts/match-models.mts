@@ -77,7 +77,17 @@ const rows: Array<{ slug: string; name: string; creator: string | null; releaseD
 
 for (const slug of aaSlugs) {
   const aa = aaActive.find((m) => m.slug === slug)
-  if (!aa) continue
+  if (!aa) {
+    rows.push({
+      slug,
+      name: '(unknown — not in current registry)',
+      creator: null,
+      releaseDate: null,
+      candidates: [],
+      autoMatched: false,
+    })
+    continue
+  }
   const exact = orModels.find((m) => norm(m.id.split('/').slice(1).join('/')) === norm(slug))
   let cands: Array<{ id: string; name: string }> = []
   let autoMatched = false
