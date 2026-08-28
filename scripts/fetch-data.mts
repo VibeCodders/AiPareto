@@ -206,17 +206,105 @@ function loadForcePreserve(): Set<string> {
   return slugs
 }
 
+/** Canonical identity for a model row: the AA slug, falling back to the OpenRouter id. */
+function rowKey(r: Record<string, unknown>): string {
+  const slug = (r.slug as string | undefined)?.trim() || ''
+  const id = (r.id as string | undefined)?.trim() || ''
+  return slug || id
+}
+
+/** Count non-nullish fields — used to pick the more data-complete row on a collision. */
+function fieldCount(r: Record<string, unknown>): number {
+  let n = 0
+  for (const v of Object.values(r)) if (v != null) n++
+  return n
+}
+
+/**
+ * Deduplicate rows by canonical identity (slug, then id).
+ *
+ * A model variant is uniquely identified by its slug. Effort variants of the
+ * same base model share an `id` but have distinct slugs, so they are
+ * intentionally preserved. True duplicates (same slug) — including slug
+ * collisions where one slug maps to more than one `id` — are collapsed to a
+ * single row, keeping the most data-complete version, and every drop is logged
+ * so silent data loss is impossible.
+ */
+function deduplicateRows(rows: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  const byKey = new Map<string, Record<string, unknown>>()
+  const keyless: Array<Record<string, unknown>> = []
+  const dropped: string[] = []
+  for (const r of rows) {
+    const key = rowKey(r)
+    if (!key) {
+      keyless.push(r)
+      continue
+    }
+    const existing = byKey.get(key)
+    if (!existing) {
+      byKey.set(key, r)
+    } else if (fieldCount(existing) >= fieldCount(r)) {
+      dropped.push(`${key} (dropped id=${String(r.id)} slug=${String(r.slug)})`)
+    } else {
+      dropped.push(`${key} (dropped id=${String(existing.id)} slug=${String(existing.slug)})`)
+      byKey.set(key, r)
+    }
+  }
+  if (dropped.length > 0) {
+    console.warn(`  deduplicateRows: removed ${dropped.length} duplicate row(s) by slug/id (kept most complete):`)
+    for (const d of dropped.slice(0, 30)) console.warn(`    ${d}`)
+  }
+  return [...byKey.values(), ...keyless]
+}
+
+/**
+ * Assert the final output is free of duplicate identities. This is a defensive
+ * guard: mergeWithPrevious already keys by slug/id via a Map, so duplicates
+ * should never reach the written file. Aborting loudly guarantees we never
+ * silently ship a models.json with overlapping rows.
+ */
+function verifyNoDuplicates(rows: Array<Record<string, unknown>>): void {
+  const slugs = new Set<string>()
+  const pairs = new Set<string>()
+  const dupSlugs: string[] = []
+  const dupPairs: string[] = []
+  for (const r of rows) {
+    const slug = (r.slug as string | undefined)?.trim() || ''
+    const id = (r.id as string | undefined)?.trim() || ''
+    if (slug) {
+      if (slugs.has(slug)) dupSlugs.push(slug)
+      slugs.add(slug)
+    }
+    if (id && slug) {
+      const pair = `${id}|${slug}`
+      if (pairs.has(pair)) dupPairs.push(pair)
+      pairs.add(pair)
+    }
+  }
+  if (dupSlugs.length > 0) {
+    console.error(`\n✗ Internal error: ${dupSlugs.length} duplicate slug(s) in final output: ${[...new Set(dupSlugs)].join(', ')}`)
+    process.exit(1)
+  }
+  if (dupPairs.length > 0) {
+    console.error(`\n✗ Internal error: ${dupPairs.length} duplicate (id, slug) pair(s) in final output: ${[...new Set(dupPairs)].join(', ')}`)
+    process.exit(1)
+  }
+}
+
 function mergeWithPrevious(
   newRows: Array<Record<string, unknown>>,
   previous: Array<Record<string, unknown>>,
 ): Array<Record<string, unknown>> {
   const prevByKey = new Map<string, Record<string, unknown>>()
+  const prevDups: string[] = []
   for (const r of previous) {
-    const slug = (r.slug as string | undefined)?.trim() || ''
-    const id = (r.id as string | undefined)?.trim() || ''
-    const key = slug || id
+    const key = rowKey(r)
     if (!key) continue
+    if (prevByKey.has(key)) prevDups.push(key)
     prevByKey.set(key, r)
+  }
+  if (prevDups.length > 0) {
+    console.warn(`  mergeWithPrevious: ${prevDups.length} duplicate key(s) in previous models.json (kept last; slug collision to investigate): ${[...new Set(prevDups)].join(', ')}`)
   }
 
   const merged = new Map<string, Record<string, unknown>>()
@@ -226,9 +314,7 @@ function mergeWithPrevious(
   }
 
   for (const newRow of newRows) {
-    const slug = (newRow.slug as string | undefined)?.trim() || ''
-    const id = (newRow.id as string | undefined)?.trim() || ''
-    const key = slug || id
+    const key = rowKey(newRow)
     if (!key) continue
     const oldRow = merged.get(key)
     if (oldRow) {
@@ -835,20 +921,10 @@ export async function run(flags: Flags): Promise<void> {
     orOnlyAdded.push(or.id)
   }
 
-  // Deduplicate by (id, slug) key — guards against edge cases where
-  // auto-matching and OR-only inclusion could produce overlapping rows.
-  // Effort variants (same id, different slug) are intentionally kept.
-  const seenKeys = new Set<string>()
-  const beforeDedup = rows.length
-  rows = rows.filter((r) => {
-    const key = `${String(r.id)}|${String(r.slug)}`
-    if (seenKeys.has(key)) return false
-    seenKeys.add(key)
-    return true
-  })
-  if (rows.length < beforeDedup) {
-    console.warn(`  removed ${beforeDedup - rows.length} duplicate row(s) by (id, slug)`)
-  }
+  // Deduplicate by canonical identity (slug, then id). Collapses true duplicates
+  // and slug collisions (same slug, different id) while preserving effort
+  // variants (same id, different slug). See deduplicateRows for details.
+  rows = deduplicateRows(rows)
 
   console.log(`— building rows: ${rows.length} models (${rows.filter((r) => r.aaName != null).length} from AA, ${orOnlyAdded.length} OpenRouter-only, ${includedWithoutScore.length} without AA score)`)
   if (flags.verbose) {
@@ -928,6 +1004,7 @@ export async function run(flags: Flags): Promise<void> {
   const finalRows = mergeWithPrevious(rows, previous)
   verifyPreservation(finalRows, previous)
   finalRows.sort(compareModels)
+  verifyNoDuplicates(finalRows)
 
   const prevKeys = new Set(previous.map((r) => ((r.slug as string | undefined)?.trim() || (r.id as string | undefined)?.trim() || '')).filter((s): s is string => Boolean(s)))
   const finalKeys = new Set(finalRows.map((r) => ((r.slug as string | undefined)?.trim() || (r.id as string | undefined)?.trim() || '')).filter((s): s is string => Boolean(s)))
