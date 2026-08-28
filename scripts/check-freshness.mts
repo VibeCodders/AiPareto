@@ -18,14 +18,16 @@ import { extractFlightChunks, parseModelRegistry } from './aa-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
 import { CREATOR_WHITELIST, get } from './shared.mts'
 
-function parseFlags(): { timeout: number; retries: number; verbose: boolean } {
+function parseFlags(): { timeout: number; retries: number; verbose: boolean; json: boolean; includeDeprecated: boolean } {
   const args = process.argv.slice(2)
-  const flags = { timeout: 30000, retries: 3, verbose: false }
+  const flags = { timeout: 30000, retries: 3, verbose: false, json: false, includeDeprecated: false }
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
     if (a === '--timeout' && args[i + 1]) flags.timeout = Math.max(1000, parseInt(args[++i], 10) || 30000)
     else if (a === '--retries' && args[i + 1]) flags.retries = Math.max(0, parseInt(args[++i], 10) || 3)
     else if (a === '--verbose') flags.verbose = true
+    else if (a === '--json') flags.json = true
+    else if (a === '--include-deprecated') flags.includeDeprecated = true
   }
   return flags
 }
@@ -38,7 +40,8 @@ async function main() {
   const active = registry.filter((m) => !m.deprecated)
   const whitelisted = active.filter((m) => m.creator && CREATOR_WHITELIST.some((c) => m.creator!.name.toLowerCase().includes(c.toLowerCase())))
   const recent = whitelisted.filter((m) => (m.releaseDate ?? '') >= '2025-01-01')
-  console.log(`  ${registry.length} total, ${active.length} active, ${whitelisted.length} in-scope vendors, ${recent.length} released >= 2025-01-01`)
+  const deprecatedInScope = flags.includeDeprecated ? registry.filter((m) => m.deprecated && m.creator && CREATOR_WHITELIST.some((c) => m.creator!.name.toLowerCase().includes(c.toLowerCase()))) : []
+  console.log(`  ${registry.length} total, ${active.length} active, ${whitelisted.length} in-scope vendors, ${recent.length} released >= 2025-01-01${flags.includeDeprecated ? `, ${deprecatedInScope.length} deprecated in-scope` : ''}`)
 
   console.log('— fetching OpenRouter model catalog…')
   const orJson = JSON.parse(await get('https://openrouter.ai/api/v1/models', { timeout: flags.timeout, retries: flags.retries })) as { data: Array<{ id: string }> }
@@ -49,6 +52,26 @@ async function main() {
   const staleMappings = [...new Set(Object.values(AA_TO_OR))].filter((id) => !orIds.has(id))
 
   const mappedCount = recent.length - unmapped.length
+
+  const result = {
+    ok: unmapped.length === 0 && staleMappings.length === 0,
+    registryTotal: registry.length,
+    active: active.length,
+    whitelisted: whitelisted.length,
+    recent: recent.length,
+    deprecatedInScope: deprecatedInScope.length,
+    openRouterTotal: orIds.size,
+    mappedCount,
+    unmapped: unmapped.map((m) => ({ slug: m.slug, name: m.name, creator: m.creator?.name, releaseDate: m.releaseDate })),
+    staleMappings,
+  }
+
+  if (flags.json) {
+    console.log(JSON.stringify(result, null, 2))
+    if (!result.ok) process.exitCode = 1
+    return
+  }
+
   console.log(`\n${mappedCount}/${recent.length} recent AA models correctly mapped.`)
   if (flags.verbose && mappedCount > 0) {
     const mapped = recent.filter((m) => (m.slug in AA_TO_OR))

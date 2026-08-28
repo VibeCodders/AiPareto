@@ -23,8 +23,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 57.7,
-    "latencySeconds": 43.4
+    "outputSpeed": 56,
+    "latencySeconds": 51.8
   },
   {
     "id": "anthropic/claude-opus-5",
@@ -77,7 +77,7 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 70.3,
+    "outputSpeed": 64.7,
     "latencySeconds": null
   },
   {
@@ -131,8 +131,8 @@
     "maxCompletionTokens": 450000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 68.7,
-    "latencySeconds": 41.9
+    "outputSpeed": 57.8,
+    "latencySeconds": 43
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -158,7 +158,7 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 74.4,
+    "outputSpeed": 73.8,
     "latencySeconds": null
   },
   {
@@ -185,8 +185,8 @@
     "maxCompletionTokens": 943718,
     "parameters": 2800000000000,
     "activeParameters": 104000000000,
-    "outputSpeed": 34.3,
-    "latencySeconds": 61.4
+    "outputSpeed": 35.9,
+    "latencySeconds": 62.1
   },
   {
     "id": "z-ai/glm-5.3",
@@ -212,8 +212,8 @@
     "maxCompletionTokens": 131072,
     "parameters": 753000000000,
     "activeParameters": 40000000000,
-    "outputSpeed": 90,
-    "latencySeconds": 23.5
+    "outputSpeed": 66.5,
+    "latencySeconds": 31.7
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -293,7 +293,7 @@
     "maxCompletionTokens": 131072,
     "parameters": 20000000000,
     "activeParameters": null,
-    "outputSpeed": 54.4,
+    "outputSpeed": 21,
     "latencySeconds": 39.3
   },
   {
@@ -320,7 +320,7 @@
     "maxCompletionTokens": 262144,
     "parameters": 2400000000000,
     "activeParameters": 95000000000,
-    "outputSpeed": 52.5,
+    "outputSpeed": 24.5,
     "latencySeconds": 40.7
   },
   {
@@ -401,7 +401,7 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 126.3,
+    "outputSpeed": 106.8,
     "latencySeconds": null
   },
   {
@@ -428,8 +428,8 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 357.3,
-    "latencySeconds": 12.2
+    "outputSpeed": 322.6,
+    "latencySeconds": 11.2
   },
   {
     "id": "x-ai/grok-4.5",
@@ -455,8 +455,8 @@
     "maxCompletionTokens": 450000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 66.2,
-    "latencySeconds": 7.5
+    "outputSpeed": 53.1,
+    "latencySeconds": 15
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -509,7 +509,7 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 81.5,
+    "outputSpeed": 92.2,
     "latencySeconds": null
   },
   {
@@ -563,8 +563,8 @@
     "maxCompletionTokens": 384000,
     "parameters": 1600000000000,
     "activeParameters": 49000000000,
-    "outputSpeed": 72.5,
-    "latencySeconds": 29.4
+    "outputSpeed": 68,
+    "latencySeconds": 31.1
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -617,8 +617,8 @@
     "maxCompletionTokens": 262144,
     "parameters": 753000000000,
     "activeParameters": 40000000000,
-    "outputSpeed": 84.2,
-    "latencySeconds": 25.8
+    "outputSpeed": 69.9,
+    "latencySeconds": 30.2
   },
   {
     "id": "anthropic/claude-opus-5",
@@ -671,7 +671,7 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 144.7,
+    "outputSpeed": 128.5,
     "latencySeconds": null
   },
   {
@@ -698,8 +698,8 @@
     "maxCompletionTokens": 131072,
     "parameters": 27000000000,
     "activeParameters": 27000000000,
-    "outputSpeed": 53.3,
-    "latencySeconds": 40.5
+    "outputSpeed": 46.5,
+    "latencySeconds": 46.8
   },
   {
     "id": "deepseek/deepseek-v4-flash-0731",
@@ -725,8 +725,8 @@
     "maxCompletionTokens": 943718,
     "parameters": 284000000000,
     "activeParameters": 13000000000,
-    "outputSpeed": 125.5,
-    "latencySeconds": 17.1
+    "outputSpeed": 119,
+    "latencySeconds": 18
   },
   {
     "id": "google/gemini-3.6-flash",
@@ -752,8 +752,8 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 210.3,
-    "latencySeconds": 15.8
+    "outputSpeed": 179.3,
+    "latencySeconds": 18.1
   },
   {
     "id": "google/gemini-3.7-flash",
@@ -914,8 +914,8 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 131.2,
-    "latencySeconds": 28.9
+    "outputSpeed": 114.5,
+    "latencySeconds": 29.5
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -1022,8 +1022,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 147.2,
-    "latencySeconds": 59.3
+    "outputSpeed": 123.2,
+    "latencySeconds": 65.5
   },
   {
     "id": "minimax/minimax-m3",
@@ -1049,8 +1049,8 @@
     "maxCompletionTokens": 512000,
     "parameters": 428000000000,
     "activeParameters": 23000000000,
-    "outputSpeed": 107.2,
-    "latencySeconds": 20
+    "outputSpeed": 108.1,
+    "latencySeconds": 19.6
   },
   {
     "id": "deepseek/deepseek-v4-pro",
@@ -1076,8 +1076,8 @@
     "maxCompletionTokens": 384000,
     "parameters": 1600000000000,
     "activeParameters": 49000000000,
-    "outputSpeed": 77.3,
-    "latencySeconds": 58.2
+    "outputSpeed": 67,
+    "latencySeconds": 67
   },
   {
     "id": "deepseek/deepseek-v4-pro",
@@ -1130,8 +1130,8 @@
     "maxCompletionTokens": 235929,
     "parameters": 1000000000000,
     "activeParameters": 32000000000,
-    "outputSpeed": 49.5,
-    "latencySeconds": 47.9
+    "outputSpeed": 45.1,
+    "latencySeconds": 52.2
   },
   {
     "id": "xiaomi/mimo-v2.5-pro",
@@ -1157,8 +1157,8 @@
     "maxCompletionTokens": 131072,
     "parameters": 1023000000000,
     "activeParameters": 42000000000,
-    "outputSpeed": 52.7,
-    "latencySeconds": 41.3
+    "outputSpeed": 38.4,
+    "latencySeconds": 56
   },
   {
     "id": "anthropic/claude-sonnet-5",
@@ -1211,8 +1211,8 @@
     "maxCompletionTokens": 128000,
     "parameters": 299000000000,
     "activeParameters": 21000000000,
-    "outputSpeed": 75.2,
-    "latencySeconds": 29.5
+    "outputSpeed": 67.4,
+    "latencySeconds": 32.5
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -1293,7 +1293,7 @@
     "parameters": 17000000000,
     "activeParameters": null,
     "outputSpeed": 56.1,
-    "latencySeconds": 37.7
+    "latencySeconds": 37.8
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -1373,8 +1373,8 @@
     "maxCompletionTokens": 131072,
     "parameters": 310000000000,
     "activeParameters": 15000000000,
-    "outputSpeed": 66.3,
-    "latencySeconds": 34.7
+    "outputSpeed": 66.7,
+    "latencySeconds": 32.8
   },
   {
     "id": "inclusionai/ling-3.0-flash",
@@ -1400,8 +1400,8 @@
     "maxCompletionTokens": 32768,
     "parameters": 124000000000,
     "activeParameters": 5100000000,
-    "outputSpeed": 399.1,
-    "latencySeconds": 7.7
+    "outputSpeed": 379.5,
+    "latencySeconds": 7.9
   },
   {
     "id": "qwen/qwen3.6-27b",
@@ -1427,7 +1427,7 @@
     "maxCompletionTokens": 235929,
     "parameters": 27800000000,
     "activeParameters": 27800000000,
-    "outputSpeed": 58.5,
+    "outputSpeed": 50,
     "latencySeconds": null
   },
   {
@@ -1454,8 +1454,8 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 373.6,
-    "latencySeconds": 8.7
+    "outputSpeed": 345.6,
+    "latencySeconds": 9.1
   },
   {
     "id": "x-ai/grok-4.3",
@@ -1562,8 +1562,8 @@
     "maxCompletionTokens": 117964,
     "parameters": 30000000000,
     "activeParameters": 30000000000,
-    "outputSpeed": 101.1,
-    "latencySeconds": 20.6
+    "outputSpeed": 102.1,
+    "latencySeconds": 20.5
   },
   {
     "id": "anthropic/claude-sonnet-4.6",
@@ -1670,8 +1670,8 @@
     "maxCompletionTokens": 65536,
     "parameters": 397000000000,
     "activeParameters": 17000000000,
-    "outputSpeed": 79.9,
-    "latencySeconds": 42
+    "outputSpeed": 94.3,
+    "latencySeconds": 36.1
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -1724,8 +1724,8 @@
     "maxCompletionTokens": 235929,
     "parameters": 125000000000,
     "activeParameters": 10000000000,
-    "outputSpeed": 130.5,
-    "latencySeconds": 17.7
+    "outputSpeed": 131.4,
+    "latencySeconds": 17.5
   },
   {
     "id": "qwen/qwen3.5-397b-a17b",
@@ -1778,8 +1778,8 @@
     "maxCompletionTokens": 235929,
     "parameters": 36000000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 120.5,
-    "latencySeconds": 46.9
+    "outputSpeed": 123.9,
+    "latencySeconds": 45.6
   },
   {
     "id": "deepseek/deepseek-v4-pro",
@@ -1859,8 +1859,8 @@
     "maxCompletionTokens": 100000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 150.2,
-    "latencySeconds": 6.4
+    "outputSpeed": 115.5,
+    "latencySeconds": 9.2
   },
   {
     "id": "stepfun/step-3.7-flash",
@@ -1886,8 +1886,8 @@
     "maxCompletionTokens": 230400,
     "parameters": 198000000000,
     "activeParameters": 11000000000,
-    "outputSpeed": 138.8,
-    "latencySeconds": 17.1
+    "outputSpeed": 86.8,
+    "latencySeconds": 25.8
   },
   {
     "id": "mistralai/mistral-medium-3-5",
@@ -1913,8 +1913,8 @@
     "maxCompletionTokens": 209715,
     "parameters": 128000000000,
     "activeParameters": 128000000000,
-    "outputSpeed": 148.3,
-    "latencySeconds": 15.7
+    "outputSpeed": 150.5,
+    "latencySeconds": 15.5
   },
   {
     "id": "anthropic/claude-haiku-4.5",
@@ -1967,8 +1967,8 @@
     "maxCompletionTokens": 16384,
     "parameters": 30700000000,
     "activeParameters": 30700000000,
-    "outputSpeed": 35.2,
-    "latencySeconds": 50.4
+    "outputSpeed": 35.4,
+    "latencySeconds": 50.1
   },
   {
     "id": "deepseek/deepseek-v4-flash-0731",
@@ -2021,8 +2021,8 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 145.1,
-    "latencySeconds": 14.8
+    "outputSpeed": 147.9,
+    "latencySeconds": 14.7
   },
   {
     "id": "xiaomi/mimo-v2.5-pro",
@@ -2156,8 +2156,8 @@
     "maxCompletionTokens": 16384,
     "parameters": 120600000000,
     "activeParameters": 12700000000,
-    "outputSpeed": 142.3,
-    "latencySeconds": 15.8
+    "outputSpeed": 141.5,
+    "latencySeconds": 15.9
   },
   {
     "id": "x-ai/grok-4.3",
@@ -2264,7 +2264,7 @@
     "maxCompletionTokens": 64000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 93.1,
+    "outputSpeed": 95.3,
     "latencySeconds": 0.8
   },
   {
@@ -2291,8 +2291,8 @@
     "maxCompletionTokens": 117964,
     "parameters": 117000000000,
     "activeParameters": 5100000000,
-    "outputSpeed": 187.2,
-    "latencySeconds": 11.5
+    "outputSpeed": 156.8,
+    "latencySeconds": 13.6
   },
   {
     "id": "nvidia/nemotron-3.5-lightning",
@@ -2318,8 +2318,8 @@
     "maxCompletionTokens": 235929,
     "parameters": 31600000000,
     "activeParameters": 3600000000,
-    "outputSpeed": 317.4,
-    "latencySeconds": 7.9
+    "outputSpeed": 296,
+    "latencySeconds": 7.6
   },
   {
     "id": "google/gemma-4-31b-it",
@@ -2372,8 +2372,8 @@
     "maxCompletionTokens": 235929,
     "parameters": 9650000000,
     "activeParameters": 9650000000,
-    "outputSpeed": 81.3,
-    "latencySeconds": 26.4
+    "outputSpeed": 75.7,
+    "latencySeconds": 28.6
   },
   {
     "id": "qwen/qwen3-coder-next",
@@ -2399,8 +2399,8 @@
     "maxCompletionTokens": 235929,
     "parameters": 79700000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 145.7,
-    "latencySeconds": 1
+    "outputSpeed": 120.3,
+    "latencySeconds": 1.3
   },
   {
     "id": "amazon/nova-2-lite-v1",
@@ -2507,8 +2507,8 @@
     "maxCompletionTokens": 209715,
     "parameters": 119000000000,
     "activeParameters": 6500000000,
-    "outputSpeed": 178.8,
-    "latencySeconds": 11.9
+    "outputSpeed": 157.7,
+    "latencySeconds": 13.6
   },
   {
     "id": "amazon/nova-2-lite-v1",
@@ -2615,8 +2615,8 @@
     "maxCompletionTokens": 209715,
     "parameters": 675000000000,
     "activeParameters": 41000000000,
-    "outputSpeed": 44,
-    "latencySeconds": 1.2
+    "outputSpeed": 27.8,
+    "latencySeconds": 2.2
   },
   {
     "id": "openai/gpt-oss-20b",
@@ -2642,8 +2642,8 @@
     "maxCompletionTokens": 117964,
     "parameters": 21000000000,
     "activeParameters": 3600000000,
-    "outputSpeed": 111,
-    "latencySeconds": 19
+    "outputSpeed": 119,
+    "latencySeconds": 17.9
   },
   {
     "id": "openai/gpt-oss-120b",
@@ -2723,7 +2723,7 @@
     "maxCompletionTokens": 16384,
     "parameters": 402000000000,
     "activeParameters": 17000000000,
-    "outputSpeed": 101.2,
+    "outputSpeed": 100.5,
     "latencySeconds": 0.9
   },
   {
@@ -2777,7 +2777,7 @@
     "maxCompletionTokens": 235929,
     "parameters": 80000000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 191.1,
+    "outputSpeed": 175.5,
     "latencySeconds": 2.1
   },
   {
@@ -2804,8 +2804,8 @@
     "maxCompletionTokens": 32000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 33.1,
-    "latencySeconds": 2.9
+    "outputSpeed": 31.1,
+    "latencySeconds": 2.8
   },
   {
     "id": "mistralai/mistral-small-2603",
@@ -2858,8 +2858,8 @@
     "maxCompletionTokens": 65535,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 181.2,
-    "latencySeconds": 1
+    "outputSpeed": 162.9,
+    "latencySeconds": 1.1
   },
   {
     "id": "mistralai/ministral-14b-2512",
@@ -2885,7 +2885,7 @@
     "maxCompletionTokens": 209715,
     "parameters": 14000000000,
     "activeParameters": 14000000000,
-    "outputSpeed": 98.3,
+    "outputSpeed": 91.8,
     "latencySeconds": 0.9
   },
   {
@@ -2912,7 +2912,7 @@
     "maxCompletionTokens": 8192,
     "parameters": 109000000000,
     "activeParameters": 17000000000,
-    "outputSpeed": 133.6,
+    "outputSpeed": 131,
     "latencySeconds": 0.8
   },
   {
@@ -2939,7 +2939,7 @@
     "maxCompletionTokens": 209715,
     "parameters": 8000000000,
     "activeParameters": 8000000000,
-    "outputSpeed": 121.6,
+    "outputSpeed": 123,
     "latencySeconds": 0.8
   },
   {
@@ -2966,7 +2966,7 @@
     "maxCompletionTokens": 8192,
     "parameters": 111000000000,
     "activeParameters": 111000000000,
-    "outputSpeed": 73.6,
+    "outputSpeed": 69.2,
     "latencySeconds": 1.6
   },
   {
@@ -2993,7 +2993,7 @@
     "maxCompletionTokens": 228000,
     "parameters": 31600000000,
     "activeParameters": 3600000000,
-    "outputSpeed": 262.5,
+    "outputSpeed": 214.5,
     "latencySeconds": 0.9
   },
   {
@@ -3020,7 +3020,7 @@
     "maxCompletionTokens": 104857,
     "parameters": 3000000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 206.2,
-    "latencySeconds": 0.6
+    "outputSpeed": 192.7,
+    "latencySeconds": 0.7
   }
 ]

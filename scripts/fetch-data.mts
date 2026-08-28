@@ -61,6 +61,7 @@ interface Flags {
   verbose: boolean
   dryRun: boolean
   skipPerf: boolean
+  status: boolean
 }
 
 export function parseFlags(): Flags {
@@ -79,6 +80,7 @@ export function parseFlags(): Flags {
     verbose: false,
     dryRun: false,
     skipPerf: false,
+    status: false,
   }
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
@@ -101,6 +103,7 @@ export function parseFlags(): Flags {
     else if (a === '--verbose') flags.verbose = true
     else if (a === '--dry-run') flags.dryRun = true
     else if (a === '--skip-perf') flags.skipPerf = true
+    else if (a === '--status') flags.status = true
     else if (a === '--help' || a === '-h') {
       console.log(`
 Usage: npm run fetch-data [flags]
@@ -117,6 +120,7 @@ Flags:
   --refresh          Incremental refresh: only re-crawl models with missing or stale scores.
   --refresh-known    Incremental refresh: re-crawl ALL known models, even if cache is fresh.
   --skip-perf        Skip performance extraction (faster incremental updates).
+  --status           Preview refresh targets without crawling.
   --verbose          Print extra diagnostics.
   --dry-run          Run the full pipeline but skip writing files.
   --help, -h         Show this help message.
@@ -611,6 +615,9 @@ export async function run(flags: Flags): Promise<void> {
   )
   const recent = whitelisted.filter((m) => (m.releaseDate ?? '') >= '2025-01-01')
   console.log(`  whitelisted active: ${whitelisted.length}, released >= 2025: ${recent.length}`)
+  if (!flags.noCache) {
+    fs.writeFileSync(path.join(TMP, 'aa_active.json'), JSON.stringify(active, null, 2))
+  }
 
   const haveSlugs = new Set(scored.map((o) => o.release?.slug).filter((s): s is string => Boolean(s)))
   const topSlugs = [...haveSlugs]
@@ -656,6 +663,14 @@ export async function run(flags: Flags): Promise<void> {
     crawlSlugs = [...new Set([...recent.map((m) => m.slug), ...topSlugs])].filter((s) => !haveSlugs.has(s))
     console.log(`— crawling ${crawlSlugs.length} detail pages (concurrency=${flags.concurrency}, delay=${flags.delayMs}ms, already have ${topSlugs.length})…`)
   }
+  if (flags.status) {
+    console.log(`\n— status: ${crawlSlugs.length} models would be crawled in ${flags.refresh ? 'refresh' : 'full'} mode`)
+    if (crawlSlugs.length > 0) {
+      console.log('  slugs:', crawlSlugs.slice(0, 50).join(', ') + (crawlSlugs.length > 50 ? ', …' : ''))
+    }
+    return
+  }
+
   const details = await crawlDetails(crawlSlugs, flags)
   console.log(`  got scores for ${details.size} detail pages`)
 

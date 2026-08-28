@@ -5,8 +5,19 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { CREATOR_WHITELIST } from './shared.mts'
+import { extractFlightChunks, parseModelRegistry } from './aa-utils.mts'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
+
+function parseFlags(): { json: boolean } {
+  const args = process.argv.slice(2)
+  const flags = { json: false }
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]
+    if (a === '--json') flags.json = true
+  }
+  return flags
+}
 
 function inScope(creatorName: string | null | undefined): boolean {
   if (!creatorName) return false
@@ -20,7 +31,7 @@ const orModels = JSON.parse(fs.readFileSync(path.join(ROOT, '.tmp/openrouter.jso
   pricing: Record<string, number | null>
 }>
 
-const aaActive = JSON.parse(fs.readFileSync(path.join(ROOT, '.tmp/aa_active.json'), 'utf8')) as Array<{
+let aaActive: Array<{
   slug: string
   name: string
   deprecated: boolean
@@ -28,9 +39,23 @@ const aaActive = JSON.parse(fs.readFileSync(path.join(ROOT, '.tmp/aa_active.json
   creator: { name: string } | null
 }>
 
+const aaActiveFile = path.join(ROOT, '.tmp', 'aa_active.json')
+const aaModelsFile = path.join(ROOT, '.tmp', 'aa_models.html')
+
+if (fs.existsSync(aaActiveFile)) {
+  aaActive = JSON.parse(fs.readFileSync(aaActiveFile, 'utf8'))
+} else if (fs.existsSync(aaModelsFile)) {
+  const html = fs.readFileSync(aaModelsFile, 'utf8')
+  const raw = extractFlightChunks(html).join('')
+  aaActive = parseModelRegistry(raw)
+} else {
+  console.error('Missing .tmp/aa_active.json or .tmp/aa_models.html. Run fetch-data first.')
+  process.exit(1)
+}
+
 // AA scores from crawled detail pages
 const scoredSlugs = new Set(
-  fs.readdirSync(path.join(ROOT, '.tmp/aa_pages'))
+  fs.readdirSync(path.join(ROOT, '.tmp', 'aa_pages'))
     .filter((f) => f.endsWith('.html'))
     .map((f) => f.replace(/\.html$/, '')),
 )
@@ -48,15 +73,31 @@ function norm(s: string): string {
 
 const orNorm = orModels.map((m) => ({ ...m, n: norm(m.id.split('/').slice(1).join('/')) }))
 
+const flags = parseFlags()
+const rows: Array<{ slug: string; name: string; creator: string | null; releaseDate: string | null; candidates: Array<{ id: string; name: string }> }> = []
+
 for (const slug of [...scoredSlugs].sort()) {
   const aa = aaActive.find((m) => m.slug === slug)
   if (!aa) continue
   const n = norm(slug)
-  // candidates: exact, contains, prefix match
   const exact = orNorm.find((m) => m.n === n)
   const contains = orNorm.filter((m) => m.n.includes(n) || n.includes(m.n)).slice(0, 4)
   const cands = exact ? [exact] : contains
   if (cands.length === 0) continue
-  console.log(`\n${slug}  [${aa.name}]`)
-  for (const c of cands) console.log(`   OR: ${c.id}  (${c.name})`)
+  rows.push({
+    slug,
+    name: aa.name,
+    creator: aa.creator?.name ?? null,
+    releaseDate: aa.releaseDate,
+    candidates: cands.map((c) => ({ id: c.id, name: c.name })),
+  })
+}
+
+if (flags.json) {
+  console.log(JSON.stringify(rows, null, 2))
+} else {
+  for (const r of rows) {
+    console.log(`\n${r.slug}  [${r.name}]`)
+    for (const c of r.candidates) console.log(`   OR: ${c.id}  (${c.name})`)
+  }
 }
