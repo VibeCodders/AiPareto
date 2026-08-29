@@ -7,6 +7,9 @@
  *    per-model detail pages for Intelligence Index / Agentic Index / Omniscience.
  *  - LMSYS Chatbot Arena (https://arena.ai/leaderboard) — human-preference ELO scores.
  *  - BenchLM.ai (https://benchlm.ai/api/data/leaderboard) — aggregated benchmark scores.
+ *  - LiteLLM (https://github.com/BerriAI/litellm) — aggregated model pricing and
+ *    context-window data from dozens of providers (OpenAI, Anthropic, Bedrock,
+ *    Azure, Fireworks, Together, etc.).
  *
  * Output: src/data/models.json (rows merged by curated mapping), src/data/meta.json.
  * Detail pages are cached in .tmp/aa_pages so re-runs are cheap.
@@ -32,6 +35,7 @@
  *   --skip-perf       Skip performance extraction (faster incremental updates).
  *   --skip-arena      Skip LMSYS Chatbot Arena data fetching.
  *   --skip-benchlm    Skip BenchLM.ai data fetching.
+ *   --skip-litellm    Skip LiteLLM pricing/context enrichment.
  *   --skip-hf         Skip Hugging Face Hub data fetching.
  *   --verbose         Print extra diagnostics.
  *   --dry-run         Run the full pipeline but skip writing files.
@@ -41,7 +45,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { extractFlightChunks, extractModelObjects, extractObjectsContaining, extractPerfFromDetail, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
 import { type ArenaData, type ArenaLeaderboard, type BenchLMLeaderboard, buildArenaLookup, buildBenchLMLookup, matchArenaModel, matchBenchLMModel } from './arena-utils.mts'
-import { buildHfModelInfoLookup, fetchHfModelInfos, matchHfModel, type HfModelInfo } from './hf-utils.mts'
+import { buildHfModelInfoLookup, fetchHfModelInfos, matchHfModel } from './hf-utils.mts'
+import { buildLiteLLMLookup, fetchLiteLLMModels, matchLiteLLMModel, type LiteLLMModel } from './litellm-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
 import { DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, OR_PROVIDER_FAMILY, autoMatchSlug, familyFromORId, get, isReasoningFromORName, norm, openWeightsFromORId } from './shared.mts'
 import knownParams from '../src/data/known-params.json'
@@ -55,6 +60,7 @@ const AA_MODELS_CACHE = path.join(TMP, 'aa_models.html')
 const ARENA_TEXT_CACHE = path.join(TMP, 'arena_text.json')
 const ARENA_CODE_CACHE = path.join(TMP, 'arena_code.json')
 const BENCHLM_CACHE = path.join(TMP, 'benchlm.json')
+const LITELLM_CACHE = path.join(TMP, 'litellm.json')
 const HF_MODELS_DIR = path.join(TMP, 'hf_models')
 const KNOWN_SLUGS_FILE = path.join(TMP, 'known_slugs.json')
 const FORCE_PRESERVE_FILE = path.join(ROOT, 'scripts', 'preserve-models.json')
@@ -75,6 +81,7 @@ interface Flags {
   skipPerf: boolean
   skipArena: boolean
   skipBenchLM: boolean
+  skipLitellm: boolean
   skipHf: boolean
   status: boolean
   autoMatch: boolean
@@ -98,6 +105,7 @@ export function parseFlags(): Flags {
     skipPerf: false,
     skipArena: false,
     skipBenchLM: false,
+    skipLitellm: false,
     skipHf: false,
     status: false,
     autoMatch: true,
@@ -125,6 +133,7 @@ export function parseFlags(): Flags {
     else if (a === '--skip-perf') flags.skipPerf = true
     else if (a === '--skip-arena') flags.skipArena = true
     else if (a === '--skip-benchlm') flags.skipBenchLM = true
+    else if (a === '--skip-litellm') flags.skipLitellm = true
     else if (a === '--skip-hf') flags.skipHf = true
     else if (a === '--status') flags.status = true
     else if (a === '--no-auto-match') flags.autoMatch = false
@@ -146,6 +155,7 @@ Flags:
   --skip-perf        Skip performance extraction (faster incremental updates).
     --skip-arena       Skip LMSYS Chatbot Arena data fetching.
     --skip-benchlm     Skip BenchLM.ai data fetching.
+    --skip-litellm     Skip LiteLLM pricing/context enrichment.
     --skip-hf          Skip Hugging Face Hub data fetching.
   --status           Preview refresh targets without crawling.
    --auto-match       Auto-match unmapped AA slugs to OpenRouter by name (default).
@@ -510,6 +520,26 @@ async function fetchBenchLM(flags: Flags): Promise<BenchLMLeaderboard | null> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// LiteLLM (https://github.com/BerriAI/litellm) — aggregated model pricing /
+// context-window snapshot from dozens of providers (OpenAI, Anthropic,
+// Bedrock, Azure, Fireworks, Together, etc.).
+// ---------------------------------------------------------------------------
+
+async function fetchLiteLLM(flags: Flags): Promise<LiteLLMModel[]> {
+  const now = Date.now()
+  const useCache = !flags.noCache && !flags.force && fs.existsSync(LITELLM_CACHE) && (now - fs.statSync(LITELLM_CACHE).mtimeMs) < flags.leaderboardMaxAgeMs
+  try {
+    if (useCache) {
+      console.log(`  using cached LiteLLM data (${LITELLM_CACHE})`)
+    }
+    return await fetchLiteLLMModels(LITELLM_CACHE, flags.noCache, flags.force, flags.timeout, flags.retries, flags.leaderboardMaxAgeMs)
+  } catch (e) {
+    console.warn(`  ⚠ failed to fetch LiteLLM model list: ${e}`)
+    return []
+  }
+}
+
 function slugToFile(slug: string): string {
   return path.join(PAGES_DIR, `${slug.replace(/[\\/:*?"<>|]/g, '_')}.html`)
 }
@@ -740,6 +770,20 @@ export async function run(flags: Flags): Promise<void> {
     console.log(`  ${benchlm?.models.length ?? 0} models (${Date.now() - t3b}ms)`)
   } else {
     console.log('— BenchLM data skipped (--skip-benchlm)')
+  }
+
+  // Fetch LiteLLM pricing/context snapshot
+  const litellmModels: LiteLLMModel[] = []
+  let litellmLookup = new Map<string, LiteLLMModel>()
+  if (!flags.skipLitellm) {
+    console.log('— fetching LiteLLM model list…')
+    const t3c = Date.now()
+    const llm = await fetchLiteLLM(flags)
+    llm.forEach((m) => litellmModels.push(m))
+    litellmLookup = buildLiteLLMLookup(litellmModels)
+    console.log(`  ${litellmModels.length} chat models (${Date.now() - t3c}ms)`)
+  } else {
+    console.log('— LiteLLM data skipped (--skip-litellm)')
   }
 
   const active = registry.filter((m) => !m.deprecated)
@@ -1040,6 +1084,27 @@ export async function run(flags: Flags): Promise<void> {
     orOnlyAdded.push(or.id)
   }
 
+  // LiteLLM enrichment: pricing/context from LiteLLM aggregated provider list
+  let litellmMatched = 0
+  if (!flags.skipLitellm && litellmLookup.size > 0) {
+    for (const row of rows) {
+      const r = row as Record<string, unknown>
+      const slug = r.slug as string | undefined
+      const name = r.aaName as string | undefined
+      const orId = r.id as string | undefined
+      const llm = matchLiteLLMModel(slug ?? '', name, orId, litellmLookup)
+      if (llm) {
+        if ((r.inputPerM as number | null) == null && llm.inputPerM != null) r.inputPerM = llm.inputPerM
+        if ((r.outputPerM as number | null) == null && llm.outputPerM != null) r.outputPerM = llm.outputPerM
+        if ((r.contextTokens as number | null) == null && llm.maxInputTokens != null) r.contextTokens = llm.maxInputTokens
+        if ((r.maxCompletionTokens as number | null) == null && llm.maxOutputTokens != null) r.maxCompletionTokens = llm.maxOutputTokens
+        if ((r.maxCompletionTokens as number | null) == null && llm.maxTokens != null) r.maxCompletionTokens = llm.maxTokens
+        litellmMatched++
+      }
+    }
+    console.log(`  LiteLLM enriched: ${litellmMatched}/${rows.length} models`)
+  }
+
   // Deduplicate by canonical identity (slug, then id). Collapses true duplicates
   // and slug collisions (same slug, different id) while preserving effort
   // variants (same id, different slug). See deduplicateRows for details.
@@ -1244,9 +1309,10 @@ export async function run(flags: Flags): Promise<void> {
       artificialAnalysis: 'https://artificialanalysis.ai/models',
       ...(arena.text || arena.code ? { lmsysChatbotArena: 'https://arena.ai/leaderboard' } : {}),
       ...(benchlm ? { benchlm: 'https://benchlm.ai/api/data/leaderboard' } : {}),
+      ...(!flags.skipLitellm && litellmModels.length > 0 ? { litellm: 'https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json' } : {}),
       ...(!flags.skipHf && hfTotalIds > 0 ? { hfHub: 'https://huggingface.co/api/models' } : {}),
     },
-    note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Arena ELO from LMSYS Chatbot Arena. BenchLM scores from BenchLM.ai. HF benchmark scores (MMLU, GSM8K, HumanEval, ARC, Winogrande, HellaSwag, TruthfulQA) from Hugging Face Hub. Missing values are estimated at runtime via k-NN similarity.',
+    note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Arena ELO from LMSYS Chatbot Arena. BenchLM scores from BenchLM.ai. LiteLLM provides additional pricing/context from aggregated provider lists. HF benchmark scores (MMLU, GSM8K, HumanEval, ARC, Winogrande, HellaSwag, TruthfulQA) from Hugging Face Hub. Missing values are estimated at runtime via k-NN similarity.',
     preservation: {
       total: finalRows.length,
       added,
@@ -1259,6 +1325,7 @@ export async function run(flags: Flags): Promise<void> {
     withoutScore: includedWithoutScore.length,
     arenaMatched,
     benchlmMatched,
+    litellmMatched,
     hfMatched,
     hfTotalIds,
   }
@@ -1290,6 +1357,7 @@ export async function run(flags: Flags): Promise<void> {
     autoMatched.length ? `Auto-matched: ${autoMatched.length} AA→OpenRouter` : null,
     orOnlyAdded.length ? `OpenRouter-only: ${orOnlyAdded.length} models added without AA scores` : null,
      includedWithoutScore.length ? `Included without AA score: ${includedWithoutScore.length} models (estimated at runtime)` : null,
+    !flags.skipLitellm && litellmMatched > 0 ? `LiteLLM enriched: ${litellmMatched} models (pricing/context)` : null,
     !flags.skipHf && hfMatched > 0 ? `HF enriched: ${hfMatched} models (Hub metadata + benchmark scores)` : null,
     !flags.skipHf && hfTotalIds > 0 ? `HF Hub IDs: ${hfTotalIds} models looked up` : null,
   ].filter((l): l is string => l != null)
@@ -1307,6 +1375,7 @@ export async function run(flags: Flags): Promise<void> {
       fs.appendFileSync(githubOutput, `auto_matched_count=${autoMatched.length}\n`)
       fs.appendFileSync(githubOutput, `or_only_count=${orOnlyAdded.length}\n`)
       fs.appendFileSync(githubOutput, `without_score_count=${includedWithoutScore.length}\n`)
+      fs.appendFileSync(githubOutput, `litellm_matched_count=${!flags.skipLitellm ? litellmMatched : 0}\n`)
       fs.appendFileSync(githubOutput, `hf_matched_count=${!flags.skipHf ? hfMatched : 0}\n`)
       fs.appendFileSync(githubOutput, `hf_total_count=${!flags.skipHf ? hfTotalIds : 0}\n`)
       fs.appendFileSync(githubOutput, `summary<<EOF\n${summaryLines.join('\n')}\nEOF\n`)

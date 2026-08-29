@@ -25,6 +25,7 @@ Incremental refresh wrapper. Runs fetch-data with --refresh enabled by default.
     --skip-perf       Skip performance extraction (faster).
     --skip-arena      Skip LMSYS Chatbot Arena data fetching.
     --skip-benchlm    Skip BenchLM.ai data fetching.
+    --skip-litellm    Skip LiteLLM pricing/context enrichment.
     --skip-hf         Skip Hugging Face Hub data fetching.
     --no-auto-match   Disable auto-matching of unmapped AA slugs to OpenRouter.
     --status          Preview refresh targets without crawling.
