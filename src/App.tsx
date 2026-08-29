@@ -16,7 +16,7 @@ import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
 import TrendChart from './components/TrendChart'
 
-const BASE_MODELS = modelsData as Model[]
+const BASE_MODELS = modelsData as unknown as Model[]
 const SUBSCRIPTIONS = subscriptionsData as SubscriptionPlan[]
 const META = metaData as { fetchedAt: string }
 

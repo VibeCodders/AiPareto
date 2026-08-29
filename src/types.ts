@@ -40,7 +40,7 @@ export interface Model {
   maxCompletionTokens: number | null
   parameters: number | null
   activeParameters: number | null
-  valueScore: number | null
+  valueScore?: number | null
   /** Hugging Face model ID (from OpenRouter's `hugging_face_id`), used to match
    *  benchmark scores and download counts from Hugging Face. */
   huggingFaceId: string | null
