@@ -5,6 +5,8 @@
  *  - OpenRouter public API (https://openrouter.ai/api/v1/models) — token prices.
  *  - Artificial Analysis https://artificialanalysis.ai/models — model registry +
  *    per-model detail pages for Intelligence Index / Agentic Index / Omniscience.
+ *  - LMSYS Chatbot Arena (https://arena.ai/leaderboard) — human-preference ELO scores.
+ *  - BenchLM.ai (https://benchlm.ai/api/data/leaderboard) — aggregated benchmark scores.
  *
  * Output: src/data/models.json (rows merged by curated mapping), src/data/meta.json.
  * Detail pages are cached in .tmp/aa_pages so re-runs are cheap.
@@ -28,6 +30,8 @@
  *   --refresh         Incremental refresh: only re-crawl models with missing or stale scores.
  *   --refresh-known   Incremental refresh: re-crawl ALL known models, even if cache is fresh.
  *   --skip-perf       Skip performance extraction (faster incremental updates).
+ *   --skip-arena      Skip LMSYS Chatbot Arena data fetching.
+ *   --skip-benchlm    Skip BenchLM.ai data fetching.
  *   --verbose         Print extra diagnostics.
  *   --dry-run         Run the full pipeline but skip writing files.
  *   --help, -h        Show this help message.
@@ -35,6 +39,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { extractFlightChunks, extractModelObjects, extractObjectsContaining, extractPerfFromDetail, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
+import { type ArenaData, type ArenaLeaderboard, type BenchLMLeaderboard, buildArenaLookup, buildBenchLMLookup, matchArenaModel, matchBenchLMModel } from './arena-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
 import { DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, OR_PROVIDER_FAMILY, autoMatchSlug, familyFromORId, get, isReasoningFromORName, norm, openWeightsFromORId } from './shared.mts'
 import knownParams from '../src/data/known-params.json'
@@ -45,6 +50,9 @@ const PAGES_DIR = path.join(TMP, 'aa_pages')
 const OUT_DIR = path.join(ROOT, 'src', 'data')
 const OR_CACHE = path.join(TMP, 'openrouter.json')
 const AA_MODELS_CACHE = path.join(TMP, 'aa_models.html')
+const ARENA_TEXT_CACHE = path.join(TMP, 'arena_text.json')
+const ARENA_CODE_CACHE = path.join(TMP, 'arena_code.json')
+const BENCHLM_CACHE = path.join(TMP, 'benchlm.json')
 const KNOWN_SLUGS_FILE = path.join(TMP, 'known_slugs.json')
 const FORCE_PRESERVE_FILE = path.join(ROOT, 'scripts', 'preserve-models.json')
 
@@ -62,6 +70,8 @@ interface Flags {
   verbose: boolean
   dryRun: boolean
   skipPerf: boolean
+  skipArena: boolean
+  skipBenchLM: boolean
   status: boolean
   autoMatch: boolean
 }
@@ -82,6 +92,8 @@ export function parseFlags(): Flags {
     verbose: false,
     dryRun: false,
     skipPerf: false,
+    skipArena: false,
+    skipBenchLM: false,
     status: false,
     autoMatch: true,
   }
@@ -106,6 +118,8 @@ export function parseFlags(): Flags {
     else if (a === '--verbose') flags.verbose = true
     else if (a === '--dry-run') flags.dryRun = true
     else if (a === '--skip-perf') flags.skipPerf = true
+    else if (a === '--skip-arena') flags.skipArena = true
+    else if (a === '--skip-benchlm') flags.skipBenchLM = true
     else if (a === '--status') flags.status = true
     else if (a === '--no-auto-match') flags.autoMatch = false
     else if (a === '--help' || a === '-h') {
@@ -124,6 +138,8 @@ Flags:
   --refresh          Incremental refresh: only re-crawl models with missing or stale scores.
   --refresh-known    Incremental refresh: re-crawl ALL known models, even if cache is fresh.
   --skip-perf        Skip performance extraction (faster incremental updates).
+  --skip-arena       Skip LMSYS Chatbot Arena data fetching.
+  --skip-benchlm     Skip BenchLM.ai data fetching.
   --status           Preview refresh targets without crawling.
    --auto-match       Auto-match unmapped AA slugs to OpenRouter by name (default).
    --no-auto-match    Disable auto-matching; only use scripts/model-map.ts.
@@ -424,6 +440,68 @@ async function fetchAALeaderboards(flags: Flags): Promise<AAModelData[]> {
   return extractObjectsContaining(extractFlightChunks(html).join(''), '"codingIndex"')
 }
 
+// ---------------------------------------------------------------------------
+// LMSYS Chatbot Arena (via api.wulong.dev)
+// ---------------------------------------------------------------------------
+
+async function fetchArenaLeaderboard(name: string, cacheFile: string, flags: Flags): Promise<ArenaLeaderboard | null> {
+  const now = Date.now()
+  const useCache = !flags.noCache && !flags.force && fs.existsSync(cacheFile) && (now - fs.statSync(cacheFile).mtimeMs) < flags.leaderboardMaxAgeMs
+  try {
+    let json: string
+    if (useCache) {
+      console.log(`  using cached Arena ${name} data (${cacheFile})`)
+      json = fs.readFileSync(cacheFile, 'utf8')
+    } else {
+      json = await get(`https://api.wulong.dev/arena-ai-leaderboards/v1/leaderboard?name=${name}`, {
+        timeout: flags.timeout,
+        retries: flags.retries,
+        headers: { 'Accept': 'application/json' },
+      })
+      if (!flags.noCache) fs.writeFileSync(cacheFile, json)
+    }
+    return JSON.parse(json) as ArenaLeaderboard
+  } catch (e) {
+    console.warn(`  ⚠ failed to fetch Arena ${name} leaderboard: ${e}`)
+    return null
+  }
+}
+
+async function fetchArena(flags: Flags): Promise<ArenaData> {
+  const [text, code] = await Promise.all([
+    fetchArenaLeaderboard('text', ARENA_TEXT_CACHE, flags),
+    fetchArenaLeaderboard('code', ARENA_CODE_CACHE, flags),
+  ])
+  return { text, code }
+}
+
+// ---------------------------------------------------------------------------
+// BenchLM.ai
+// ---------------------------------------------------------------------------
+
+async function fetchBenchLM(flags: Flags): Promise<BenchLMLeaderboard | null> {
+  const now = Date.now()
+  const useCache = !flags.noCache && !flags.force && fs.existsSync(BENCHLM_CACHE) && (now - fs.statSync(BENCHLM_CACHE).mtimeMs) < flags.leaderboardMaxAgeMs
+  try {
+    let json: string
+    if (useCache) {
+      console.log(`  using cached BenchLM data (${BENCHLM_CACHE})`)
+      json = fs.readFileSync(BENCHLM_CACHE, 'utf8')
+    } else {
+      json = await get('https://benchlm.ai/api/data/leaderboard?limit=200', {
+        timeout: flags.timeout,
+        retries: flags.retries,
+        headers: { 'Accept': 'application/json' },
+      })
+      if (!flags.noCache) fs.writeFileSync(BENCHLM_CACHE, json)
+    }
+    return JSON.parse(json) as BenchLMLeaderboard
+  } catch (e) {
+    console.warn(`  ⚠ failed to fetch BenchLM leaderboard: ${e}`)
+    return null
+  }
+}
+
 function slugToFile(slug: string): string {
   return path.join(PAGES_DIR, `${slug.replace(/[\\/:*?"<>|]/g, '_')}.html`)
 }
@@ -632,6 +710,30 @@ export async function run(flags: Flags): Promise<void> {
   const leaderboard = await fetchAALeaderboards(flags)
   console.log(`  ${leaderboard.length} full model objects (coding index etc.) (${Date.now() - t3}ms)`)
 
+  // Fetch LMSYS Chatbot Arena data
+  let arena: ArenaData = { text: null, code: null }
+  if (!flags.skipArena) {
+    console.log('— fetching LMSYS Chatbot Arena leaderboards…')
+    const t3a = Date.now()
+    arena = await fetchArena(flags)
+    const textCount = arena.text?.models.length ?? 0
+    const codeCount = arena.code?.models.length ?? 0
+    console.log(`  text: ${textCount} models, code: ${codeCount} models (${Date.now() - t3a}ms)`)
+  } else {
+    console.log('— Arena data skipped (--skip-arena)')
+  }
+
+  // Fetch BenchLM.ai data
+  let benchlm: BenchLMLeaderboard | null = null
+  if (!flags.skipBenchLM) {
+    console.log('— fetching BenchLM.ai leaderboard…')
+    const t3b = Date.now()
+    benchlm = await fetchBenchLM(flags)
+    console.log(`  ${benchlm?.models.length ?? 0} models (${Date.now() - t3b}ms)`)
+  } else {
+    console.log('— BenchLM data skipped (--skip-benchlm)')
+  }
+
   const active = registry.filter((m) => !m.deprecated)
   // A model is a candidate for ingestion when it is undated (newly added and not
   // yet dated by the source) or released on/after the cutoff. New releases often
@@ -715,6 +817,11 @@ export async function run(flags: Flags): Promise<void> {
   const orById = new Map(orModels.map((m) => [m.id, m]))
   const orIdSet = new Set(orById.keys())
 
+  // Build lookup maps for the new sources
+  const arenaTextLookup = buildArenaLookup(arena.text)
+  const arenaCodeLookup = buildArenaLookup(arena.code)
+  const benchlmLookup = buildBenchLMLookup(benchlm)
+
   let rows: Array<Record<string, unknown>> = []
   const unmatched: string[] = []
   const autoMatched: string[] = []
@@ -741,6 +848,11 @@ export async function run(flags: Flags): Promise<void> {
       const syntheticId = `aa:${m.slug}`
       const family = m.creator?.name ?? 'Unknown'
       if (score == null) includedWithoutScore.push(`${m.slug} (no OR match, synthetic entry)`)
+      // Match Arena and BenchLM data for synthetic rows
+      const arenaTextModel = matchArenaModel(m.slug, m.name, undefined, arenaTextLookup)
+      const arenaCodeModel = matchArenaModel(m.slug, m.name, undefined, arenaCodeLookup)
+      const benchlmModel = matchBenchLMModel(m.slug, m.name, undefined, benchlmLookup)
+
       rows.push({
         id: syntheticId,
         name: m.name,
@@ -763,6 +875,12 @@ export async function run(flags: Flags): Promise<void> {
         cacheReadPerM: null,
         cacheWritePerM: null,
         maxCompletionTokens: null,
+        arenaElo: arenaTextModel?.score ?? null,
+        arenaVotes: arenaTextModel?.votes ?? null,
+        arenaCodeElo: arenaCodeModel?.score ?? null,
+        arenaCodeVotes: arenaCodeModel?.votes ?? null,
+        benchlmScore: benchlmModel?.overallScore ?? null,
+        benchlmCodingScore: benchlmModel?.categoryScores?.coding ?? null,
         ...parseParams(`${m.slug} ${m.name}`, data),
       })
       continue
@@ -775,6 +893,12 @@ export async function run(flags: Flags): Promise<void> {
       // Missing prices are estimated at runtime by the similarity model.
       unmatched.push(`${m.slug} -> ${orId} (not on OpenRouter; ingested as synthetic entry)`)
       if (score == null) includedWithoutScore.push(`${m.slug} (no OR match, synthetic entry)`)
+
+      // Match Arena and BenchLM data for stale mapping rows
+      const arenaTextModel2 = matchArenaModel(m.slug, m.name, orId, arenaTextLookup)
+      const arenaCodeModel2 = matchArenaModel(m.slug, m.name, orId, arenaCodeLookup)
+      const benchlmModel2 = matchBenchLMModel(m.slug, m.name, orId, benchlmLookup)
+
       rows.push({
         id: `aa:${m.slug}`,
         name: m.name,
@@ -797,6 +921,12 @@ export async function run(flags: Flags): Promise<void> {
         cacheReadPerM: null,
         cacheWritePerM: null,
         maxCompletionTokens: null,
+        arenaElo: arenaTextModel2?.score ?? null,
+        arenaVotes: arenaTextModel2?.votes ?? null,
+        arenaCodeElo: arenaCodeModel2?.score ?? null,
+        arenaCodeVotes: arenaCodeModel2?.votes ?? null,
+        benchlmScore: benchlmModel2?.overallScore ?? null,
+        benchlmCodingScore: benchlmModel2?.categoryScores?.coding ?? null,
         ...parseParams(`${m.slug} ${m.name}`, data),
       })
       continue
@@ -805,6 +935,11 @@ export async function run(flags: Flags): Promise<void> {
     // Models without an AA intelligenceIndex are still included; missing
     // benchmarks are estimated at runtime.
     if (score == null) includedWithoutScore.push(m.slug)
+
+    // Match Arena and BenchLM data for mapped AA→OR rows
+    const arenaTextModel3 = matchArenaModel(m.slug, m.name, or.id, arenaTextLookup)
+    const arenaCodeModel3 = matchArenaModel(m.slug, m.name, or.id, arenaCodeLookup)
+    const benchlmModel3 = matchBenchLMModel(m.slug, m.name, or.id, benchlmLookup)
 
     rows.push({
       id: or.id,
@@ -828,6 +963,12 @@ export async function run(flags: Flags): Promise<void> {
       cacheReadPerM: usd(or.pricing.input_cache_read),
       cacheWritePerM: usd(or.pricing.input_cache_write),
       maxCompletionTokens: or.top_provider?.max_completion_tokens ?? null,
+      arenaElo: arenaTextModel3?.score ?? null,
+      arenaVotes: arenaTextModel3?.votes ?? null,
+      arenaCodeElo: arenaCodeModel3?.score ?? null,
+      arenaCodeVotes: arenaCodeModel3?.votes ?? null,
+      benchlmScore: benchlmModel3?.overallScore ?? null,
+      benchlmCodingScore: benchlmModel3?.categoryScores?.coding ?? null,
       ...parseParams(`${or.id} ${or.name} ${m.name}`, data),
     })
   }
@@ -848,11 +989,17 @@ export async function run(flags: Flags): Promise<void> {
     // by the estimation system at runtime. Even unpriced OpenRouter models
     // are ingested; missing prices are estimated at runtime.
 
+    // Match Arena and BenchLM data for OpenRouter-only models
+    const orSlug = norm(rest) || rest
+    const arenaTextModel4 = matchArenaModel(orSlug, or.name, or.id, arenaTextLookup)
+    const arenaCodeModel4 = matchArenaModel(orSlug, or.name, or.id, arenaCodeLookup)
+    const benchlmModel4 = matchBenchLMModel(orSlug, or.name, or.id, benchlmLookup)
+
     rows.push({
       id: or.id,
       name: or.name,
       family,
-      slug: norm(rest) || rest,
+      slug: orSlug,
       aaName: or.name,
       effort: null,
       released: null,
@@ -870,6 +1017,12 @@ export async function run(flags: Flags): Promise<void> {
       cacheReadPerM: usd(or.pricing.input_cache_read),
       cacheWritePerM: usd(or.pricing.input_cache_write),
       maxCompletionTokens: or.top_provider?.max_completion_tokens ?? null,
+      arenaElo: arenaTextModel4?.score ?? null,
+      arenaVotes: arenaTextModel4?.votes ?? null,
+      arenaCodeElo: arenaCodeModel4?.score ?? null,
+      arenaCodeVotes: arenaCodeModel4?.votes ?? null,
+      benchlmScore: benchlmModel4?.overallScore ?? null,
+      benchlmCodingScore: benchlmModel4?.categoryScores?.coding ?? null,
       ...parseParams(`${or.id} ${or.name}`, null),
     })
     orOnlyAdded.push(or.id)
@@ -1006,13 +1159,18 @@ export async function run(flags: Flags): Promise<void> {
     }
   }
 
+  const arenaMatched = rows.filter((r) => r.arenaElo != null || r.arenaCodeElo != null).length
+  const benchlmMatched = rows.filter((r) => r.benchlmScore != null).length
+
   const meta = {
     fetchedAt: new Date().toISOString(),
     sources: {
       openrouter: 'https://openrouter.ai/api/v1/models',
       artificialAnalysis: 'https://artificialanalysis.ai/models',
+      ...(arena.text || arena.code ? { lmsysChatbotArena: 'https://arena.ai/leaderboard' } : {}),
+      ...(benchlm ? { benchlm: 'https://benchlm.ai/api/data/leaderboard' } : {}),
     },
-    note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Missing values are estimated at runtime via k-NN similarity.',
+    note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Arena ELO from LMSYS Chatbot Arena. BenchLM scores from BenchLM.ai. Missing values are estimated at runtime via k-NN similarity.',
     preservation: {
       total: finalRows.length,
       added,
@@ -1023,6 +1181,8 @@ export async function run(flags: Flags): Promise<void> {
     autoMatched: autoMatched.length,
     orOnly: orOnlyAdded.length,
     withoutScore: includedWithoutScore.length,
+    arenaMatched,
+    benchlmMatched,
   }
 
   const changed = added.length > 0 || JSON.stringify(finalRows) !== JSON.stringify(previous)
