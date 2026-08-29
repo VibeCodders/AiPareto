@@ -37,8 +37,16 @@ I dati sono snapshot "una tantum" committati in `src/data/models.json` (114 mode
 generati da:
 
 - **OpenRouter** — `https://openrouter.ai/api/v1/models` (endpoint pubblico, senza API key):
-  prezzi input/output/cache read/cache write.
-- **Artificial Analysis** — pagina `/models` (registry), `/leaderboards/models` (oggetti completi con Intelligence/Coding/Agentic Index, Tau2, HLE, Omniscience) e pagine dettaglio (senza API key).
+  prezzi input/output/cache read/cache write, ID modello Hugging Face (dove disponibile) e flag
+  di reasoning.
+- **Artificial Analysis** — pagina `/models` (registry), `/leaderboards/models` (oggetti completi con
+  Intelligence/Coding/Agentic Index, Tau2, HLE, Omniscience) e pagine dettaglio (senza API key)
+  per velocità e latenza.
+- **Hugging Face Hub** (`https://huggingface.co/api/models`): conteggio download, tag e
+  parametri stimati da file safetensors — per i modelli open-weights, come indicatore di
+  popolarità. I modelli vengono abbinati all'ID Hugging Face fornito da OpenRouter.
+- **LMSYS Chatbot Arena** (via `api.wulong.dev`): ELO umani per preferenze conversazionali (text e code).
+- **BenchLM.ai** (`https://benchlm.ai/api/data/leaderboard`): punteggi aggregati da benchmark multi-categoria.
 
 Per rigenerare i dati:
 
@@ -53,14 +61,16 @@ Lo script:
 3. unisce le due fonti usando la mappa curata in `scripts/model-map.ts`
    (slug Artificial Analysis → id OpenRouter), con **auto-match di fallback**
    per gli slug non mappati (corrispondenza per somiglianza del nome);
-4. include anche i modelli nuovi di OpenRouter assenti su Artificial Analysis
+4. scarica la **HF Hub** per arricchire i modelli
+   open-weights con conteggi download, parametri stimati e tag (via
+   `scripts/hf-utils.mts`);
+5. include anche i modelli nuovi di OpenRouter assenti su Artificial Analysis
    (valori mancanti stimati a runtime via k-NN);
-5. scrive `src/data/models.json` e `src/data/meta.json`.
+6. scrive `src/data/models.json` e `src/data/meta.json`.
 
-**Auto-match e modelli incompleti:** per impostazione predefinita `fetch-data` accetta
-modelli anche senza tutti i valori (benchmark o specifiche mancanti vengono stimati
-dall'app tramite k-NN). Per disabilitare l'auto-match usa `--no-auto-match`; per
-esigere che tutti i modelli abbiano un punteggio AA usa `--require-scores`.
+**Flag di saltscelta:** `--skip-arena`, `--skip-benchlm`, `--skip-hf` per disabilitare
+singole fonti; `--skip-perf` per velocizzare gli aggiornamenti incrementali;
+`--force` per ignorare tutte le cache.
 
 **Nota:** il crawl di Artificial Analysis è uno snapshot non ufficiale; la mappa dei modelli
 va aggiornata a mano quando escono modelli nuovi (vedi `scripts/match-models.mts` per trovare

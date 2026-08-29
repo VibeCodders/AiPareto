@@ -30,6 +30,17 @@ export type EstimableField =
   | 'maxCompletionTokens'
   | 'parameters'
   | 'activeParameters'
+  | 'hfMMLU'
+  | 'hfGSM8K'
+  | 'hfHumanEval'
+  | 'hfARC'
+  | 'hfWinogrande'
+  | 'hfHellaSwag'
+  | 'hfTruthfulQA'
+  | 'hfDownloads'
+  | 'arenaElo'
+  | 'arenaCodeElo'
+  | 'benchlmScore'
 
 export const ESTIMABLE_FIELDS: EstimableField[] = [
   'intelligenceIndex',
@@ -48,6 +59,17 @@ export const ESTIMABLE_FIELDS: EstimableField[] = [
   'maxCompletionTokens',
   'parameters',
   'activeParameters',
+  'hfMMLU',
+  'hfGSM8K',
+  'hfHumanEval',
+  'hfARC',
+  'hfWinogrande',
+  'hfHellaSwag',
+  'hfTruthfulQA',
+  'hfDownloads',
+  'arenaElo',
+  'arenaCodeElo',
+  'benchlmScore',
 ]
 
 export type EstimatedModel = Model & {
@@ -65,6 +87,12 @@ const DISTANCE_FEATURES: EstimableField[] = [
   'contextTokens',
   'inputPerM',
   'outputPerM',
+  'hfMMLU',
+  'hfGSM8K',
+  'hfHumanEval',
+  'hfARC',
+  'hfDownloads',
+  'arenaElo',
   'maxCompletionTokens',
   'parameters',
   'activeParameters',
@@ -72,29 +100,40 @@ const DISTANCE_FEATURES: EstimableField[] = [
 
 /** Feature weights tailored depending on what target field is being estimated. */
 const FEATURE_WEIGHTS: Record<EstimableField, Partial<Record<EstimableField, number>>> = {
-  intelligenceIndex: { codingIndex: 2.0, agenticIndex: 2.0, hle: 1.5, omniscience: 1.5, inputPerM: 0.8, parameters: 1.2 },
-  codingIndex: { intelligenceIndex: 2.5, agenticIndex: 2.0, hle: 1.2, omniscience: 1.2 },
-  agenticIndex: { intelligenceIndex: 2.5, codingIndex: 2.0, tau2: 1.8, hle: 1.2 },
+  intelligenceIndex: { codingIndex: 2.0, agenticIndex: 2.0, hle: 1.5, omniscience: 1.5, inputPerM: 0.8, parameters: 1.2, hfMMLU: 1.8, hfGSM8K: 1.5, hfHumanEval: 1.5, arenaElo: 1.3, benchlmScore: 1.3 },
+  codingIndex: { intelligenceIndex: 2.5, agenticIndex: 2.0, hle: 1.2, omniscience: 1.2, hfHumanEval: 2.0, hfMMLU: 1.2, benchlmScore: 1.0, arenaElo: 1.0, arenaCodeElo: 1.3 },
+  agenticIndex: { intelligenceIndex: 2.5, codingIndex: 2.0, tau2: 1.8, hle: 1.2, arenaCodeElo: 1.5, benchlmScore: 1.0, hfMMLU: 1.0 },
   tau2: { agenticIndex: 2.5, intelligenceIndex: 1.8, codingIndex: 1.5 },
-  hle: { intelligenceIndex: 2.5, omniscience: 2.0, codingIndex: 1.5 },
+  hle: { intelligenceIndex: 2.5, omniscience: 2.0, codingIndex: 1.5, hfMMLU: 1.2 },
   omniscience: { intelligenceIndex: 2.5, hle: 2.0, codingIndex: 1.5 },
   outputSpeed: { latencySeconds: 2.0, inputPerM: 1.2, contextTokens: 0.8 },
   latencySeconds: { outputSpeed: 2.0, inputPerM: 1.2, contextTokens: 0.8 },
-  contextTokens: { inputPerM: 1.2, outputPerM: 1.2, intelligenceIndex: 0.8, parameters: 1.0 },
-  inputPerM: { outputPerM: 3.0, intelligenceIndex: 1.8, codingIndex: 1.2, contextTokens: 1.0 },
+  contextTokens: { inputPerM: 1.2, outputPerM: 1.2, intelligenceIndex: 0.8, parameters: 1.0, hfDownloads: 0.8 },
+  inputPerM: { outputPerM: 3.0, intelligenceIndex: 1.8, codingIndex: 1.2, contextTokens: 1.0, parameters: 1.0 },
   outputPerM: { inputPerM: 3.0, intelligenceIndex: 1.8, codingIndex: 1.2 },
   cacheReadPerM: { inputPerM: 3.0, outputPerM: 1.5 },
   cacheWritePerM: { inputPerM: 3.0, outputPerM: 1.5 },
   maxCompletionTokens: { contextTokens: 2.0, inputPerM: 0.8, outputPerM: 0.8, parameters: 1.0 },
-  parameters: { intelligenceIndex: 2.5, contextTokens: 1.5, inputPerM: 1.2, activeParameters: 1.0 },
+  parameters: { intelligenceIndex: 2.5, contextTokens: 1.5, inputPerM: 1.2, activeParameters: 1.0, hfDownloads: 1.2 },
   activeParameters: { parameters: 3.0, intelligenceIndex: 1.0 },
+  hfMMLU: { intelligenceIndex: 3.0, codingIndex: 1.8, agenticIndex: 1.5, hfGSM8K: 1.8, hfHumanEval: 1.2, benchlmScore: 1.0, arenaElo: 0.8 },
+  hfGSM8K: { intelligenceIndex: 2.5, codingIndex: 2.0, hfMMLU: 1.8, benchlmScore: 1.0, arenaElo: 0.8 },
+  hfHumanEval: { codingIndex: 3.0, agenticIndex: 2.0, intelligenceIndex: 1.5, hfMMLU: 1.2, benchlmScore: 1.0, arenaCodeElo: 0.8 },
+  hfARC: { intelligenceIndex: 2.0, hfMMLU: 1.0, parameters: 1.0 },
+  hfWinogrande: { intelligenceIndex: 1.0, hfMMLU: 0.8 },
+  hfHellaSwag: { intelligenceIndex: 1.0, hfMMLU: 0.8 },
+  hfTruthfulQA: { intelligenceIndex: 1.0, hle: 0.8 },
+  hfDownloads: { parameters: 1.5, intelligenceIndex: 0.8, contextTokens: 0.8, inputPerM: 0.5 },
+  arenaElo: { intelligenceIndex: 2.0, codingIndex: 1.5, agenticIndex: 1.5, benchlmScore: 1.0 },
+  arenaCodeElo: { codingIndex: 2.5, agenticIndex: 2.0, intelligenceIndex: 1.2, benchlmScore: 1.0 },
+  benchlmScore: { intelligenceIndex: 2.0, codingIndex: 1.5, hfMMLU: 1.5, arenaElo: 1.0 },
 }
 
 /** Feature value on a normalized/log scale for fair distance comparison. */
 function featureValue(m: Model, k: EstimableField): number | null {
   const v = m[k]
   if (v == null || !Number.isFinite(v)) return null
-  if (k === 'contextTokens' || k === 'inputPerM' || k === 'outputPerM' || k === 'cacheReadPerM' || k === 'cacheWritePerM' || k === 'outputSpeed' || k === 'latencySeconds' || k === 'maxCompletionTokens' || k === 'parameters' || k === 'activeParameters') {
+  if (k === 'contextTokens' || k === 'inputPerM' || k === 'outputPerM' || k === 'cacheReadPerM' || k === 'cacheWritePerM' || k === 'outputSpeed' || k === 'latencySeconds' || k === 'maxCompletionTokens' || k === 'parameters' || k === 'activeParameters' || k === 'hfDownloads') {
     return Math.log10(Math.max(v, 0.0001))
   }
   return v
@@ -204,6 +243,7 @@ function clampAndRound(field: EstimableField, v: number, min: number, max: numbe
     const step = v >= 1e12 ? 1e8 : v >= 1e11 ? 1e7 : v >= 1e10 ? 1e6 : v >= 1e9 ? 1e6 : 1e5
     return Math.max(1, Math.round(v / step) * step)
   }
+  if (field === 'hfDownloads') return Math.max(0, Math.round(v))
   return Math.min(max ?? 100, Math.max(min ?? 0, Number(v.toFixed(2))))
 }
 
@@ -412,7 +452,7 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
       // For parameters and activeParameters, which span many orders of magnitude,
       // average in log10-space (matching how featureValue computes distances) to
       // avoid being dominated by the single largest model.
-      const useLogAverage = x === 'parameters' || x === 'activeParameters'
+       const useLogAverage = x === 'parameters' || x === 'activeParameters' || x === 'hfDownloads'
       if (useLogAverage) {
         let logSum = 0
         for (let i = 0; i < candidates.length; i++) {

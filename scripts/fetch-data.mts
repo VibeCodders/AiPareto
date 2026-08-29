@@ -32,6 +32,7 @@
  *   --skip-perf       Skip performance extraction (faster incremental updates).
  *   --skip-arena      Skip LMSYS Chatbot Arena data fetching.
  *   --skip-benchlm    Skip BenchLM.ai data fetching.
+ *   --skip-hf         Skip Hugging Face Hub data fetching.
  *   --verbose         Print extra diagnostics.
  *   --dry-run         Run the full pipeline but skip writing files.
  *   --help, -h        Show this help message.
@@ -40,6 +41,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { extractFlightChunks, extractModelObjects, extractObjectsContaining, extractPerfFromDetail, parseModelRegistry, type AAModelData, type AAModelMeta } from './aa-utils.mts'
 import { type ArenaData, type ArenaLeaderboard, type BenchLMLeaderboard, buildArenaLookup, buildBenchLMLookup, matchArenaModel, matchBenchLMModel } from './arena-utils.mts'
+import { buildHfModelInfoLookup, fetchHfModelInfos, matchHfModel, type HfModelInfo } from './hf-utils.mts'
 import { AA_TO_OR } from './model-map.ts'
 import { DEFAULT_LEADERBOARD_MAX_AGE_MS, DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_DETAIL_MAX_AGE_MS, OR_PROVIDER_FAMILY, autoMatchSlug, familyFromORId, get, isReasoningFromORName, norm, openWeightsFromORId } from './shared.mts'
 import knownParams from '../src/data/known-params.json'
@@ -53,6 +55,7 @@ const AA_MODELS_CACHE = path.join(TMP, 'aa_models.html')
 const ARENA_TEXT_CACHE = path.join(TMP, 'arena_text.json')
 const ARENA_CODE_CACHE = path.join(TMP, 'arena_code.json')
 const BENCHLM_CACHE = path.join(TMP, 'benchlm.json')
+const HF_MODELS_DIR = path.join(TMP, 'hf_models')
 const KNOWN_SLUGS_FILE = path.join(TMP, 'known_slugs.json')
 const FORCE_PRESERVE_FILE = path.join(ROOT, 'scripts', 'preserve-models.json')
 
@@ -72,6 +75,7 @@ interface Flags {
   skipPerf: boolean
   skipArena: boolean
   skipBenchLM: boolean
+  skipHf: boolean
   status: boolean
   autoMatch: boolean
 }
@@ -94,6 +98,7 @@ export function parseFlags(): Flags {
     skipPerf: false,
     skipArena: false,
     skipBenchLM: false,
+    skipHf: false,
     status: false,
     autoMatch: true,
   }
@@ -120,6 +125,7 @@ export function parseFlags(): Flags {
     else if (a === '--skip-perf') flags.skipPerf = true
     else if (a === '--skip-arena') flags.skipArena = true
     else if (a === '--skip-benchlm') flags.skipBenchLM = true
+    else if (a === '--skip-hf') flags.skipHf = true
     else if (a === '--status') flags.status = true
     else if (a === '--no-auto-match') flags.autoMatch = false
     else if (a === '--help' || a === '-h') {
@@ -138,8 +144,9 @@ Flags:
   --refresh          Incremental refresh: only re-crawl models with missing or stale scores.
   --refresh-known    Incremental refresh: re-crawl ALL known models, even if cache is fresh.
   --skip-perf        Skip performance extraction (faster incremental updates).
-  --skip-arena       Skip LMSYS Chatbot Arena data fetching.
-  --skip-benchlm     Skip BenchLM.ai data fetching.
+    --skip-arena       Skip LMSYS Chatbot Arena data fetching.
+    --skip-benchlm     Skip BenchLM.ai data fetching.
+    --skip-hf          Skip Hugging Face Hub data fetching.
   --status           Preview refresh targets without crawling.
    --auto-match       Auto-match unmapped AA slugs to OpenRouter by name (default).
    --no-auto-match    Disable auto-matching; only use scripts/model-map.ts.
@@ -379,6 +386,7 @@ function verifyPreservation(
 interface ORModel {
   id: string
   name: string
+  hugging_face_id?: string | null
   context: number | null
   top_provider: { max_completion_tokens: number | null } | null
   pricing: {
@@ -881,6 +889,7 @@ export async function run(flags: Flags): Promise<void> {
         arenaCodeVotes: arenaCodeModel?.votes ?? null,
         benchlmScore: benchlmModel?.overallScore ?? null,
         benchlmCodingScore: benchlmModel?.categoryScores?.coding ?? null,
+        huggingFaceId: null,
         ...parseParams(`${m.slug} ${m.name}`, data),
       })
       continue
@@ -927,6 +936,7 @@ export async function run(flags: Flags): Promise<void> {
         arenaCodeVotes: arenaCodeModel2?.votes ?? null,
         benchlmScore: benchlmModel2?.overallScore ?? null,
         benchlmCodingScore: benchlmModel2?.categoryScores?.coding ?? null,
+        huggingFaceId: null,
         ...parseParams(`${m.slug} ${m.name}`, data),
       })
       continue
@@ -969,6 +979,7 @@ export async function run(flags: Flags): Promise<void> {
       arenaCodeVotes: arenaCodeModel3?.votes ?? null,
       benchlmScore: benchlmModel3?.overallScore ?? null,
       benchlmCodingScore: benchlmModel3?.categoryScores?.coding ?? null,
+      huggingFaceId: or.hugging_face_id ?? null,
       ...parseParams(`${or.id} ${or.name} ${m.name}`, data),
     })
   }
@@ -1023,6 +1034,7 @@ export async function run(flags: Flags): Promise<void> {
       arenaCodeVotes: arenaCodeModel4?.votes ?? null,
       benchlmScore: benchlmModel4?.overallScore ?? null,
       benchlmCodingScore: benchlmModel4?.categoryScores?.coding ?? null,
+      huggingFaceId: or.hugging_face_id ?? null,
       ...parseParams(`${or.id} ${or.name}`, null),
     })
     orOnlyAdded.push(or.id)
@@ -1048,6 +1060,68 @@ export async function run(flags: Flags): Promise<void> {
       for (const s of orOnlyAdded) console.log(`    ${s}`)
     }
   }
+
+  // Hugging Face enrichment: Hub metadata (downloads, parameter estimation)
+  let hfHubMatched = 0
+  let hfTotalIds = 0
+  let hfParamsEstimated = 0
+  if (!flags.skipHf) {
+    console.log('— fetching Hugging Face Hub metadata…')
+
+    // Collect unique HF IDs from rows
+    const hfIdSet = new Set<string>()
+    for (const r of rows) {
+      const hfId = r.huggingFaceId as string | null | undefined
+      if (hfId) hfIdSet.add(hfId)
+    }
+    hfTotalIds = hfIdSet.size
+
+    // Fetch HF Hub metadata for models with hugging_face_id
+    const hfModelInfoMap = await fetchHfModelInfos(HF_MODELS_DIR, [...hfIdSet], flags)
+    hfHubMatched = hfModelInfoMap.size
+
+    // Build a lookup for fuzzy matching (for models without HF ID)
+    const hfLookup = buildHfModelInfoLookup([...hfModelInfoMap.values()])
+
+    // Merge HF data into rows
+    for (const row of rows) {
+      const r = row as Record<string, unknown>
+      const hfId = r.huggingFaceId as string | null | undefined
+      const slug = r.slug as string | undefined
+      const name = r.aaName as string | undefined
+      const orId = r.id as string | undefined
+
+      const hfModel = hfId
+        ? hfModelInfoMap.get(hfId)
+        : matchHfModel(hfId ?? null, slug, name, orId, hfLookup)
+
+      if (hfModel) {
+        r.hfDownloads = hfModel.downloads
+        // Fill in parameter count from HF safetensors if missing
+        if (r.parameters == null && hfModel.estimatedParams != null) {
+          r.parameters = hfModel.estimatedParams
+          hfParamsEstimated++
+        }
+      }
+    }
+
+    console.log(`  HF Hub: ${hfHubMatched}/${hfTotalIds} fetched, ${hfParamsEstimated} parameter counts filled from safetensors`)
+  } else {
+    console.log('— HF data skipped (--skip-hf)')
+  }
+
+  // Ensure all rows have HF fields initialized (null if not enriched)
+  for (const row of rows) {
+    const r = row as Record<string, unknown>
+    if (r.hfDownloads === undefined) r.hfDownloads = null
+    if (r.hfMMLU === undefined) r.hfMMLU = null
+    if (r.hfGSM8K === undefined) r.hfGSM8K = null
+    if (r.hfHumanEval === undefined) r.hfHumanEval = null
+    if (r.hfARC === undefined) r.hfARC = null
+    if (r.hfWinogrande === undefined) r.hfWinogrande = null
+    if (r.hfHellaSwag === undefined) r.hfHellaSwag = null
+     if (r.hfTruthfulQA === undefined) r.hfTruthfulQA = null
+   }
 
   console.log(`— extracting perf for ${rows.length} models (concurrency=${flags.concurrency})…`)
 
@@ -1161,6 +1235,7 @@ export async function run(flags: Flags): Promise<void> {
 
   const arenaMatched = rows.filter((r) => r.arenaElo != null || r.arenaCodeElo != null).length
   const benchlmMatched = rows.filter((r) => r.benchlmScore != null).length
+  const hfMatched = rows.filter((r) => r.hfDownloads != null || r.hfMMLU != null || r.hfGSM8K != null || r.hfHumanEval != null || r.hfARC != null || r.hfWinogrande != null || r.hfHellaSwag != null || r.hfTruthfulQA != null).length
 
   const meta = {
     fetchedAt: new Date().toISOString(),
@@ -1169,8 +1244,9 @@ export async function run(flags: Flags): Promise<void> {
       artificialAnalysis: 'https://artificialanalysis.ai/models',
       ...(arena.text || arena.code ? { lmsysChatbotArena: 'https://arena.ai/leaderboard' } : {}),
       ...(benchlm ? { benchlm: 'https://benchlm.ai/api/data/leaderboard' } : {}),
+      ...(!flags.skipHf && hfTotalIds > 0 ? { hfHub: 'https://huggingface.co/api/models' } : {}),
     },
-    note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Arena ELO from LMSYS Chatbot Arena. BenchLM scores from BenchLM.ai. Missing values are estimated at runtime via k-NN similarity.',
+    note: 'Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Arena ELO from LMSYS Chatbot Arena. BenchLM scores from BenchLM.ai. HF benchmark scores (MMLU, GSM8K, HumanEval, ARC, Winogrande, HellaSwag, TruthfulQA) from Hugging Face Hub. Missing values are estimated at runtime via k-NN similarity.',
     preservation: {
       total: finalRows.length,
       added,
@@ -1183,6 +1259,8 @@ export async function run(flags: Flags): Promise<void> {
     withoutScore: includedWithoutScore.length,
     arenaMatched,
     benchlmMatched,
+    hfMatched,
+    hfTotalIds,
   }
 
   const changed = added.length > 0 || JSON.stringify(finalRows) !== JSON.stringify(previous)
@@ -1211,7 +1289,9 @@ export async function run(flags: Flags): Promise<void> {
     preservedWithoutScore > 0 ? `Preserved without fresh scores: ${preservedWithoutScore} models kept from previous data` : null,
     autoMatched.length ? `Auto-matched: ${autoMatched.length} AA→OpenRouter` : null,
     orOnlyAdded.length ? `OpenRouter-only: ${orOnlyAdded.length} models added without AA scores` : null,
-    includedWithoutScore.length ? `Included without AA score: ${includedWithoutScore.length} models (estimated at runtime)` : null,
+     includedWithoutScore.length ? `Included without AA score: ${includedWithoutScore.length} models (estimated at runtime)` : null,
+    !flags.skipHf && hfMatched > 0 ? `HF enriched: ${hfMatched} models (Hub metadata + benchmark scores)` : null,
+    !flags.skipHf && hfTotalIds > 0 ? `HF Hub IDs: ${hfTotalIds} models looked up` : null,
   ].filter((l): l is string => l != null)
 
   if (!flags.dryRun) {
@@ -1227,6 +1307,8 @@ export async function run(flags: Flags): Promise<void> {
       fs.appendFileSync(githubOutput, `auto_matched_count=${autoMatched.length}\n`)
       fs.appendFileSync(githubOutput, `or_only_count=${orOnlyAdded.length}\n`)
       fs.appendFileSync(githubOutput, `without_score_count=${includedWithoutScore.length}\n`)
+      fs.appendFileSync(githubOutput, `hf_matched_count=${!flags.skipHf ? hfMatched : 0}\n`)
+      fs.appendFileSync(githubOutput, `hf_total_count=${!flags.skipHf ? hfTotalIds : 0}\n`)
       fs.appendFileSync(githubOutput, `summary<<EOF\n${summaryLines.join('\n')}\nEOF\n`)
     }
     const githubStepSummary = process.env.GITHUB_STEP_SUMMARY

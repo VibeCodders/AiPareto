@@ -41,6 +41,37 @@ export interface Model {
   parameters: number | null
   activeParameters: number | null
   valueScore: number | null
+  /** Hugging Face model ID (from OpenRouter's `hugging_face_id`), used to match
+   *  benchmark scores and download counts from Hugging Face. */
+  huggingFaceId: string | null
+  /** HF Hub download count (popularity indicator). */
+  hfDownloads: number | null
+  /** MMLU benchmark score (0-shot, 0-100) from Hugging Face. */
+  hfMMLU: number | null
+  /** GSM8K benchmark score (0-shot, 0-100) from Hugging Face. */
+  hfGSM8K: number | null
+  /** HumanEval pass@1 (0-100) from Hugging Face. */
+  hfHumanEval: number | null
+  /** ARC Challenge score (0-shot, 0-100) from Hugging Face. */
+  hfARC: number | null
+  /** Winogrande score (0-shot, 0-100) from Hugging Face. */
+  hfWinogrande: number | null
+  /** HellaSwag score (0-shot, 0-100) from Hugging Face. */
+  hfHellaSwag: number | null
+  /** TruthfulQA score (0-shot, 0-100) from Hugging Face. */
+  hfTruthfulQA: number | null
+  /** LMSYS Chatbot Arena ELO (text conversation battles). */
+  arenaElo: number | null
+  /** Number of Arena text battles rated. */
+  arenaVotes: number | null
+  /** LMSYS Chatbot Arena ELO (code generation battles). */
+  arenaCodeElo: number | null
+  /** Number of Arena code battles rated. */
+  arenaCodeVotes: number | null
+  /** Overall score from BenchLM.ai aggregate benchmarks. */
+  benchlmScore: number | null
+  /** Coding-category score from BenchLM.ai. */
+  benchlmCodingScore: number | null
   // Subscription metadata if this item represents a subscription plan
   isSubscription?: boolean
   subscription?: SubscriptionPlan
@@ -63,6 +94,16 @@ export type MetricKey =
   | 'speedAdjustedScore'
   | 'contextValue'
   | 'efficiencyScore'
+  | 'hfMMLU'
+  | 'hfGSM8K'
+  | 'hfHumanEval'
+  | 'hfARC'
+  | 'hfWinogrande'
+  | 'hfHellaSwag'
+  | 'hfTruthfulQA'
+  | 'arenaElo'
+  | 'arenaCodeElo'
+  | 'benchlmScore'
 export type CostView = 'input' | 'blended' | 'cache' | 'output' | 'task'
 export type ValueScoreBase = 'intelligenceIndex' | 'codingIndex' | 'agenticIndex'
 
