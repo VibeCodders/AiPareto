@@ -64,7 +64,6 @@ interface Flags {
   skipPerf: boolean
   status: boolean
   autoMatch: boolean
-  allowIncomplete: boolean
 }
 
 export function parseFlags(): Flags {
@@ -85,7 +84,6 @@ export function parseFlags(): Flags {
     skipPerf: false,
     status: false,
     autoMatch: true,
-    allowIncomplete: true,
   }
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
@@ -110,7 +108,6 @@ export function parseFlags(): Flags {
     else if (a === '--skip-perf') flags.skipPerf = true
     else if (a === '--status') flags.status = true
     else if (a === '--no-auto-match') flags.autoMatch = false
-    else if (a === '--require-scores') flags.allowIncomplete = false
     else if (a === '--help' || a === '-h') {
       console.log(`
 Usage: npm run fetch-data [flags]
@@ -128,13 +125,11 @@ Flags:
   --refresh-known    Incremental refresh: re-crawl ALL known models, even if cache is fresh.
   --skip-perf        Skip performance extraction (faster incremental updates).
   --status           Preview refresh targets without crawling.
-  --auto-match       Auto-match unmapped AA slugs to OpenRouter by name (default).
-  --no-auto-match    Disable auto-matching; only use scripts/model-map.ts.
-  --allow-incomplete Accept models that lack AA benchmark scores (default; estimated at runtime).
-  --require-scores   Only include models that have an AA intelligenceIndex score.
-  --verbose          Print extra diagnostics.
-  --dry-run          Run the full pipeline but skip writing files.
-  --help, -h         Show this help message.
+   --auto-match       Auto-match unmapped AA slugs to OpenRouter by name (default).
+   --no-auto-match    Disable auto-matching; only use scripts/model-map.ts.
+   --verbose          Print extra diagnostics.
+   --dry-run          Run the full pipeline but skip writing files.
+   --help, -h         Show this help message.
 `)
       process.exit(0)
     }
@@ -742,8 +737,7 @@ export async function run(flags: Flags): Promise<void> {
     if (!orId) {
       // No OpenRouter counterpart (or auto-matching disabled): still ingest the
       // Artificial Analysis entry as a synthetic row. Missing benchmark/spec
-      // values are estimated at runtime, so we don't require an AA score.
-      if (!flags.allowIncomplete) continue
+      // values are estimated at runtime, so partial data is always accepted.
       const syntheticId = `aa:${m.slug}`
       const family = m.creator?.name ?? 'Unknown'
       if (score == null) includedWithoutScore.push(`${m.slug} (no OR match, synthetic entry)`)
@@ -780,7 +774,6 @@ export async function run(flags: Flags): Promise<void> {
       // scores, so ingest it as a synthetic entry instead of dropping it outright.
       // Missing prices are estimated at runtime by the similarity model.
       unmatched.push(`${m.slug} -> ${orId} (not on OpenRouter; ingested as synthetic entry)`)
-      if (!flags.allowIncomplete && score == null) continue
       if (score == null) includedWithoutScore.push(`${m.slug} (no OR match, synthetic entry)`)
       rows.push({
         id: `aa:${m.slug}`,
@@ -809,9 +802,8 @@ export async function run(flags: Flags): Promise<void> {
       continue
     }
 
-    // With --allow-incomplete (default) models without an AA intelligenceIndex
-    // are still included; missing benchmarks are estimated at runtime.
-    if (score == null && !flags.allowIncomplete) continue
+    // Models without an AA intelligenceIndex are still included; missing
+    // benchmarks are estimated at runtime.
     if (score == null) includedWithoutScore.push(m.slug)
 
     rows.push({
@@ -851,10 +843,10 @@ export async function run(flags: Flags): Promise<void> {
     const family = orProviders.has(provider) ? OR_PROVIDER_FAMILY[provider] : provider.charAt(0).toUpperCase() + provider.slice(1)
     const rest = or.id.split('/').slice(1).join('/')
     if (rest.includes('embed') || rest.includes('rerank')) continue
-    // Require at least one price to anchor the model, unless --allow-incomplete is
-    // set (the default): in that case missing prices are estimated at runtime, so
-    // even unpriced OpenRouter models can be ingested, not silently dropped.
-    if (!flags.allowIncomplete && or.pricing?.prompt == null && or.pricing?.completion == null) continue
+    // Include OpenRouter-only models (not present on AA) so new releases
+    // are not silently dropped. Benchmark/spec values are null and filled
+    // by the estimation system at runtime. Even unpriced OpenRouter models
+    // are ingested; missing prices are estimated at runtime.
 
     rows.push({
       id: or.id,
