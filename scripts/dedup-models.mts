@@ -1,18 +1,23 @@
 #!/usr/bin/env node
 /**
- * Deduplicate src/data/models.json in place.
+ * Deduplicate src/data/models.json in place (or dry-run).
  *
  * Canonical identity: AA `slug`, falling back to OpenRouter `id`.
  * Effort variants of the same base model share an `id` but have distinct
  * slugs, so they are intentionally preserved. True duplicates (same slug) —
  * including slug collisions where one slug maps to more than one `id` — are
  * collapsed to a single row, keeping the most data-complete version.
+ *
+ * Usage:
+ *   tsx scripts/dedup-models.mts            # write deduped file
+ *   tsx scripts/dedup-models.mts --dry-run  # report only, no write
  */
 import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { exit } from 'node:process'
 
 const file = resolve(import.meta.dirname, '../src/data/models.json')
+const dryRun = process.argv.includes('--dry-run')
 
 function rowKey(r: Record<string, unknown>): string {
   const slug = (r.slug as string | undefined)?.trim() || ''
@@ -26,10 +31,24 @@ function fieldCount(r: Record<string, unknown>): number {
   return n
 }
 
-function deduplicateRows(rows: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+interface DropReport {
+  key: string
+  keptId: string
+  droppedId: string
+  keptSlug: string
+  droppedSlug: string
+  keptFields: number
+  droppedFields: number
+}
+
+function deduplicateRows(rows: Array<Record<string, unknown>>): {
+  result: Array<Record<string, unknown>>
+  dropped: DropReport[]
+  keyless: number
+} {
   const byKey = new Map<string, Record<string, unknown>>()
   const keyless: Array<Record<string, unknown>> = []
-  const dropped: string[] = []
+  const dropped: DropReport[] = []
   for (const r of rows) {
     const key = rowKey(r)
     if (!key) {
@@ -39,18 +58,34 @@ function deduplicateRows(rows: Array<Record<string, unknown>>): Array<Record<str
     const existing = byKey.get(key)
     if (!existing) {
       byKey.set(key, r)
-    } else if (fieldCount(existing) >= fieldCount(r)) {
-      dropped.push(`${key} (dropped id=${String(r.id)} slug=${String(r.slug)})`)
     } else {
-      dropped.push(`${key} (dropped id=${String(existing.id)} slug=${String(existing.slug)})`)
-      byKey.set(key, r)
+      const existingF = fieldCount(existing)
+      const currentF = fieldCount(r)
+      if (existingF >= currentF) {
+        dropped.push({
+          key,
+          keptId: String(existing.id),
+          droppedId: String(r.id),
+          keptSlug: String(existing.slug),
+          droppedSlug: String(r.slug),
+          keptFields: existingF,
+          droppedFields: currentF,
+        })
+      } else {
+        dropped.push({
+          key,
+          keptId: String(r.id),
+          droppedId: String(existing.id),
+          keptSlug: String(r.slug),
+          droppedSlug: String(existing.slug),
+          keptFields: currentF,
+          droppedFields: existingF,
+        })
+        byKey.set(key, r)
+      }
     }
   }
-  if (dropped.length > 0) {
-    console.warn(`deduplicateRows: removed ${dropped.length} duplicate row(s) by slug/id (kept most complete):`)
-    for (const d of dropped) console.warn(`  ${d}`)
-  }
-  return [...byKey.values(), ...keyless]
+  return { result: [...byKey.values(), ...keyless], dropped, keyless: keyless.length }
 }
 
 function verifyNoDuplicates(rows: Array<Record<string, unknown>>): void {
@@ -91,16 +126,31 @@ async function main() {
   }
 
   const before = rows.length
-  rows = deduplicateRows(rows)
-  const after = rows.length
+  const { result, dropped, keyless } = deduplicateRows(rows)
+  const after = result.length
 
-  verifyNoDuplicates(rows)
+  verifyNoDuplicates(result)
 
-  const out = JSON.stringify(rows, null, 2) + '\n'
-  await writeFile(file, out)
+  if (dryRun) {
+    console.log(`[dry-run] Would write: ${before} -> ${after} rows (${before - after} removed).`)
+  } else {
+    const out = JSON.stringify(result, null, 2) + '\n'
+    await writeFile(file, out)
+    console.log(`Deduplication complete: ${before} -> ${after} rows (${before - after} removed).`)
+  }
 
-  console.log(`Deduplication complete: ${before} -> ${after} rows (${before - after} removed).`)
-  if (after === before) console.log('No duplicates found; file unchanged.')
+  if (dropped.length > 0) {
+    console.warn(`\nRemoved ${dropped.length} duplicate row(s) by slug/id (kept most complete):`)
+    for (const d of dropped) {
+      console.warn(
+        `  [${d.key}] kept id=${d.keptId} slug=${d.keptSlug} (${d.keptFields} fields)` +
+        ` / dropped id=${d.droppedId} slug=${d.droppedSlug} (${d.droppedFields} fields)`,
+      )
+    }
+  }
+
+  if (keyless > 0) console.warn(`\nWarning: ${keyless} row(s) had no slug or id and were preserved unsorted.`)
+  if (after === before && dropped.length === 0) console.log('No duplicates found; file unchanged.')
 }
 
 await main()
