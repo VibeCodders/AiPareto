@@ -44,12 +44,12 @@ jobs:
       - name: Assert no models removed
         if: always()
         run: |
-          $removed = ${{ steps.fetch.outputs.removed_count }}
-          if ([int]$removed -gt 0) {
-            Write-Error "FAIL: $removed models were removed from models.json. Preservation guarantee violated."
+          removed="${{ steps.fetch.outputs.removed_count }}"
+          if [ "$removed" -gt 0 ]; then
+            echo "FAIL: $removed models were removed from models.json. Preservation guarantee violated."
             exit 1
-          }
-          Write-Host "PASS: No models removed (preserved ${{ steps.fetch.outputs.preserved_count }} from previous run)."
+          fi
+          echo "PASS: No models removed (preserved ${{ steps.fetch.outputs.preserved_count }} from previous run)."
 
       - name: Typecheck
         if: steps.fetch.outputs.changed == 'true'
