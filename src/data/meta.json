@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-28T20:56:45.666Z",
+  "fetchedAt": "2026-08-29T00:55:50.373Z",
   "sources": {
     "openrouter": "https://openrouter.ai/api/v1/models",
     "artificialAnalysis": "https://artificialanalysis.ai/models"
@@ -7,15 +7,12 @@
   "note": "Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Missing values are estimated at runtime via k-NN similarity.",
   "preservation": {
     "total": 564,
-    "added": [
-      "ring-2-6-1t",
-      "jamba-1-7-large"
-    ],
-    "updated": 562,
-    "preserved": 562,
+    "added": [],
+    "updated": 556,
+    "preserved": 564,
     "removed": []
   },
-  "autoMatched": 25,
-  "orOnly": 295,
+  "autoMatched": 43,
+  "orOnly": 287,
   "withoutScore": 8
 }
