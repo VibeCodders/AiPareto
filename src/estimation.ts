@@ -1,4 +1,5 @@
 import type { CostView, MetricKey, Model, ValueScoreBase } from './types'
+import knownParams from './data/known-params.json'
 
 /**
  * Estimation of missing benchmark, spec, and cost values.
@@ -109,82 +110,7 @@ function parseParamValue(numStr: string, unit: string): number | null {
   return null
 }
 
-const KNOWN_PARAMS_ESTIMATION: Record<string, { parameters: number; activeParameters?: number }> = {
-  'llama-4-maverick': { parameters: 400e9, activeParameters: 17e9 },
-  'llama-4-scout': { parameters: 109e9, activeParameters: 17e9 },
-  'gemma-4-26b-a4b': { parameters: 26e9, activeParameters: 4e9 },
-  'gemma-4-31b': { parameters: 31e9 },
-  'gemma-3-270m': { parameters: 270e6 },
-  'gemma-3-4b': { parameters: 4e9 },
-  'gemma-3-12b': { parameters: 12e9 },
-  'gemma-3-27b': { parameters: 27e9 },
-  'gemma-2-27b': { parameters: 27e9 },
-  'gemma-3n-e4b': { parameters: 4e9 },
-  'gemma-4-e2b': { parameters: 2e9 },
-  'gemma-4-e4b': { parameters: 4e9 },
-  'gemma-4-12b': { parameters: 12e9 },
-  'ministral-14b': { parameters: 14e9 },
-  'ministral-3b': { parameters: 3e9 },
-  'ministral-8b': { parameters: 8e9 },
-  'mistral-small-3': { parameters: 24e9 },
-  'mistral-small-3.1-24b': { parameters: 24e9 },
-  'mistral-small-4': { parameters: 24e9 },
-  'mistral-medium-3': { parameters: 70e9 },
-  'mistral-large-3': { parameters: 675e9, activeParameters: 41e9 },
-  'gpt-oss-120b': { parameters: 120e9, activeParameters: 5.1e9 },
-  'gpt-oss-20b': { parameters: 20e9, activeParameters: 3.6e9 },
-  'ring-2.6-1t': { parameters: 1e12, activeParameters: 63e9 },
-  'muse-glimmer-30b': { parameters: 30e9 },
-  'muse-spark-1.2': { parameters: 1.2e9 },
-  'qwen3.5-122b-a10b': { parameters: 122e9, activeParameters: 10e9 },
-  'qwen3.5-35b-a3b': { parameters: 35e9, activeParameters: 3e9 },
-  'qwen3.5-397b-a17b': { parameters: 397e9, activeParameters: 17e9 },
-  'qwen3.6-35b-a3b': { parameters: 35e9, activeParameters: 3e9 },
-  'qwen3.8-27b': { parameters: 27e9 },
-  'qwen3.8-2.4t-a95b': { parameters: 2400e9, activeParameters: 95e9 },
-  'qwen3-next-80b-a3b': { parameters: 80e9, activeParameters: 3e9 },
-  'qwen3-coder-next': { parameters: 235e9 },
-  'deepseek-v3-0324': { parameters: 671e9, activeParameters: 37e9 },
-  'deepseek-r1-distill-llama-70b': { parameters: 70e9 },
-  'llama-3.3-70b': { parameters: 70e9 },
-  'llama-3.1-70b': { parameters: 70e9 },
-  'llama-3.1-8b': { parameters: 8e9 },
-  'llama-3.2-1b': { parameters: 1e9 },
-  'llama-3.2-3b': { parameters: 3e9 },
-  'llama-guard-4-12b': { parameters: 12e9 },
-  'phi-4': { parameters: 14e9 },
-  'llama-3.3-70b-instruct': { parameters: 70e9 },
-  'nemotron-3-nano-30b-a3b': { parameters: 30e9, activeParameters: 3e9 },
-  'nemotron-3-super-120b-a12b': { parameters: 120e9, activeParameters: 12e9 },
-  'nemotron-3-ultra-550b-a55b': { parameters: 550e9, activeParameters: 55e9 },
-  'nemotron-3.5-lightning': { parameters: 340e9 },
-  'nemotron-3-nano-4b': { parameters: 4e9 },
-  'nemotron-nano-9b-v2': { parameters: 9e9 },
-  'nemotron-nano-12b-v2-vl': { parameters: 12e9 },
-  'nemotron-cascade-2-30b-a3b': { parameters: 30e9, activeParameters: 3e9 },
-  'kimi-linear-48b-a3b-instruct': { parameters: 48e9, activeParameters: 3e9 },
-  'step-3-vl-10b': { parameters: 10e9 },
-  'ernie-4-5-300b-a47b': { parameters: 300e9, activeParameters: 47e9 },
-  'jamba-1-7-mini': { parameters: 8e9 },
-  'jamba-1-7-large': { parameters: 52e9, activeParameters: 12e9 },
-  'jamba-reasoning-3b': { parameters: 3e9 },
-  'command-a': { parameters: 111e9 },
-  'kimi-k2-7-code': { parameters: 1e12, activeParameters: 32e9 },
-  'kimi-k3': { parameters: 2800e9, activeParameters: 104e9 },
-  'qwen3.8-max': { parameters: 20e9 },
-  'qwen3.7-plus': { parameters: 17e9 },
-  'minimax-m3': { parameters: 428e9, activeParameters: 23e9 },
-  'ling-3-0-flash': { parameters: 124e9, activeParameters: 5.1e9 },
-  'ling-3-0-tiny': { parameters: 7.9e9, activeParameters: 1.3e9 },
-  'hy3': { parameters: 299e9, activeParameters: 21e9 },
-  'mimo-v2-5-pro': { parameters: 1023e9, activeParameters: 42e9 },
-  'gpt-5': { parameters: 1000e9 },
-  'gpt-5-mini': { parameters: 200e9 },
-  'claude-opus-5': { parameters: 800e9 },
-  'claude-sonnet-5': { parameters: 400e9 },
-  'gemini-3-pro': { parameters: 600e9 },
-  'gemini-2.5-pro': { parameters: 400e9 },
-}
+const KNOWN_PARAMS: Record<string, { parameters: number; activeParameters?: number }> = knownParams as Record<string, { parameters: number; activeParameters?: number }>
 
 function extractActiveFromText(text: string): number | null {
   const t = text.toLowerCase()
@@ -437,8 +363,8 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
     // Step 1.5: Fill known exact parameter counts before k-NN estimation
     if (out.parameters == null || out.activeParameters == null) {
       const text = `${out.name} ${out.id} ${out.aaName}`.toLowerCase().replace(/[–—\s]+/g, '-')
-      const known = KNOWN_PARAMS_ESTIMATION[out.id.split('/').pop() ?? '']
-      ?? Object.entries(KNOWN_PARAMS_ESTIMATION).find(([k]) => text.includes(k))?.[1]
+      const known = KNOWN_PARAMS[out.id.split('/').pop() ?? '']
+      ?? Object.entries(KNOWN_PARAMS).find(([k]) => text.includes(k))?.[1]
       if (known) {
         if (out.parameters == null && known.parameters != null) {
           out.parameters = known.parameters

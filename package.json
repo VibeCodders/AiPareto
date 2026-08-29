@@ -10,6 +10,7 @@
     "fetch-data": "tsx scripts/fetch-data.mts",
     "refresh-data": "tsx scripts/refresh-data.mts",
     "check-freshness": "tsx scripts/check-freshness.mts",
+    "estimate-models": "tsx scripts/estimate-models.mts",
     "dedup": "tsx scripts/dedup-models.mts"
   },
   "dependencies": {
