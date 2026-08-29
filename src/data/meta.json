@@ -1,42 +1,27 @@
 {
-  "fetchedAt": "2026-08-29T09:50:05.984Z",
+  "fetchedAt": "2026-08-29T11:45:14.305Z",
   "sources": {
     "openrouter": "https://openrouter.ai/api/v1/models",
     "artificialAnalysis": "https://artificialanalysis.ai/models",
-    "litellm": "https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json"
+    "lmsysChatbotArena": "https://arena.ai/leaderboard",
+    "benchlm": "https://benchlm.ai/api/data/leaderboard",
+    "litellm": "https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json",
+    "hfHub": "https://huggingface.co/api/models"
   },
   "note": "Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Arena ELO from LMSYS Chatbot Arena. BenchLM scores from BenchLM.ai. LiteLLM provides additional pricing/context from aggregated provider lists. HF benchmark scores (MMLU, GSM8K, HumanEval, ARC, Winogrande, HellaSwag, TruthfulQA) from Hugging Face Hub. Missing values are estimated at runtime via k-NN similarity.",
   "preservation": {
     "total": 581,
-    "added": [
-      "deepseek-v4-flash-0731-batch",
-      "deepseek-v4-pro-0813-batch",
-      "gemma-4-31b-it-batch",
-      "muse-glimmer-30b-batch",
-      "codestral-2508-batch",
-      "ministral-8b-2512-batch",
-      "mistral-large-2512-batch",
-      "mistral-medium-3-5-batch",
-      "mistral-medium-3-1-batch",
-      "mistral-small-2603-batch",
-      "kimi-k3-batch",
-      "gpt-oss-120b-batch",
-      "gpt-oss-20b-batch",
-      "qwen3-5-9b-batch",
-      "qwen3-8-2-4t-a95b-batch",
-      "inkling-small-batch",
-      "glm-5-3-flash-batch"
-    ],
-    "updated": 555,
-    "preserved": 564,
+    "added": [],
+    "updated": 572,
+    "preserved": 581,
     "removed": []
   },
   "autoMatched": 41,
   "orOnly": 303,
   "withoutScore": 8,
-  "arenaMatched": 0,
-  "benchlmMatched": 0,
+  "arenaMatched": 75,
+  "benchlmMatched": 228,
   "litellmMatched": 389,
   "hfMatched": 0,
-  "hfTotalIds": 0
+  "hfTotalIds": 150
 }
