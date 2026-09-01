@@ -365,7 +365,8 @@ export default function App() {
     setShowLabels(s.showLabels)
     setEstimateMissing(s.estimateMissing)
     setXMetric(s.xMetric)
-    setBudget(s.budget)
+    // Presets saved before the budget field existed won't carry it -> fall back to the default.
+    setBudget(typeof s.budget === 'number' ? s.budget : DEFAULT_BUDGET)
   }
 
   const handleSavePreset = () => {

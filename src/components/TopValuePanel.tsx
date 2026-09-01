@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
 import { costUnitLabel, formatMetric, formatUsd, frontierSlugsWithinBudget, topValueByBudget, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated } from '../estimation'
+import { exportModelsCsv } from '../csv'
 import type { T } from '../i18n'
 
 interface Props {
@@ -61,6 +62,15 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
           </label>
           <button className="btn" disabled={rows.length === 0} onClick={() => onCompare(rows.map((r) => r.model.slug))}>
             ＋ {t.topValueCompare}
+          </button>
+          <button
+            className="btn"
+            disabled={rows.length === 0}
+            onClick={() =>
+              exportModelsCsv(rows.map((r) => r.model), costView, taskInput, taskOutput, t, `budget=${budget}${unit}`, '-top')
+            }
+          >
+            ⬇ {t.exportCsv}
           </button>
           <div className="seg" role="group" aria-label={t.topValueSort}>
             <button className={sortBy === 'value' ? 'on' : ''} onClick={() => setSortBy('value')}>{t.topValueByValue}</button>
