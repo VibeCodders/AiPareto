@@ -16,6 +16,7 @@ import { bestSlugsFor } from './compare'
 import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
+import TopValuePanel from './components/TopValuePanel'
 import TrendChart from './components/TrendChart'
 import StatCell from './components/StatCell'
 
@@ -862,6 +863,17 @@ export default function App() {
         </div>
         {showTrend && <TrendChart models={BASE_MODELS} metric={metric} metricName={metricLabelOf(t, metric)} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} efficiencyOpts={efficiencyOpts} t={t} />}
       </section>
+
+      <TopValuePanel
+        items={ALL_ITEMS}
+        metric={metric}
+        costView={costView}
+        taskInput={taskInput}
+        taskOutput={taskOutput}
+        valueScoreBase={valueScoreBase}
+        efficiencyOpts={efficiencyOpts}
+        t={t}
+      />
 
       {selected && (
         <ModelCard

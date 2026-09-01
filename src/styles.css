@@ -524,6 +524,14 @@ h1 {
   font-size: 13px;
 }
 
+.top-value-panel {
+  margin: 24px 0;
+}
+
+.top-value-table {
+  max-width: 760px;
+}
+
 .mc-upgrade {
   margin-top: 10px;
   padding: 8px 10px;

@@ -119,6 +119,12 @@ export interface Strings {
   frontierUpgrade: string
   bestInCompare: string
   bestInCompareTitle: string
+  topValueTitle: string
+  topValueBudget: string
+  topValueSort: string
+  topValueByValue: string
+  topValueByScore: string
+  topValueEmpty: string
   onFrontier: string
   dominates: string
   dominatesHint: string
@@ -286,6 +292,12 @@ export const STRINGS: Record<Lang, Strings> = {
     frontierUpgrade: 'Salto di frontiera',
     bestInCompare: 'Miglior valore',
     bestInCompareTitle: 'Best value per questa metrica tra i modelli confrontati',
+    topValueTitle: 'Top value nel budget',
+    topValueBudget: 'Budget massimo',
+    topValueSort: 'Ordina top value',
+    topValueByValue: 'Per valore',
+    topValueByScore: 'Per punteggio',
+    topValueEmpty: 'Nessun modello o abbonamento entro il budget.',
     onFrontier: 'Sulla frontiera',
     dominates: 'Domina',
     dominatesHint: 'Numero di modelli Pareto-dominati su entrambi gli assi',
@@ -451,6 +463,12 @@ export const STRINGS: Record<Lang, Strings> = {
     frontierUpgrade: 'Frontier step',
     bestInCompare: 'Best value',
     bestInCompareTitle: 'Best value for this metric among the compared models',
+    topValueTitle: 'Top value within budget',
+    topValueBudget: 'Max budget',
+    topValueSort: 'Sort top value',
+    topValueByValue: 'By value',
+    topValueByScore: 'By score',
+    topValueEmpty: 'No model or subscription within the budget.',
     onFrontier: 'On frontier',
     dominates: 'Dominates',
     dominatesHint: 'Number of Pareto-dominated models on both axes',

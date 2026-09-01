@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Model, Point } from './types'
-import { blendedCostOf, computeFrontier, computeMetric, costOf, dominates, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf } from './pareto'
+import { blendedCostOf, computeFrontier, computeMetric, costOf, dominates, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
 function model(partial: Partial<Model> = {}): Model {
@@ -200,6 +200,30 @@ describe('frontierDeltaOf', () => {
   })
   it('returns null when the reference score is zero', () => {
     expect(frontierDeltaOf(point('p', 2, 5), [point('f', 2, 0)], false, true)).toBeNull()
+  })
+})
+
+describe('topValueByBudget', () => {
+  it('keeps only models within the budget and ranks by valueScore', () => {
+    const cheap = model({ intelligenceIndex: 60 })
+    const pricey = model({ intelligenceIndex: 95, inputPerM: 0.5 })
+    const rows = topValueByBudget([cheap, pricey], 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 1)
+    // cheap costs 0.12/1M and stays in budget 1; pricey costs 0.5/1M and stays too;
+    // both have a valueScore, so both appear, best value first.
+    expect(rows.length).toBe(2)
+    expect(rows[0].model.slug).toBe(cheap.slug)
+    expect(rows[0].cost).toBeLessThanOrEqual(1)
+  })
+  it('excludes models over budget', () => {
+    const m = model({ intelligenceIndex: 95, inputPerM: 5 }) // blended cost > budget 1
+    expect(topValueByBudget([m], 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 1)).toHaveLength(0)
+  })
+  it('returns [] for a zero budget', () => {
+    expect(topValueByBudget([model()], 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 0)).toHaveLength(0)
+  })
+  it('respects the maxRows cap', () => {
+    const many = Array.from({ length: 12 }, (_, i) => model({ intelligenceIndex: 50 + i }))
+    expect(topValueByBudget(many, 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 100, 5)).toHaveLength(5)
   })
 })
 

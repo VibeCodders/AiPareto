@@ -68,6 +68,69 @@ export function priceRatiosOf(m: Model): PriceRatios {
   }
 }
 
+export interface TopValueRow {
+  model: Model
+  /** Per-unit cost on the selected cost view (e.g. per 1M tokens, or per task). */
+  cost: number
+  /** The selected metric's score. */
+  score: number
+  /** Benchmark points earned per dollar (valueScore). */
+  value: number
+}
+
+/**
+ * Best-value picks within a per-unit cost cap, reusing the shared cost/metric math.
+ * Keeps only models costing at most `budget` (on the selected cost view) that have both a
+ * score and a valueScore, then returns up to `maxRows` ranked by valueScore (best first).
+ */
+export function topValueByBudget(
+  items: Model[],
+  costView: CostView,
+  taskInput: number,
+  taskOutput: number,
+  metric: MetricKey,
+  valueScoreBase: ValueScoreBase,
+  efficiencyOpts: EfficiencyOpts | undefined,
+  budget: number,
+  maxRows = 8,
+): TopValueRow[] {
+  if (budget <= 0) return []
+  const scored: TopValueRow[] = []
+  for (const m of items) {
+    const cost = costOf(m, costView, taskInput, taskOutput)
+    if (cost == null || cost <= 0 || cost > budget) continue
+    const score = computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
+    const value = valueScoreOf(m, costView, taskInput, taskOutput, valueScoreBase)
+    if (score == null || value == null) continue
+    scored.push({ model: m, cost, score, value })
+  }
+  scored.sort((a, b) => b.value - a.value)
+  return scored.slice(0, maxRows)
+}
+
+/**
+ * Slugs that are Pareto-optimal within the budget when plotting cost (X) vs valueScore (Y),
+ * i.e. not dominated by any cheaper-and-better-value model also inside the budget.
+ */
+export function frontierSlugsWithinBudget(
+  items: Model[],
+  costView: CostView,
+  taskInput: number,
+  taskOutput: number,
+  budget: number,
+  valueScoreBase: ValueScoreBase,
+): Set<string> {
+  const points: Point[] = []
+  for (const m of items) {
+    const cost = costOf(m, costView, taskInput, taskOutput)
+    if (cost == null || cost <= 0 || cost > budget) continue
+    const value = valueScoreOf(m, costView, taskInput, taskOutput, valueScoreBase)
+    if (value == null) continue
+    points.push({ model: m, x: cost, score: value })
+  }
+  return new Set(computeFrontier(points, false, true).map((p) => p.model.slug))
+}
+
 
 /** Benchmark score per dollar. Defaults to Intelligence Index; pass another benchmark to get e.g. coding-per-$ or agentic-per-$. */
 export function valueScoreOf(
