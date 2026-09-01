@@ -25,12 +25,12 @@
     "activeParameters": null,
     "outputSpeed": 56,
     "latencySeconds": 51.8,
-    "arenaElo": 1487,
-    "arenaVotes": 13403,
-    "arenaCodeElo": 1691,
-    "arenaCodeVotes": 8116,
-    "benchlmScore": 83.06,
-    "benchlmCodingScore": 78.41
+    "arenaElo": 1492,
+    "arenaVotes": 31570,
+    "arenaCodeElo": 1688,
+    "arenaCodeVotes": 10098,
+    "benchlmScore": 83.24,
+    "benchlmCodingScore": 79.33
   },
   {
     "id": "anthropic/claude-opus-5",
@@ -56,10 +56,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 800000000000,
     "activeParameters": null,
-    "outputSpeed": 53.8,
-    "latencySeconds": 32.9,
-    "benchlmScore": 83.06,
-    "benchlmCodingScore": 78.41
+    "outputSpeed": 52,
+    "latencySeconds": 28.7,
+    "benchlmScore": 83.24,
+    "benchlmCodingScore": 79.33
   },
   {
     "id": "anthropic/claude-fable-5",
@@ -87,12 +87,12 @@
     "activeParameters": null,
     "outputSpeed": 64.7,
     "latencySeconds": null,
-    "arenaElo": 1508,
-    "arenaVotes": 24331,
-    "arenaCodeElo": 1626,
-    "arenaCodeVotes": 8382,
-    "benchlmScore": 83.15,
-    "benchlmCodingScore": 81.41
+    "arenaElo": 1507,
+    "arenaVotes": 25824,
+    "arenaCodeElo": 1628,
+    "arenaCodeVotes": 9001,
+    "benchlmScore": 83.32,
+    "benchlmCodingScore": 82.4
   },
   {
     "id": "anthropic/claude-opus-5",
@@ -118,14 +118,14 @@
     "maxCompletionTokens": 128000,
     "parameters": 800000000000,
     "activeParameters": null,
-    "outputSpeed": 51.6,
-    "latencySeconds": 18,
-    "arenaElo": 1493,
-    "arenaVotes": 27610,
-    "arenaCodeElo": 1663,
-    "arenaCodeVotes": 8659,
-    "benchlmScore": 83.06,
-    "benchlmCodingScore": 78.41
+    "outputSpeed": 49.2,
+    "latencySeconds": 10.5,
+    "arenaElo": 1492,
+    "arenaVotes": 31570,
+    "arenaCodeElo": 1661,
+    "arenaCodeVotes": 10164,
+    "benchlmScore": 83.24,
+    "benchlmCodingScore": 79.33
   },
   {
     "id": "x-ai/grok-4.6",
@@ -156,9 +156,9 @@
     "arenaElo": 1461,
     "arenaVotes": 3473,
     "arenaCodeElo": 1629,
-    "arenaCodeVotes": 1523,
-    "benchlmScore": 63.42,
-    "benchlmCodingScore": 63.93
+    "arenaCodeVotes": 1532,
+    "benchlmScore": 63.87,
+    "benchlmCodingScore": 64.9
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -188,10 +188,10 @@
     "latencySeconds": null,
     "arenaElo": 1482,
     "arenaVotes": 19541,
-    "arenaCodeElo": 1619,
-    "arenaCodeVotes": 9499,
-    "benchlmScore": 82.2,
-    "benchlmCodingScore": 79.01
+    "arenaCodeElo": 1616,
+    "arenaCodeVotes": 10570,
+    "benchlmScore": 82.39,
+    "benchlmCodingScore": 79.91
   },
   {
     "id": "x-ai/grok-4.6",
@@ -217,10 +217,10 @@
     "maxCompletionTokens": 450000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 58.9,
-    "latencySeconds": 44.7,
-    "benchlmScore": 63.42,
-    "benchlmCodingScore": 63.93
+    "outputSpeed": 55.5,
+    "latencySeconds": 44.9,
+    "benchlmScore": 63.87,
+    "benchlmCodingScore": 64.9
   },
   {
     "id": "moonshotai/kimi-k3",
@@ -250,11 +250,11 @@
     "latencySeconds": 62.1,
     "huggingFaceId": "moonshotai/Kimi-K3",
     "arenaElo": 1489,
-    "arenaVotes": 15054,
+    "arenaVotes": 16586,
     "arenaCodeElo": 1674,
     "arenaCodeVotes": 4546,
-    "benchlmScore": 80.61,
-    "benchlmCodingScore": 78.58
+    "benchlmScore": 80.78,
+    "benchlmCodingScore": 79.59
   },
   {
     "id": "z-ai/glm-5.3",
@@ -285,10 +285,10 @@
     "huggingFaceId": "zai-org/GLM-5.3",
     "arenaElo": 1487,
     "arenaVotes": 3751,
-    "arenaCodeElo": 1599,
-    "arenaCodeVotes": 1916,
-    "benchlmScore": 62.84,
-    "benchlmCodingScore": 66.49
+    "arenaCodeElo": 1608,
+    "arenaCodeVotes": 2560,
+    "benchlmScore": 63.29,
+    "benchlmCodingScore": 69.23
   },
   {
     "id": "x-ai/grok-4.6",
@@ -314,10 +314,10 @@
     "maxCompletionTokens": 450000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 58.9,
-    "latencySeconds": 33.8,
-    "benchlmScore": 63.42,
-    "benchlmCodingScore": 63.93
+    "outputSpeed": 55.5,
+    "latencySeconds": 31.9,
+    "benchlmScore": 63.87,
+    "benchlmCodingScore": 64.9
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -343,14 +343,14 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 79.1,
-    "latencySeconds": 43.1,
+    "outputSpeed": 80.4,
+    "latencySeconds": 31.7,
     "arenaElo": 1482,
     "arenaVotes": 19541,
-    "arenaCodeElo": 1619,
-    "arenaCodeVotes": 9499,
-    "benchlmScore": 82.2,
-    "benchlmCodingScore": 79.01
+    "arenaCodeElo": 1616,
+    "arenaCodeVotes": 10570,
+    "benchlmScore": 82.39,
+    "benchlmCodingScore": 79.91
   },
   {
     "id": "anthropic/claude-opus-5",
@@ -376,10 +376,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 800000000000,
     "activeParameters": null,
-    "outputSpeed": 51.1,
-    "latencySeconds": 3.5,
-    "benchlmScore": 83.06,
-    "benchlmCodingScore": 78.41
+    "outputSpeed": 48.5,
+    "latencySeconds": 3.9,
+    "benchlmScore": 83.24,
+    "benchlmCodingScore": 79.33
   },
   {
     "id": "qwen/qwen3.8-max",
@@ -410,9 +410,9 @@
     "arenaElo": 1481,
     "arenaVotes": 9955,
     "arenaCodeElo": 1669,
-    "arenaCodeVotes": 3212,
-    "benchlmScore": 79.22,
-    "benchlmCodingScore": 65.78
+    "arenaCodeVotes": 3219,
+    "benchlmScore": 79.4,
+    "benchlmCodingScore": 66.97
   },
   {
     "id": "qwen/qwen3.8-2.4t-a95b",
@@ -469,8 +469,10 @@
     "outputSpeed": 49.8,
     "latencySeconds": 41.6,
     "huggingFaceId": "zai-org/GLM-5.3-Flash",
-    "benchlmScore": 61.27,
-    "benchlmCodingScore": 67.06
+    "benchlmScore": 61.69,
+    "benchlmCodingScore": 66.4,
+    "arenaCodeElo": 1606,
+    "arenaCodeVotes": 1593
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -496,10 +498,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 78,
-    "latencySeconds": 11.4,
-    "benchlmScore": 82.2,
-    "benchlmCodingScore": 79.01
+    "outputSpeed": 77.8,
+    "latencySeconds": 9.1,
+    "benchlmScore": 82.39,
+    "benchlmCodingScore": 79.91
   },
   {
     "id": "meta/muse-spark-1.2",
@@ -528,11 +530,11 @@
     "outputSpeed": null,
     "latencySeconds": null,
     "arenaElo": 1498,
-    "arenaVotes": 3257,
+    "arenaVotes": 3247,
     "arenaCodeElo": 1534,
-    "arenaCodeVotes": 2062,
-    "benchlmScore": 61.71,
-    "benchlmCodingScore": 63.2
+    "arenaCodeVotes": 2069,
+    "benchlmScore": 62.15,
+    "benchlmCodingScore": 64.19
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -562,10 +564,10 @@
     "latencySeconds": null,
     "arenaElo": 1465,
     "arenaVotes": 20216,
-    "arenaCodeElo": 1520,
-    "arenaCodeVotes": 5677,
-    "benchlmScore": 72.95,
-    "benchlmCodingScore": 69.29
+    "arenaCodeElo": 1519,
+    "arenaCodeVotes": 6470,
+    "benchlmScore": 73.21,
+    "benchlmCodingScore": 70.28
   },
   {
     "id": "google/gemini-3.7-flash",
@@ -594,11 +596,11 @@
     "outputSpeed": 322.6,
     "latencySeconds": 11.2,
     "arenaElo": 1490,
-    "arenaVotes": 5718,
+    "arenaVotes": 5720,
     "arenaCodeElo": 1587,
-    "arenaCodeVotes": 2552,
-    "benchlmScore": 61.4,
-    "benchlmCodingScore": 66.82
+    "arenaCodeVotes": 3009,
+    "benchlmScore": 61.85,
+    "benchlmCodingScore": 67.76
   },
   {
     "id": "qwen/qwen3.8-flash",
@@ -626,8 +628,11 @@
     "activeParameters": 6000000000,
     "outputSpeed": 73.4,
     "latencySeconds": 30.2,
-    "benchlmScore": 61.32,
-    "benchlmCodingScore": 62.33
+    "benchlmScore": 61.76,
+    "benchlmCodingScore": 63.76,
+    "arenaCodeElo": 1622,
+    "arenaCodeVotes": 1778,
+    "huggingFaceId": "Qwen/Qwen3.8-Flash-Next"
   },
   {
     "id": "x-ai/grok-4.5",
@@ -658,9 +663,9 @@
     "arenaElo": 1470,
     "arenaVotes": 22030,
     "arenaCodeElo": 1556,
-    "arenaCodeVotes": 6325,
-    "benchlmScore": 75.65,
-    "benchlmCodingScore": 57.85
+    "arenaCodeVotes": 7058,
+    "benchlmScore": 75.78,
+    "benchlmCodingScore": 59.04
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -686,10 +691,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 72.6,
-    "latencySeconds": 3.9,
-    "benchlmScore": 82.2,
-    "benchlmCodingScore": 79.01
+    "outputSpeed": 73.1,
+    "latencySeconds": 3.8,
+    "benchlmScore": 82.39,
+    "benchlmCodingScore": 79.91
   },
   {
     "id": "anthropic/claude-sonnet-5",
@@ -719,10 +724,10 @@
     "latencySeconds": null,
     "arenaElo": 1461,
     "arenaVotes": 27366,
-    "arenaCodeElo": 1539,
-    "arenaCodeVotes": 7267,
-    "benchlmScore": 65.02,
-    "benchlmCodingScore": 70.73
+    "arenaCodeElo": 1537,
+    "arenaCodeVotes": 8032,
+    "benchlmScore": 65.21,
+    "benchlmCodingScore": 71.7
   },
   {
     "id": "google/gemini-3.7-flash",
@@ -748,10 +753,10 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 337.5,
-    "latencySeconds": 4.5,
-    "benchlmScore": 61.4,
-    "benchlmCodingScore": 66.82
+    "outputSpeed": 282.5,
+    "latencySeconds": 4.9,
+    "benchlmScore": 61.85,
+    "benchlmCodingScore": 67.76
   },
   {
     "id": "deepseek/deepseek-v4-pro-0813",
@@ -770,9 +775,9 @@
     "omniscience": 0.8,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 0.66,
-    "outputPerM": 1.98,
-    "cacheReadPerM": 0.022,
+    "inputPerM": 1.1154,
+    "outputPerM": 3.3462,
+    "cacheReadPerM": 0.0372,
     "cacheWritePerM": null,
     "maxCompletionTokens": 384000,
     "parameters": 1600000000000,
@@ -782,10 +787,10 @@
     "huggingFaceId": "deepseek-ai/DeepSeek-V4-Pro-0813",
     "arenaElo": 1459,
     "arenaVotes": 3621,
-    "arenaCodeElo": 1445,
-    "arenaCodeVotes": 13178,
-    "benchlmScore": 61.02,
-    "benchlmCodingScore": 50.48
+    "arenaCodeElo": 1583,
+    "arenaCodeVotes": 3212,
+    "benchlmScore": 61.81,
+    "benchlmCodingScore": 51.61
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -811,14 +816,14 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 104.5,
-    "latencySeconds": 21.5,
+    "outputSpeed": 97.1,
+    "latencySeconds": 17.9,
     "arenaElo": 1465,
     "arenaVotes": 20216,
-    "arenaCodeElo": 1520,
-    "arenaCodeVotes": 5677,
-    "benchlmScore": 72.95,
-    "benchlmCodingScore": 69.29
+    "arenaCodeElo": 1519,
+    "arenaCodeVotes": 6470,
+    "benchlmScore": 73.21,
+    "benchlmCodingScore": 70.28
   },
   {
     "id": "z-ai/glm-5.2",
@@ -849,10 +854,10 @@
     "huggingFaceId": "zai-org/GLM-5.2",
     "arenaElo": 1470,
     "arenaVotes": 30637,
-    "arenaCodeElo": 1582,
-    "arenaCodeVotes": 8775,
-    "benchlmScore": 63.4,
-    "benchlmCodingScore": 64.95
+    "arenaCodeElo": 1585,
+    "arenaCodeVotes": 9494,
+    "benchlmScore": 63.65,
+    "benchlmCodingScore": 65.98
   },
   {
     "id": "anthropic/claude-opus-5",
@@ -878,10 +883,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 800000000000,
     "activeParameters": null,
-    "outputSpeed": 50.8,
-    "latencySeconds": 2.4,
-    "benchlmScore": 83.06,
-    "benchlmCodingScore": 78.41
+    "outputSpeed": 49.4,
+    "latencySeconds": 2.6,
+    "benchlmScore": 83.24,
+    "benchlmCodingScore": 79.33
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -910,9 +915,9 @@
     "outputSpeed": 128.5,
     "latencySeconds": null,
     "arenaCodeElo": 1518,
-    "arenaCodeVotes": 5742,
-    "benchlmScore": 67.35,
-    "benchlmCodingScore": 73.59
+    "arenaCodeVotes": 6567,
+    "benchlmScore": 67.61,
+    "benchlmCodingScore": 74.52
   },
   {
     "id": "qwen/qwen3.8-27b",
@@ -941,10 +946,10 @@
     "outputSpeed": 46.5,
     "latencySeconds": 46.8,
     "huggingFaceId": "Qwen/Qwen3.8-27B",
-    "arenaCodeElo": 1595,
-    "arenaCodeVotes": 2464,
-    "benchlmScore": 72.51,
-    "benchlmCodingScore": 64.7
+    "arenaCodeElo": 1598,
+    "arenaCodeVotes": 3163,
+    "benchlmScore": 72.7,
+    "benchlmCodingScore": 66.04
   },
   {
     "id": "deepseek/deepseek-v4-flash-0731",
@@ -973,8 +978,8 @@
     "outputSpeed": 119,
     "latencySeconds": 18,
     "huggingFaceId": "deepseek-ai/DeepSeek-V4-Flash-0731",
-    "arenaCodeElo": 1579,
-    "arenaCodeVotes": 3537
+    "arenaCodeElo": 1580,
+    "arenaCodeVotes": 3852
   },
   {
     "id": "x-ai/grok-4.6",
@@ -1000,10 +1005,10 @@
     "maxCompletionTokens": 450000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 56.3,
-    "latencySeconds": 6.9,
-    "benchlmScore": 63.42,
-    "benchlmCodingScore": 63.93
+    "outputSpeed": 55.1,
+    "latencySeconds": 6.7,
+    "benchlmScore": 63.87,
+    "benchlmCodingScore": 64.9
   },
   {
     "id": "google/gemini-3.6-flash",
@@ -1033,10 +1038,10 @@
     "latencySeconds": 18.1,
     "arenaElo": 1481,
     "arenaVotes": 18018,
-    "arenaCodeElo": 1539,
-    "arenaCodeVotes": 6464,
-    "benchlmScore": 75.66,
-    "benchlmCodingScore": 65.25
+    "arenaCodeElo": 1538,
+    "arenaCodeVotes": 7592,
+    "benchlmScore": 75.84,
+    "benchlmCodingScore": 66.4
   },
   {
     "id": "deepseek/deepseek-v4-flash-vision-exp",
@@ -1055,15 +1060,16 @@
     "omniscience": -17.6,
     "contextTokens": 1000000,
     "openWeights": false,
-    "inputPerM": 0.22,
-    "outputPerM": 0.66,
-    "cacheReadPerM": 0.007,
+    "inputPerM": 0.44,
+    "outputPerM": 1.32,
+    "cacheReadPerM": 0.014,
     "cacheWritePerM": null,
     "maxCompletionTokens": 384000,
     "parameters": 284000000000,
     "activeParameters": 13000000000,
     "outputSpeed": 108.7,
-    "latencySeconds": 19.5
+    "latencySeconds": 19.5,
+    "huggingFaceId": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp"
   },
   {
     "id": "google/gemini-3.7-flash",
@@ -1089,10 +1095,10 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 311.7,
-    "latencySeconds": 0.8,
-    "benchlmScore": 61.4,
-    "benchlmCodingScore": 66.82
+    "outputSpeed": 308,
+    "latencySeconds": 0.7,
+    "benchlmScore": 61.85,
+    "benchlmCodingScore": 67.76
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -1118,10 +1124,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 74.3,
-    "latencySeconds": 2.4,
-    "benchlmScore": 82.2,
-    "benchlmCodingScore": 79.01
+    "outputSpeed": 73.4,
+    "latencySeconds": 2.3,
+    "benchlmScore": 82.39,
+    "benchlmCodingScore": 79.91
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -1147,12 +1153,12 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 126.5,
-    "latencySeconds": 60.7,
+    "outputSpeed": 125,
+    "latencySeconds": 49.2,
     "arenaCodeElo": 1518,
-    "arenaCodeVotes": 5742,
-    "benchlmScore": 67.35,
-    "benchlmCodingScore": 73.59
+    "arenaCodeVotes": 6567,
+    "benchlmScore": 67.61,
+    "benchlmCodingScore": 74.52
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -1178,10 +1184,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 106.4,
-    "latencySeconds": 2.5,
-    "benchlmScore": 72.95,
-    "benchlmCodingScore": 69.29
+    "outputSpeed": 98.3,
+    "latencySeconds": 2.2,
+    "benchlmScore": 73.21,
+    "benchlmCodingScore": 70.28
   },
   {
     "id": "aa:agnes-2-5-pro-beta",
@@ -1234,11 +1240,11 @@
     "maxCompletionTokens": 943718,
     "parameters": 2780000000000,
     "activeParameters": 104000000000,
-    "outputSpeed": 39.1,
-    "latencySeconds": 54.1,
+    "outputSpeed": 36.8,
+    "latencySeconds": 57,
     "huggingFaceId": "moonshotai/Kimi-K3",
-    "benchlmScore": 80.61,
-    "benchlmCodingScore": 78.58
+    "benchlmScore": 80.78,
+    "benchlmCodingScore": 79.59
   },
   {
     "id": "google/gemini-3.1-pro-preview",
@@ -1323,10 +1329,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 121.5,
-    "latencySeconds": 15.7,
-    "benchlmScore": 67.35,
-    "benchlmCodingScore": 73.59
+    "outputSpeed": 121.6,
+    "latencySeconds": 10.6,
+    "benchlmScore": 67.61,
+    "benchlmCodingScore": 74.52
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -1352,10 +1358,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 97.7,
-    "latencySeconds": 1.6,
-    "benchlmScore": 72.95,
-    "benchlmCodingScore": 69.29
+    "outputSpeed": 94.6,
+    "latencySeconds": 1.5,
+    "benchlmScore": 73.21,
+    "benchlmCodingScore": 70.28
   },
   {
     "id": "google/gemini-3.5-flash",
@@ -1381,14 +1387,14 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 205,
-    "latencySeconds": 14.7,
+    "outputSpeed": 197.7,
+    "latencySeconds": 13.7,
     "arenaElo": 1474,
     "arenaVotes": 28343,
-    "arenaCodeElo": 1490,
-    "arenaCodeVotes": 10038,
-    "benchlmScore": 64.73,
-    "benchlmCodingScore": 62.33
+    "arenaCodeElo": 1492,
+    "arenaCodeVotes": 10867,
+    "benchlmScore": 64.95,
+    "benchlmCodingScore": 63.39
   },
   {
     "id": "openai/gpt-5.3-codex",
@@ -1417,8 +1423,8 @@
     "outputSpeed": 123.2,
     "latencySeconds": 65.5,
     "huggingFaceId": "",
-    "benchlmScore": 66.16,
-    "benchlmCodingScore": 63.65
+    "benchlmScore": 66.31,
+    "benchlmCodingScore": 64.17
   },
   {
     "id": "minimax/minimax-m3",
@@ -1447,10 +1453,10 @@
     "outputSpeed": 108.1,
     "latencySeconds": 19.6,
     "huggingFaceId": "MiniMaxAI/Minimax-M3",
-    "arenaCodeElo": 1488,
-    "arenaCodeVotes": 10721,
-    "benchlmScore": 68.73,
-    "benchlmCodingScore": 47.36
+    "arenaCodeElo": 1487,
+    "arenaCodeVotes": 11481,
+    "benchlmScore": 68.9,
+    "benchlmCodingScore": 48.61
   },
   {
     "id": "aa:motif-0714",
@@ -1496,11 +1502,11 @@
     "omniscience": -10.7,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 1.0423,
-    "outputPerM": 2.0845,
-    "cacheReadPerM": 0.0869,
+    "inputPerM": 1.6,
+    "outputPerM": 3.2,
+    "cacheReadPerM": 0.135,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 384000,
+    "maxCompletionTokens": 393216,
     "parameters": 1600000000000,
     "activeParameters": 49000000000,
     "outputSpeed": 67,
@@ -1533,13 +1539,13 @@
     "maxCompletionTokens": 131072,
     "parameters": 27000000000,
     "activeParameters": 27000000000,
-    "outputSpeed": 53.1,
-    "latencySeconds": 41.5,
+    "outputSpeed": 49.5,
+    "latencySeconds": 44.4,
     "huggingFaceId": "Qwen/Qwen3.8-27B",
-    "arenaCodeElo": 1595,
-    "arenaCodeVotes": 2464,
-    "benchlmScore": 72.51,
-    "benchlmCodingScore": 64.7
+    "arenaCodeElo": 1598,
+    "arenaCodeVotes": 3163,
+    "benchlmScore": 72.7,
+    "benchlmCodingScore": 66.04
   },
   {
     "id": "aa:apodex-1-1",
@@ -1567,8 +1573,8 @@
     "arenaVotes": null,
     "arenaCodeElo": null,
     "arenaCodeVotes": null,
-    "benchlmScore": null,
-    "benchlmCodingScore": null,
+    "benchlmScore": 56.88,
+    "benchlmCodingScore": 57.14,
     "huggingFaceId": null,
     "parameters": null,
     "activeParameters": null,
@@ -1600,11 +1606,11 @@
     "omniscience": -10.6,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 1.0423,
-    "outputPerM": 2.0845,
-    "cacheReadPerM": 0.0869,
+    "inputPerM": 1.6,
+    "outputPerM": 3.2,
+    "cacheReadPerM": 0.135,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 384000,
+    "maxCompletionTokens": 393216,
     "parameters": 1600000000000,
     "activeParameters": 49000000000,
     "outputSpeed": 65,
@@ -1612,6 +1618,48 @@
     "huggingFaceId": "deepseek-ai/DeepSeek-V4-Pro",
     "arenaCodeElo": 1445,
     "arenaCodeVotes": 13178
+  },
+  {
+    "id": "aa:quasar-438b",
+    "name": "Quasar 438B",
+    "family": "Multiverse Computing",
+    "slug": "quasar-438b",
+    "aaName": "Quasar 438B",
+    "effort": null,
+    "released": "2026-08-10",
+    "isReasoning": true,
+    "intelligenceIndex": 43,
+    "codingIndex": 61.2,
+    "agenticIndex": 36.9,
+    "tau2": null,
+    "hle": 0.2,
+    "omniscience": -2.6,
+    "contextTokens": 1000000,
+    "openWeights": false,
+    "inputPerM": null,
+    "outputPerM": null,
+    "cacheReadPerM": null,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": null,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": 438000000000,
+    "activeParameters": 438000000000,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null,
+    "outputSpeed": 182.7,
+    "latencySeconds": 12
   },
   {
     "id": "moonshotai/kimi-k2.7-code",
@@ -1641,9 +1689,9 @@
     "latencySeconds": 52.2,
     "huggingFaceId": "moonshotai/Kimi-K2.7-Code",
     "arenaCodeElo": 1473,
-    "arenaCodeVotes": 4680,
-    "benchlmScore": 54.44,
-    "benchlmCodingScore": 53.37
+    "arenaCodeVotes": 4684,
+    "benchlmScore": 54.69,
+    "benchlmCodingScore": 54.62
   },
   {
     "id": "qwen/qwen3.8-27b",
@@ -1669,13 +1717,13 @@
     "maxCompletionTokens": 131072,
     "parameters": 27000000000,
     "activeParameters": 27000000000,
-    "outputSpeed": 53.5,
-    "latencySeconds": 41.4,
+    "outputSpeed": 50.5,
+    "latencySeconds": 43.6,
     "huggingFaceId": "Qwen/Qwen3.8-27B",
-    "arenaCodeElo": 1595,
-    "arenaCodeVotes": 2464,
-    "benchlmScore": 72.51,
-    "benchlmCodingScore": 64.7
+    "arenaCodeElo": 1598,
+    "arenaCodeVotes": 3163,
+    "benchlmScore": 72.7,
+    "benchlmCodingScore": 66.04
   },
   {
     "id": "xiaomi/mimo-v2.5-pro",
@@ -1707,9 +1755,9 @@
     "arenaElo": 1468,
     "arenaVotes": 54177,
     "arenaCodeElo": 1476,
-    "arenaCodeVotes": 13998,
-    "benchlmScore": 69.41,
-    "benchlmCodingScore": 55.14
+    "arenaCodeVotes": 14728,
+    "benchlmScore": 69.59,
+    "benchlmCodingScore": 56.37
   },
   {
     "id": "anthropic/claude-sonnet-5",
@@ -1735,10 +1783,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 400000000000,
     "activeParameters": null,
-    "outputSpeed": 59,
-    "latencySeconds": 1.1,
-    "benchlmScore": 65.02,
-    "benchlmCodingScore": 70.73
+    "outputSpeed": 57.7,
+    "latencySeconds": 1.2,
+    "benchlmScore": 65.21,
+    "benchlmCodingScore": 71.7
   },
   {
     "id": "thinkingmachines/inkling",
@@ -1767,8 +1815,8 @@
     "outputSpeed": 55,
     "latencySeconds": 39.2,
     "huggingFaceId": "thinkingmachines/Inkling",
-    "benchlmScore": 67.02,
-    "benchlmCodingScore": 42.04
+    "benchlmScore": 67.2,
+    "benchlmCodingScore": 43.33
   },
   {
     "id": "tencent/hy3",
@@ -1797,10 +1845,10 @@
     "outputSpeed": 67.4,
     "latencySeconds": 32.5,
     "huggingFaceId": "tencent/Hy3",
-    "arenaCodeElo": 1518,
-    "arenaCodeVotes": 2680,
-    "benchlmScore": 68.16,
-    "benchlmCodingScore": 63.37
+    "arenaCodeElo": 1513,
+    "arenaCodeVotes": 3025,
+    "benchlmScore": 68.34,
+    "benchlmCodingScore": 64.15
   },
   {
     "id": "openai/gpt-5.6-sol",
@@ -1826,10 +1874,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 74.8,
-    "latencySeconds": 1,
-    "benchlmScore": 82.2,
-    "benchlmCodingScore": 79.01
+    "outputSpeed": 75,
+    "latencySeconds": 1.1,
+    "benchlmScore": 82.39,
+    "benchlmCodingScore": 79.91
   },
   {
     "id": "nex-agi/nex-n2-pro",
@@ -1910,10 +1958,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 100.8,
+    "outputSpeed": 100,
     "latencySeconds": 1.3,
-    "benchlmScore": 72.95,
-    "benchlmCodingScore": 69.29
+    "benchlmScore": 73.21,
+    "benchlmCodingScore": 70.28
   },
   {
     "id": "thinkingmachines/inkling-small",
@@ -1942,8 +1990,8 @@
     "outputSpeed": 74.1,
     "latencySeconds": 29.4,
     "huggingFaceId": "thinkingmachines/Inkling-Small",
-    "benchlmScore": 64.02,
-    "benchlmCodingScore": 53.58
+    "benchlmScore": 64.21,
+    "benchlmCodingScore": 54.81
   },
   {
     "id": "aa:jt-4-1-flash-236b-a21b",
@@ -2025,8 +2073,8 @@
     "activeParameters": null,
     "outputSpeed": 56.1,
     "latencySeconds": 37.8,
-    "benchlmScore": 65.93,
-    "benchlmCodingScore": 58.4
+    "benchlmScore": 66.08,
+    "benchlmCodingScore": 59.11
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -2052,10 +2100,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 123.4,
+    "outputSpeed": 120.4,
     "latencySeconds": 2.4,
-    "benchlmScore": 67.35,
-    "benchlmCodingScore": 73.59
+    "benchlmScore": 67.61,
+    "benchlmCodingScore": 74.52
   },
   {
     "id": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -2081,8 +2129,8 @@
     "maxCompletionTokens": 16384,
     "parameters": 550000000000,
     "activeParameters": 55000000000,
-    "outputSpeed": 69.7,
-    "latencySeconds": 37.6,
+    "outputSpeed": 80.1,
+    "latencySeconds": 31.6,
     "huggingFaceId": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16"
   },
   {
@@ -2112,8 +2160,8 @@
     "outputSpeed": 66.7,
     "latencySeconds": 32.8,
     "huggingFaceId": "XiaomiMiMo/MiMo-V2.5",
-    "benchlmScore": 59.48,
-    "benchlmCodingScore": 49.75
+    "benchlmScore": 59.9,
+    "benchlmCodingScore": 50.97
   },
   {
     "id": "inclusionai/ling-3.0-flash",
@@ -2142,8 +2190,8 @@
     "outputSpeed": 379.5,
     "latencySeconds": 7.9,
     "huggingFaceId": "inclusionAI/Ling-3.0-flash",
-    "benchlmScore": 53.89,
-    "benchlmCodingScore": 53.75
+    "benchlmScore": 54.33,
+    "benchlmCodingScore": 54.42
   },
   {
     "id": "qwen/qwen3.6-27b",
@@ -2172,8 +2220,8 @@
     "outputSpeed": 50,
     "latencySeconds": null,
     "huggingFaceId": "Qwen/Qwen3.6-27B",
-    "benchlmScore": 53.84,
-    "benchlmCodingScore": 46.41
+    "benchlmScore": 54.29,
+    "benchlmCodingScore": 47.56
   },
   {
     "id": "aa:solar-open2-250b",
@@ -2230,8 +2278,8 @@
     "latencySeconds": 9.1,
     "arenaCodeElo": 1449,
     "arenaCodeVotes": 228,
-    "benchlmScore": 65.5,
-    "benchlmCodingScore": 52.67
+    "benchlmScore": 65.67,
+    "benchlmCodingScore": 53.91
   },
   {
     "id": "aa:mimo-v2-omni-0327",
@@ -2259,7 +2307,7 @@
     "activeParameters": null,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 62.61
+    "benchlmScore": 62.79
   },
   {
     "id": "x-ai/grok-4.3",
@@ -2285,10 +2333,10 @@
     "maxCompletionTokens": 900000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 108.1,
-    "latencySeconds": 10.3,
-    "benchlmScore": 64.25,
-    "benchlmCodingScore": 36.46
+    "outputSpeed": 109.5,
+    "latencySeconds": 10.2,
+    "benchlmScore": 64.43,
+    "benchlmCodingScore": 37.7
   },
   {
     "id": "x-ai/grok-4.3",
@@ -2314,10 +2362,10 @@
     "maxCompletionTokens": 900000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 111.9,
+    "outputSpeed": 114.8,
     "latencySeconds": 5,
-    "benchlmScore": 64.25,
-    "benchlmCodingScore": 36.46
+    "benchlmScore": 64.43,
+    "benchlmCodingScore": 37.7
   },
   {
     "id": "aa:mimo-v2-omni",
@@ -2345,7 +2393,7 @@
     "activeParameters": null,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 62.61
+    "benchlmScore": 62.79
   },
   {
     "id": "google/gemini-3.5-flash",
@@ -2371,10 +2419,10 @@
     "maxCompletionTokens": 65536,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 184.2,
-    "latencySeconds": 0.9,
-    "benchlmScore": 64.73,
-    "benchlmCodingScore": 62.33
+    "outputSpeed": 183.4,
+    "latencySeconds": 1,
+    "benchlmScore": 64.95,
+    "benchlmCodingScore": 63.39
   },
   {
     "id": "meta/muse-glimmer-30b",
@@ -2430,15 +2478,15 @@
     "maxCompletionTokens": 128000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 43.7,
-    "latencySeconds": 1.9,
+    "outputSpeed": 42.9,
+    "latencySeconds": 2.1,
     "huggingFaceId": "",
     "arenaElo": 1472,
     "arenaVotes": 66512,
     "arenaCodeElo": 1522,
-    "arenaCodeVotes": 20307,
-    "benchlmScore": 64.77,
-    "benchlmCodingScore": 58.37
+    "arenaCodeVotes": 21115,
+    "benchlmScore": 64.96,
+    "benchlmCodingScore": 59.55
   },
   {
     "id": "aa:a-x-k2",
@@ -2491,11 +2539,11 @@
     "maxCompletionTokens": 262144,
     "parameters": 753000000000,
     "activeParameters": 40000000000,
-    "outputSpeed": 108,
-    "latencySeconds": 2.1,
+    "outputSpeed": 105.8,
+    "latencySeconds": 2,
     "huggingFaceId": "zai-org/GLM-5.2",
-    "benchlmScore": 63.4,
-    "benchlmCodingScore": 64.95
+    "benchlmScore": 63.65,
+    "benchlmCodingScore": 65.98
   },
   {
     "id": "qwen/qwen3.8-27b",
@@ -2521,13 +2569,13 @@
     "maxCompletionTokens": 131072,
     "parameters": 27000000000,
     "activeParameters": 27000000000,
-    "outputSpeed": 51.2,
+    "outputSpeed": 50.2,
     "latencySeconds": 3.9,
     "huggingFaceId": "Qwen/Qwen3.8-27B",
-    "arenaCodeElo": 1595,
-    "arenaCodeVotes": 2464,
-    "benchlmScore": 72.51,
-    "benchlmCodingScore": 64.7
+    "arenaCodeElo": 1598,
+    "arenaCodeVotes": 3163,
+    "benchlmScore": 72.7,
+    "benchlmCodingScore": 66.04
   },
   {
     "id": "openai/gpt-5.6-terra",
@@ -2553,10 +2601,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 98.2,
+    "outputSpeed": 91.5,
     "latencySeconds": 0.8,
-    "benchlmScore": 72.95,
-    "benchlmCodingScore": 69.29
+    "benchlmScore": 73.21,
+    "benchlmCodingScore": 70.28
   },
   {
     "id": "qwen/qwen3.5-397b-a17b",
@@ -2585,8 +2633,8 @@
     "outputSpeed": 94.3,
     "latencySeconds": 36.1,
     "huggingFaceId": "Qwen/Qwen3.5-397B-A17B",
-    "benchlmScore": 57.78,
-    "benchlmCodingScore": 53.69
+    "benchlmScore": 58.2,
+    "benchlmCodingScore": 54.37
   },
   {
     "id": "aa:g9v3-39a5b",
@@ -2669,8 +2717,8 @@
     "activeParameters": 15000000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 53.57,
-    "benchlmCodingScore": 53.83
+    "benchlmScore": 53.75,
+    "benchlmCodingScore": 54.27
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -2696,10 +2744,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 119.5,
-    "latencySeconds": 1.6,
-    "benchlmScore": 67.35,
-    "benchlmCodingScore": 73.59
+    "outputSpeed": 120.7,
+    "latencySeconds": 1.7,
+    "benchlmScore": 67.61,
+    "benchlmCodingScore": 74.52
   },
   {
     "id": "kwaipilot/kat-coder-pro-v2",
@@ -2722,7 +2770,7 @@
     "outputPerM": 1.2,
     "cacheReadPerM": 0.06,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 80000,
+    "maxCompletionTokens": 144000,
     "parameters": null,
     "activeParameters": null,
     "outputSpeed": 100.4,
@@ -2756,8 +2804,8 @@
     "outputSpeed": 131.4,
     "latencySeconds": 17.5,
     "huggingFaceId": "Qwen/Qwen3.5-122B-A10B",
-    "benchlmScore": 59.89,
-    "benchlmCodingScore": 47.55
+    "benchlmScore": 60.07,
+    "benchlmCodingScore": 48.73
   },
   {
     "id": "qwen/qwen3.5-397b-a17b",
@@ -2783,7 +2831,7 @@
     "maxCompletionTokens": 65536,
     "parameters": 397000000000,
     "activeParameters": 17000000000,
-    "outputSpeed": 77.9,
+    "outputSpeed": 81.2,
     "latencySeconds": 2.3,
     "huggingFaceId": "Qwen/Qwen3.5-397B-A17B"
   },
@@ -2814,8 +2862,8 @@
     "outputSpeed": 123.9,
     "latencySeconds": 45.6,
     "huggingFaceId": "Qwen/Qwen3.6-35B-A3B",
-    "benchlmScore": 51.55,
-    "benchlmCodingScore": 50.54
+    "benchlmScore": 51.99,
+    "benchlmCodingScore": 51.36
   },
   {
     "id": "deepseek/deepseek-v4-pro",
@@ -2834,11 +2882,11 @@
     "omniscience": -29.9,
     "contextTokens": 1000000,
     "openWeights": true,
-    "inputPerM": 1.0423,
-    "outputPerM": 2.0845,
-    "cacheReadPerM": 0.0869,
+    "inputPerM": 1.6,
+    "outputPerM": 3.2,
+    "cacheReadPerM": 0.135,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 384000,
+    "maxCompletionTokens": 393216,
     "parameters": 1600000000000,
     "activeParameters": 49000000000,
     "outputSpeed": 51.5,
@@ -2898,11 +2946,11 @@
     "maxCompletionTokens": 235929,
     "parameters": 27800000000,
     "activeParameters": 27800000000,
-    "outputSpeed": 53.9,
+    "outputSpeed": 53.6,
     "latencySeconds": 3.7,
     "huggingFaceId": "Qwen/Qwen3.6-27B",
-    "benchlmScore": 53.84,
-    "benchlmCodingScore": 46.41
+    "benchlmScore": 54.29,
+    "benchlmCodingScore": 47.56
   },
   {
     "id": "aa:qwen3-5-omni-plus",
@@ -2958,7 +3006,7 @@
     "outputSpeed": 115.5,
     "latencySeconds": 9.2,
     "huggingFaceId": "",
-    "benchlmScore": 47.2
+    "benchlmScore": 47.39
   },
   {
     "id": "aa:k-exaone-2-0-0803",
@@ -3014,8 +3062,8 @@
     "outputSpeed": 86.8,
     "latencySeconds": 25.8,
     "huggingFaceId": "stepfun-ai/Step-3.7-Flash",
-    "benchlmScore": 51.05,
-    "benchlmCodingScore": 50.77
+    "benchlmScore": 51.49,
+    "benchlmCodingScore": 51.46
   },
   {
     "id": "mistralai/mistral-medium-3-5",
@@ -3043,7 +3091,7 @@
     "activeParameters": 128000000000,
     "outputSpeed": 150.5,
     "latencySeconds": 15.5,
-    "benchlmScore": 43.56
+    "benchlmScore": 43.99
   },
   {
     "id": "anthropic/claude-haiku-4.5",
@@ -3069,11 +3117,11 @@
     "maxCompletionTokens": 64000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 96.5,
-    "latencySeconds": 21.2,
+    "outputSpeed": 93.2,
+    "latencySeconds": 27,
     "huggingFaceId": "",
-    "benchlmScore": 57.38,
-    "benchlmCodingScore": 47.41
+    "benchlmScore": 57.8,
+    "benchlmCodingScore": 48.08
   },
   {
     "id": "google/gemma-4-31b-it",
@@ -3102,8 +3150,8 @@
     "outputSpeed": 35.4,
     "latencySeconds": 50.1,
     "huggingFaceId": "google/gemma-4-31B-it",
-    "benchlmScore": 60.39,
-    "benchlmCodingScore": 47
+    "benchlmScore": 60.61,
+    "benchlmCodingScore": 48.21
   },
   {
     "id": "deepseek/deepseek-v4-flash-0731",
@@ -3163,9 +3211,9 @@
     "arenaElo": 1474,
     "arenaVotes": 25863,
     "arenaCodeElo": 1458,
-    "arenaCodeVotes": 13672,
-    "benchlmScore": 72.92,
-    "benchlmCodingScore": 72.5
+    "arenaCodeVotes": 14506,
+    "benchlmScore": 73.47,
+    "benchlmCodingScore": 73.47
   },
   {
     "id": "aa:jt-35b-flash",
@@ -3219,14 +3267,14 @@
     "parameters": 1023000000000,
     "activeParameters": 41700000000,
     "outputSpeed": 31.5,
-    "latencySeconds": 3.5,
+    "latencySeconds": 3.4,
     "huggingFaceId": "XiaomiMiMo/MiMo-V2.5-Pro",
     "arenaElo": 1468,
     "arenaVotes": 54177,
     "arenaCodeElo": 1476,
-    "arenaCodeVotes": 13998,
-    "benchlmScore": 69.41,
-    "benchlmCodingScore": 55.14
+    "arenaCodeVotes": 14728,
+    "benchlmScore": 69.59,
+    "benchlmCodingScore": 56.37
   },
   {
     "id": "qwen/qwen3.5-122b-a10b",
@@ -3252,11 +3300,11 @@
     "maxCompletionTokens": 81920,
     "parameters": 125000000000,
     "activeParameters": 10000000000,
-    "outputSpeed": 144,
+    "outputSpeed": 146.1,
     "latencySeconds": 2.3,
     "huggingFaceId": "Qwen/Qwen3.5-122B-A10B",
-    "benchlmScore": 59.89,
-    "benchlmCodingScore": 47.55
+    "benchlmScore": 60.07,
+    "benchlmCodingScore": 48.73
   },
   {
     "id": "openai/gpt-5.6-luna",
@@ -3282,10 +3330,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 1000000000000,
     "activeParameters": null,
-    "outputSpeed": 125.7,
+    "outputSpeed": 124.7,
     "latencySeconds": 0.7,
-    "benchlmScore": 67.35,
-    "benchlmCodingScore": 73.59
+    "benchlmScore": 67.61,
+    "benchlmCodingScore": 74.52
   },
   {
     "id": "aa:doubao-seed-code",
@@ -3341,8 +3389,8 @@
     "outputSpeed": null,
     "latencySeconds": null,
     "huggingFaceId": "google/gemma-4-26B-A4B-it",
-    "benchlmScore": 57.45,
-    "benchlmCodingScore": 45.03
+    "benchlmScore": 57.62,
+    "benchlmCodingScore": 46.22
   },
   {
     "id": "nvidia/nemotron-3-super-120b-a12b",
@@ -3371,7 +3419,7 @@
     "outputSpeed": 141.5,
     "latencySeconds": 15.9,
     "huggingFaceId": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8",
-    "benchlmScore": 51.66
+    "benchlmScore": 52.09
   },
   {
     "id": "aa:mimo-v2-flash",
@@ -3399,8 +3447,8 @@
     "activeParameters": 15000000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 53.57,
-    "benchlmCodingScore": 53.83
+    "benchlmScore": 53.75,
+    "benchlmCodingScore": 54.27
   },
   {
     "id": "x-ai/grok-4.3",
@@ -3426,10 +3474,10 @@
     "maxCompletionTokens": 900000,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 101.2,
-    "latencySeconds": 0.7,
-    "benchlmScore": 64.25,
-    "benchlmCodingScore": 36.46
+    "outputSpeed": 101,
+    "latencySeconds": 0.8,
+    "benchlmScore": 64.43,
+    "benchlmCodingScore": 37.7
   },
   {
     "id": "qwen/qwen3.6-35b-a3b",
@@ -3455,11 +3503,11 @@
     "maxCompletionTokens": 235929,
     "parameters": 36000000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 136.9,
-    "latencySeconds": 2,
+    "outputSpeed": 136.2,
+    "latencySeconds": 2.1,
     "huggingFaceId": "Qwen/Qwen3.6-35B-A3B",
-    "benchlmScore": 51.55,
-    "benchlmCodingScore": 50.54
+    "benchlmScore": 51.99,
+    "benchlmCodingScore": 51.36
   },
   {
     "id": "aa:ling-3-0-tiny",
@@ -3512,11 +3560,11 @@
     "maxCompletionTokens": 235929,
     "parameters": 36000000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 163.9,
+    "outputSpeed": 166.1,
     "latencySeconds": 2.1,
     "huggingFaceId": "Qwen/Qwen3.5-35B-A3B",
-    "benchlmScore": 56.38,
-    "benchlmCodingScore": 48.6
+    "benchlmScore": 56.64,
+    "benchlmCodingScore": 49.16
   },
   {
     "id": "anthropic/claude-haiku-4.5",
@@ -3545,8 +3593,8 @@
     "outputSpeed": 95.3,
     "latencySeconds": 0.8,
     "huggingFaceId": "",
-    "benchlmScore": 57.38,
-    "benchlmCodingScore": 47.41
+    "benchlmScore": 57.8,
+    "benchlmCodingScore": 48.08
   },
   {
     "id": "openai/gpt-oss-120b",
@@ -3575,12 +3623,12 @@
     "outputSpeed": 156.8,
     "latencySeconds": 13.6,
     "huggingFaceId": "openai/gpt-oss-120b",
-    "benchlmScore": 49.52,
-    "benchlmCodingScore": 47.25
+    "benchlmScore": 49.7,
+    "benchlmCodingScore": 47.73
   },
   {
-    "id": "ibm-granite/granite-4.1-8b",
-    "name": "IBM: Granite 4.1 8B",
+    "id": "ibm-granite/granite-4.2-8b",
+    "name": "IBM: Granite 4.2 8B",
     "family": "IBM",
     "slug": "granite-4-2-30b",
     "aaName": "Granite 4.2 30B",
@@ -3595,8 +3643,8 @@
     "omniscience": -12.9,
     "contextTokens": 131072,
     "openWeights": true,
-    "inputPerM": 0.05,
-    "outputPerM": 0.1,
+    "inputPerM": 0.1,
+    "outputPerM": 0.15,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
     "maxCompletionTokens": 117964,
@@ -3604,7 +3652,9 @@
     "activeParameters": 30000000000,
     "outputSpeed": 74.9,
     "latencySeconds": 27.6,
-    "huggingFaceId": "ibm-granite/granite-4.1-8b"
+    "huggingFaceId": "ibm-granite/granite-4.2-8b",
+    "benchlmScore": 46.88,
+    "benchlmCodingScore": 46.78
   },
   {
     "id": "nvidia/nemotron-3.5-lightning",
@@ -3661,8 +3711,8 @@
     "outputSpeed": 252.3,
     "latencySeconds": 8.3,
     "huggingFaceId": "CohereForAI/c4ai-command-a-03-2025",
-    "benchlmScore": 47.73,
-    "benchlmCodingScore": 47.5
+    "benchlmScore": 48.17,
+    "benchlmCodingScore": 48.2
   },
   {
     "id": "aa:k-exaone",
@@ -3690,8 +3740,8 @@
     "activeParameters": 23000000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 47.6,
-    "benchlmCodingScore": 48.32
+    "benchlmScore": 48.04,
+    "benchlmCodingScore": 49.02
   },
   {
     "id": "google/gemma-4-31b-it",
@@ -3717,11 +3767,11 @@
     "maxCompletionTokens": 16384,
     "parameters": 30700000000,
     "activeParameters": 30700000000,
-    "outputSpeed": 82.4,
-    "latencySeconds": 1.3,
+    "outputSpeed": 61.1,
+    "latencySeconds": 1.4,
     "huggingFaceId": "google/gemma-4-31B-it",
-    "benchlmScore": 60.39,
-    "benchlmCodingScore": 47
+    "benchlmScore": 60.61,
+    "benchlmCodingScore": 48.21
   },
   {
     "id": "aa:ernie-5-0-thinking-preview",
@@ -3776,8 +3826,8 @@
     "activeParameters": 12000000000,
     "outputSpeed": 111.4,
     "latencySeconds": 20.3,
-    "benchlmScore": 47.48,
-    "benchlmCodingScore": 48.06
+    "benchlmScore": 47.92,
+    "benchlmCodingScore": 48.75
   },
   {
     "id": "aa:nova-2-0-pro-reasoning-medium",
@@ -3803,8 +3853,8 @@
     "maxCompletionTokens": null,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 118.1,
-    "latencySeconds": 28.2
+    "outputSpeed": 117,
+    "latencySeconds": 27.6
   },
   {
     "id": "inception/mercury-2",
@@ -3832,8 +3882,8 @@
     "activeParameters": null,
     "outputSpeed": 949.9,
     "latencySeconds": 3.6,
-    "benchlmScore": 48.41,
-    "benchlmCodingScore": 28.25
+    "benchlmScore": 48.59,
+    "benchlmCodingScore": 29.4
   },
   {
     "id": "qwen/qwen3.5-9b",
@@ -3969,8 +4019,8 @@
     "maxCompletionTokens": 65535,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 166.4,
-    "latencySeconds": 27.1,
+    "outputSpeed": 145.5,
+    "latencySeconds": 29.6,
     "huggingFaceId": ""
   },
   {
@@ -3997,7 +4047,7 @@
     "maxCompletionTokens": 235929,
     "parameters": 9650000000,
     "activeParameters": 9650000000,
-    "outputSpeed": 95.3,
+    "outputSpeed": 97.9,
     "latencySeconds": 0.7,
     "huggingFaceId": "Qwen/Qwen3.5-9B"
   },
@@ -4052,11 +4102,11 @@
     "maxCompletionTokens": 16384,
     "parameters": 25200000000,
     "activeParameters": 3800000000,
-    "outputSpeed": 82.3,
+    "outputSpeed": 79.1,
     "latencySeconds": 1.1,
     "huggingFaceId": "google/gemma-4-26B-A4B-it",
-    "benchlmScore": 57.45,
-    "benchlmCodingScore": 45.03
+    "benchlmScore": 57.62,
+    "benchlmCodingScore": 46.22
   },
   {
     "id": "qwen/qwen3.5-9b",
@@ -4138,8 +4188,8 @@
     "maxCompletionTokens": null,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 123.9,
-    "latencySeconds": 25.7
+    "outputSpeed": 117.1,
+    "latencySeconds": 26.5
   },
   {
     "id": "mistralai/mistral-small-2603",
@@ -4168,12 +4218,12 @@
     "outputSpeed": 157.7,
     "latencySeconds": 13.6,
     "huggingFaceId": "mistralai/Mistral-Small-4-119B-2603",
-    "benchlmScore": 46.48,
-    "benchlmCodingScore": 46.92
+    "benchlmScore": 46.92,
+    "benchlmCodingScore": 47.62
   },
   {
-    "id": "ibm-granite/granite-4.1-8b",
-    "name": "IBM: Granite 4.1 8B",
+    "id": "ibm-granite/granite-4.2-8b",
+    "name": "IBM: Granite 4.2 8B",
     "family": "IBM",
     "slug": "granite-4-2-8b",
     "aaName": "Granite 4.2 8B",
@@ -4188,8 +4238,8 @@
     "omniscience": -17.2,
     "contextTokens": 131072,
     "openWeights": true,
-    "inputPerM": 0.05,
-    "outputPerM": 0.1,
+    "inputPerM": 0.1,
+    "outputPerM": 0.15,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
     "maxCompletionTokens": 117964,
@@ -4197,7 +4247,9 @@
     "activeParameters": 8000000000,
     "outputSpeed": 145,
     "latencySeconds": 14.4,
-    "huggingFaceId": "ibm-granite/granite-4.1-8b"
+    "huggingFaceId": "ibm-granite/granite-4.2-8b",
+    "benchlmScore": 46.88,
+    "benchlmCodingScore": 46.78
   },
   {
     "id": "aa:qwen3-5-omni-flash",
@@ -4278,8 +4330,8 @@
     "maxCompletionTokens": 65535,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 167.8,
-    "latencySeconds": 27.2,
+    "outputSpeed": 156.1,
+    "latencySeconds": 26.6,
     "huggingFaceId": ""
   },
   {
@@ -4337,8 +4389,8 @@
     "outputSpeed": 203.9,
     "latencySeconds": 11.3,
     "huggingFaceId": "arcee-ai/Trinity-Large-Thinking",
-    "benchlmScore": 48.17,
-    "benchlmCodingScore": 31.07
+    "benchlmScore": 48.34,
+    "benchlmCodingScore": 32.23
   },
   {
     "id": "aa:hypernova-60b",
@@ -4391,8 +4443,8 @@
     "maxCompletionTokens": 65535,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 169.5,
-    "latencySeconds": 21.6,
+    "outputSpeed": 158.3,
+    "latencySeconds": 21.1,
     "huggingFaceId": ""
   },
   {
@@ -4583,8 +4635,8 @@
     "activeParameters": 23000000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 47.6,
-    "benchlmCodingScore": 48.32
+    "benchlmScore": 48.04,
+    "benchlmCodingScore": 49.02
   },
   {
     "id": "qwen/qwen3-next-80b-a3b-thinking",
@@ -4610,8 +4662,8 @@
     "maxCompletionTokens": 32768,
     "parameters": 80000000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 198.2,
-    "latencySeconds": 12.3,
+    "outputSpeed": 197.1,
+    "latencySeconds": 12.4,
     "huggingFaceId": "Qwen/Qwen3-Next-80B-A3B-Thinking"
   },
   {
@@ -4719,7 +4771,7 @@
     "maxCompletionTokens": null,
     "parameters": 4660000000,
     "activeParameters": 4660000000,
-    "outputSpeed": 31,
+    "outputSpeed": 27.4,
     "latencySeconds": 0.7
   },
   {
@@ -4749,8 +4801,8 @@
     "outputSpeed": 27.8,
     "latencySeconds": 2.2,
     "huggingFaceId": "",
-    "benchlmScore": 49.81,
-    "benchlmCodingScore": 28.84
+    "benchlmScore": 49.98,
+    "benchlmCodingScore": 29.95
   },
   {
     "id": "aa:intellect-3",
@@ -4833,8 +4885,8 @@
     "outputSpeed": 119,
     "latencySeconds": 17.9,
     "huggingFaceId": "openai/gpt-oss-20b",
-    "benchlmScore": 42.46,
-    "benchlmCodingScore": 40.62
+    "benchlmScore": 42.63,
+    "benchlmCodingScore": 41.1
   },
   {
     "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
@@ -4863,8 +4915,8 @@
     "outputSpeed": 328.1,
     "latencySeconds": 7.1,
     "huggingFaceId": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16",
-    "benchlmScore": 44.58,
-    "benchlmCodingScore": 43.83
+    "benchlmScore": 45.02,
+    "benchlmCodingScore": 44.53
   },
   {
     "id": "openai/gpt-oss-120b",
@@ -4890,11 +4942,11 @@
     "maxCompletionTokens": 117964,
     "parameters": 117000000000,
     "activeParameters": 5100000000,
-    "outputSpeed": 214.8,
-    "latencySeconds": 10.2,
+    "outputSpeed": 194.9,
+    "latencySeconds": 11.1,
     "huggingFaceId": "openai/gpt-oss-120b",
-    "benchlmScore": 49.52,
-    "benchlmCodingScore": 47.25
+    "benchlmScore": 49.7,
+    "benchlmCodingScore": 47.73
   },
   {
     "id": "upstage/solar-pro-3",
@@ -4948,8 +5000,8 @@
     "maxCompletionTokens": 228000,
     "parameters": 31600000000,
     "activeParameters": 3600000000,
-    "outputSpeed": 292.3,
-    "latencySeconds": 8,
+    "outputSpeed": 287,
+    "latencySeconds": 8.1,
     "huggingFaceId": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
   },
   {
@@ -5004,7 +5056,7 @@
     "maxCompletionTokens": null,
     "parameters": null,
     "activeParameters": null,
-    "outputSpeed": 109.3,
+    "outputSpeed": 107.3,
     "latencySeconds": 1
   },
   {
@@ -5031,15 +5083,15 @@
     "maxCompletionTokens": 117964,
     "parameters": 21000000000,
     "activeParameters": 3600000000,
-    "outputSpeed": 141.7,
-    "latencySeconds": 15.4,
+    "outputSpeed": 138.7,
+    "latencySeconds": 15.7,
     "huggingFaceId": "openai/gpt-oss-20b",
-    "benchlmScore": 42.46,
-    "benchlmCodingScore": 40.62
+    "benchlmScore": 42.63,
+    "benchlmCodingScore": 41.1
   },
   {
-    "id": "ibm-granite/granite-4.1-8b",
-    "name": "IBM: Granite 4.1 8B",
+    "id": "ibm-granite/granite-4.2-8b",
+    "name": "IBM: Granite 4.2 8B",
     "family": "IBM",
     "slug": "granite-4-2-3b",
     "aaName": "Granite 4.2 3B",
@@ -5054,8 +5106,8 @@
     "omniscience": -14.7,
     "contextTokens": 131072,
     "openWeights": true,
-    "inputPerM": 0.05,
-    "outputPerM": 0.1,
+    "inputPerM": 0.1,
+    "outputPerM": 0.15,
     "cacheReadPerM": 0.05,
     "cacheWritePerM": null,
     "maxCompletionTokens": 117964,
@@ -5063,7 +5115,9 @@
     "activeParameters": 3000000000,
     "outputSpeed": 220,
     "latencySeconds": 9.5,
-    "huggingFaceId": "ibm-granite/granite-4.1-8b"
+    "huggingFaceId": "ibm-granite/granite-4.2-8b",
+    "benchlmScore": 46.88,
+    "benchlmCodingScore": 46.78
   },
   {
     "id": "aa:k2-v2",
@@ -5109,11 +5163,11 @@
     "omniscience": -59.5,
     "contextTokens": 262144,
     "openWeights": true,
-    "inputPerM": 0.09,
+    "inputPerM": 0.1,
     "outputPerM": 1.1,
     "cacheReadPerM": 0.07,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 16384,
+    "maxCompletionTokens": 235929,
     "parameters": 80000000000,
     "activeParameters": 3000000000,
     "outputSpeed": 175.5,
@@ -5171,10 +5225,10 @@
     "maxCompletionTokens": null,
     "parameters": 12000000000,
     "activeParameters": 12000000000,
-    "outputSpeed": 111.3,
+    "outputSpeed": 108.9,
     "latencySeconds": 2.5,
-    "benchlmScore": 47.48,
-    "benchlmCodingScore": 48.06
+    "benchlmScore": 47.92,
+    "benchlmCodingScore": 48.75
   },
   {
     "id": "aa:motif-2-12-7b",
@@ -5309,8 +5363,8 @@
     "maxCompletionTokens": null,
     "parameters": 49000000000,
     "activeParameters": 49000000000,
-    "outputSpeed": 35.4,
-    "latencySeconds": 46.5
+    "outputSpeed": 48.9,
+    "latencySeconds": 49.5
   },
   {
     "id": "mistralai/mistral-small-2603",
@@ -5339,8 +5393,8 @@
     "outputSpeed": 143.1,
     "latencySeconds": 0.8,
     "huggingFaceId": "mistralai/Mistral-Small-4-119B-2603",
-    "benchlmScore": 46.48,
-    "benchlmCodingScore": 46.92
+    "benchlmScore": 46.92,
+    "benchlmCodingScore": 47.62
   },
   {
     "id": "aa:tri-21b-think-v0-5",
@@ -5395,8 +5449,8 @@
     "activeParameters": 4500000000,
     "outputSpeed": 49.3,
     "latencySeconds": 41.4,
-    "benchlmScore": 43.44,
-    "benchlmCodingScore": 42.66
+    "benchlmScore": 43.88,
+    "benchlmCodingScore": 43.35
   },
   {
     "id": "aa:minicpm5-1b",
@@ -5451,7 +5505,7 @@
     "activeParameters": 10300000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 43.33
+    "benchlmScore": 43.76
   },
   {
     "id": "amazon/nova-2-lite-v1",
@@ -5590,8 +5644,8 @@
     "activeParameters": 2700000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 42.96,
-    "benchlmCodingScore": 42.2
+    "benchlmScore": 43.39,
+    "benchlmCodingScore": 42.9
   },
   {
     "id": "aa:nanbeige4-1-3b",
@@ -5646,7 +5700,7 @@
     "activeParameters": 32000000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 40.86
+    "benchlmScore": 41.29
   },
   {
     "id": "aa:nova-2-0-omni",
@@ -5692,11 +5746,11 @@
     "omniscience": -52.1,
     "contextTokens": 10000000,
     "openWeights": true,
-    "inputPerM": 0.11,
-    "outputPerM": 0.34,
+    "inputPerM": 0.1,
+    "outputPerM": 0.3,
     "cacheReadPerM": 0.055,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 8192,
+    "maxCompletionTokens": 16384,
     "parameters": 109000000000,
     "activeParameters": 17000000000,
     "outputSpeed": 131,
@@ -5727,8 +5781,8 @@
     "maxCompletionTokens": null,
     "parameters": 70600000000,
     "activeParameters": 70600000000,
-    "outputSpeed": 82.8,
-    "latencySeconds": 25.6
+    "outputSpeed": 77.8,
+    "latencySeconds": 27.2
   },
   {
     "id": "aa:falcon-h1r-7b",
@@ -5783,8 +5837,8 @@
     "activeParameters": 2300000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 42.38,
-    "benchlmCodingScore": 41.94
+    "benchlmScore": 42.81,
+    "benchlmCodingScore": 42.64
   },
   {
     "id": "aa:qwen3-omni-30b-a3b-reasoning",
@@ -5810,8 +5864,8 @@
     "maxCompletionTokens": null,
     "parameters": 35300000000,
     "activeParameters": 3000000000,
-    "outputSpeed": 100.8,
-    "latencySeconds": 21.7
+    "outputSpeed": 101.8,
+    "latencySeconds": 21.5
   },
   {
     "id": "aa:step-3-vl-10b",
@@ -5919,8 +5973,8 @@
     "maxCompletionTokens": null,
     "parameters": 253000000000,
     "activeParameters": 253000000000,
-    "outputSpeed": 52.5,
-    "latencySeconds": 40.5
+    "outputSpeed": 52.4,
+    "latencySeconds": 40.6
   },
   {
     "id": "aa:nvidia-nemotron-nano-12b-v2-vl-reasoning",
@@ -5946,7 +6000,7 @@
     "maxCompletionTokens": 131072,
     "parameters": 13200000000,
     "activeParameters": 13200000000,
-    "outputSpeed": 30.8,
+    "outputSpeed": 42.8,
     "latencySeconds": 51.8
   },
   {
@@ -5973,8 +6027,8 @@
     "maxCompletionTokens": null,
     "parameters": 406000000000,
     "activeParameters": 406000000000,
-    "outputSpeed": 40,
-    "latencySeconds": 52.5
+    "outputSpeed": 39.7,
+    "latencySeconds": 52.9
   },
   {
     "id": "ibm-granite/granite-4.1-8b",
@@ -6028,10 +6082,10 @@
     "maxCompletionTokens": null,
     "parameters": 8000000000,
     "activeParameters": 4500000000,
-    "outputSpeed": 41.9,
-    "latencySeconds": 0.8,
-    "benchlmScore": 43.44,
-    "benchlmCodingScore": 42.66
+    "outputSpeed": 44.5,
+    "latencySeconds": 0.7,
+    "benchlmScore": 43.88,
+    "benchlmCodingScore": 43.35
   },
   {
     "id": "aa:nvidia-nemotron-nano-9b-v2-reasoning",
@@ -6057,8 +6111,8 @@
     "maxCompletionTokens": 131072,
     "parameters": 9000000000,
     "activeParameters": 9000000000,
-    "outputSpeed": 257.4,
-    "latencySeconds": 11.1
+    "outputSpeed": 258.2,
+    "latencySeconds": 10.6
   },
   {
     "id": "aa:nvidia-nemotron-3-nano-4b",
@@ -6222,7 +6276,7 @@
     "activeParameters": 1500000000,
     "outputSpeed": 335.9,
     "latencySeconds": 7.6,
-    "benchlmScore": 41.82
+    "benchlmScore": 42.25
   },
   {
     "id": "aa:ring-flash-2-0",
@@ -6305,8 +6359,8 @@
     "outputSpeed": 69.2,
     "latencySeconds": 1.6,
     "huggingFaceId": "CohereForAI/c4ai-command-a-03-2025",
-    "benchlmScore": 47.73,
-    "benchlmCodingScore": 47.5
+    "benchlmScore": 48.17,
+    "benchlmCodingScore": 48.2
   },
   {
     "id": "qwen/qwen3.5-9b",
@@ -6501,7 +6555,7 @@
     "activeParameters": 2400000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 41.12
+    "benchlmScore": 41.55
   },
   {
     "id": "aa:gemma-4-e2b-non-reasoning",
@@ -6529,8 +6583,8 @@
     "activeParameters": 2300000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 42.38,
-    "benchlmCodingScore": 41.94
+    "benchlmScore": 42.81,
+    "benchlmCodingScore": 42.64
   },
   {
     "id": "meta-llama/llama-3.2-3b-instruct",
@@ -6613,7 +6667,7 @@
     "activeParameters": 32000000000,
     "outputSpeed": null,
     "latencySeconds": null,
-    "benchlmScore": 40.86
+    "benchlmScore": 41.29
   },
   {
     "id": "aa:qwen3-5-2b-non-reasoning",
@@ -7591,10 +7645,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 400000000000,
     "activeParameters": null,
-    "outputSpeed": 64.9,
+    "outputSpeed": 60.3,
     "latencySeconds": 2,
-    "benchlmScore": 65.02,
-    "benchlmCodingScore": 70.73
+    "benchlmScore": 65.21,
+    "benchlmCodingScore": 71.7
   },
   {
     "id": "anthropic/claude-sonnet-5",
@@ -7620,14 +7674,14 @@
     "maxCompletionTokens": 128000,
     "parameters": 400000000000,
     "activeParameters": null,
-    "outputSpeed": 65.1,
-    "latencySeconds": 12.3,
+    "outputSpeed": 62.8,
+    "latencySeconds": 9.6,
     "arenaElo": 1461,
     "arenaVotes": 27366,
-    "arenaCodeElo": 1539,
-    "arenaCodeVotes": 7267,
-    "benchlmScore": 65.02,
-    "benchlmCodingScore": 70.73
+    "arenaCodeElo": 1537,
+    "arenaCodeVotes": 8032,
+    "benchlmScore": 65.21,
+    "benchlmCodingScore": 71.7
   },
   {
     "id": "anthropic/claude-sonnet-5",
@@ -7653,10 +7707,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 400000000000,
     "activeParameters": null,
-    "outputSpeed": 62.8,
-    "latencySeconds": 27,
-    "benchlmScore": 65.02,
-    "benchlmCodingScore": 70.73
+    "outputSpeed": 62.7,
+    "latencySeconds": 22,
+    "benchlmScore": 65.21,
+    "benchlmCodingScore": 71.7
   },
   {
     "id": "anthropic/claude-sonnet-5",
@@ -7682,10 +7736,10 @@
     "maxCompletionTokens": 128000,
     "parameters": 400000000000,
     "activeParameters": null,
-    "outputSpeed": 57.9,
+    "outputSpeed": 56.4,
     "latencySeconds": 1.8,
-    "benchlmScore": 65.02,
-    "benchlmCodingScore": 70.73
+    "benchlmScore": 65.21,
+    "benchlmCodingScore": 71.7
   },
   {
     "id": "openai/gpt-5.5-pro",
@@ -7717,8 +7771,8 @@
     "arenaElo": 1476,
     "arenaVotes": 60896,
     "arenaCodeElo": 1458,
-    "arenaCodeVotes": 13672,
-    "benchlmScore": 64.43
+    "arenaCodeVotes": 14506,
+    "benchlmScore": 64.85
   },
   {
     "id": "aa:exaone-4-5-33b-non-reasoning",
@@ -7824,7 +7878,7 @@
     "maxCompletionTokens": 32768,
     "parameters": null,
     "activeParameters": null,
-    "benchlmScore": 49.31
+    "benchlmScore": 49.74
   },
   {
     "id": "aion-labs/aion-3.0",
@@ -8017,7 +8071,7 @@
     "hle": null,
     "omniscience": null,
     "openWeights": false,
-    "inputPerM": 3,
+    "inputPerM": 2.5,
     "outputPerM": 5,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
@@ -8075,12 +8129,12 @@
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 1000000,
-    "arenaElo": 1508,
-    "arenaVotes": 24331,
-    "arenaCodeElo": 1626,
-    "arenaCodeVotes": 8382,
-    "benchlmScore": 83.15,
-    "benchlmCodingScore": 81.41
+    "arenaElo": 1507,
+    "arenaVotes": 25824,
+    "arenaCodeElo": 1628,
+    "arenaCodeVotes": 9001,
+    "benchlmScore": 83.32,
+    "benchlmCodingScore": 82.4
   },
   {
     "id": "anthropic/claude-haiku-4.5:batch",
@@ -8107,8 +8161,8 @@
     "activeParameters": null,
     "contextTokens": 200000,
     "huggingFaceId": "",
-    "benchlmScore": 57.38,
-    "benchlmCodingScore": 47.41
+    "benchlmScore": 57.8,
+    "benchlmCodingScore": 48.08
   },
   {
     "id": "anthropic/claude-opus-4",
@@ -8136,11 +8190,11 @@
     "contextTokens": 409600,
     "huggingFaceId": "",
     "arenaElo": 1497,
-    "arenaVotes": 76362,
-    "arenaCodeElo": 1558,
-    "arenaCodeVotes": 14527,
-    "benchlmScore": 76.6,
-    "benchlmCodingScore": 71.98
+    "arenaVotes": 76079,
+    "arenaCodeElo": 1557,
+    "arenaCodeVotes": 15374,
+    "benchlmScore": 76.75,
+    "benchlmCodingScore": 73.05
   },
   {
     "id": "anthropic/claude-opus-4.1",
@@ -8224,9 +8278,9 @@
     "arenaElo": 1469,
     "arenaVotes": 70985,
     "arenaCodeElo": 1468,
-    "arenaCodeVotes": 12925,
-    "benchlmScore": 63.91,
-    "benchlmCodingScore": 62.22
+    "arenaCodeVotes": 12910,
+    "benchlmScore": 64.07,
+    "benchlmCodingScore": 62.65
   },
   {
     "id": "anthropic/claude-opus-4.5:batch",
@@ -8256,9 +8310,9 @@
     "arenaElo": 1469,
     "arenaVotes": 70985,
     "arenaCodeElo": 1468,
-    "arenaCodeVotes": 12925,
-    "benchlmScore": 63.91,
-    "benchlmCodingScore": 62.22
+    "arenaCodeVotes": 12910,
+    "benchlmScore": 64.07,
+    "benchlmCodingScore": 62.65
   },
   {
     "id": "anthropic/claude-opus-4.6",
@@ -8288,11 +8342,11 @@
     "latencySeconds": 2.2,
     "huggingFaceId": "",
     "arenaElo": 1497,
-    "arenaVotes": 76362,
+    "arenaVotes": 76079,
     "arenaCodeElo": 1536,
-    "arenaCodeVotes": 18226,
-    "benchlmScore": 68.26,
-    "benchlmCodingScore": 61.85
+    "arenaCodeVotes": 19016,
+    "benchlmScore": 68.43,
+    "benchlmCodingScore": 63.06
   },
   {
     "id": "anthropic/claude-opus-4.6:batch",
@@ -8320,11 +8374,11 @@
     "contextTokens": 1000000,
     "huggingFaceId": "",
     "arenaElo": 1497,
-    "arenaVotes": 76362,
+    "arenaVotes": 76079,
     "arenaCodeElo": 1536,
-    "arenaCodeVotes": 18226,
-    "benchlmScore": 68.26,
-    "benchlmCodingScore": 61.85
+    "arenaCodeVotes": 19016,
+    "benchlmScore": 68.43,
+    "benchlmCodingScore": 63.06
   },
   {
     "id": "anthropic/claude-opus-4.7",
@@ -8353,11 +8407,11 @@
     "outputSpeed": 51.6,
     "latencySeconds": 22.9,
     "arenaElo": 1494,
-    "arenaVotes": 61304,
-    "arenaCodeElo": 1558,
-    "arenaCodeVotes": 14527,
-    "benchlmScore": 72.33,
-    "benchlmCodingScore": 68.72
+    "arenaVotes": 61282,
+    "arenaCodeElo": 1557,
+    "arenaCodeVotes": 15374,
+    "benchlmScore": 72.47,
+    "benchlmCodingScore": 69.81
   },
   {
     "id": "anthropic/claude-opus-4.7-fast",
@@ -8384,11 +8438,11 @@
     "activeParameters": null,
     "contextTokens": 1000000,
     "arenaElo": 1494,
-    "arenaVotes": 61304,
-    "arenaCodeElo": 1558,
-    "arenaCodeVotes": 14527,
-    "benchlmScore": 72.33,
-    "benchlmCodingScore": 68.72
+    "arenaVotes": 61282,
+    "arenaCodeElo": 1557,
+    "arenaCodeVotes": 15374,
+    "benchlmScore": 72.47,
+    "benchlmCodingScore": 69.81
   },
   {
     "id": "anthropic/claude-opus-4.7:batch",
@@ -8415,11 +8469,11 @@
     "activeParameters": null,
     "contextTokens": 1000000,
     "arenaElo": 1494,
-    "arenaVotes": 61304,
-    "arenaCodeElo": 1558,
-    "arenaCodeVotes": 14527,
-    "benchlmScore": 72.33,
-    "benchlmCodingScore": 68.72
+    "arenaVotes": 61282,
+    "arenaCodeElo": 1557,
+    "arenaCodeVotes": 15374,
+    "benchlmScore": 72.47,
+    "benchlmCodingScore": 69.81
   },
   {
     "id": "anthropic/claude-opus-4.8",
@@ -8449,10 +8503,10 @@
     "latencySeconds": 49.4,
     "arenaElo": 1473,
     "arenaVotes": 45331,
-    "arenaCodeElo": 1539,
-    "arenaCodeVotes": 10638,
-    "benchlmScore": 76.6,
-    "benchlmCodingScore": 71.98
+    "arenaCodeElo": 1540,
+    "arenaCodeVotes": 11495,
+    "benchlmScore": 76.75,
+    "benchlmCodingScore": 73.05
   },
   {
     "id": "anthropic/claude-opus-4.8-fast",
@@ -8480,10 +8534,10 @@
     "contextTokens": 1000000,
     "arenaElo": 1473,
     "arenaVotes": 45331,
-    "arenaCodeElo": 1539,
-    "arenaCodeVotes": 10638,
-    "benchlmScore": 76.6,
-    "benchlmCodingScore": 71.98
+    "arenaCodeElo": 1540,
+    "arenaCodeVotes": 11495,
+    "benchlmScore": 76.75,
+    "benchlmCodingScore": 73.05
   },
   {
     "id": "anthropic/claude-opus-4.8:batch",
@@ -8511,10 +8565,10 @@
     "contextTokens": 1000000,
     "arenaElo": 1473,
     "arenaVotes": 45331,
-    "arenaCodeElo": 1539,
-    "arenaCodeVotes": 10638,
-    "benchlmScore": 76.6,
-    "benchlmCodingScore": 71.98
+    "arenaCodeElo": 1540,
+    "arenaCodeVotes": 11495,
+    "benchlmScore": 76.75,
+    "benchlmCodingScore": 73.05
   },
   {
     "id": "anthropic/claude-opus-5-fast",
@@ -8539,8 +8593,8 @@
     "maxCompletionTokens": 128000,
     "parameters": 800000000000,
     "activeParameters": null,
-    "benchlmScore": 83.06,
-    "benchlmCodingScore": 78.41
+    "benchlmScore": 83.24,
+    "benchlmCodingScore": 79.33
   },
   {
     "id": "anthropic/claude-opus-5:batch",
@@ -8565,8 +8619,8 @@
     "maxCompletionTokens": 128000,
     "parameters": 800000000000,
     "activeParameters": null,
-    "benchlmScore": 83.06,
-    "benchlmCodingScore": 78.41
+    "benchlmScore": 83.24,
+    "benchlmCodingScore": 79.33
   },
   {
     "id": "anthropic/claude-sonnet-4",
@@ -8596,9 +8650,9 @@
     "arenaElo": 1472,
     "arenaVotes": 66512,
     "arenaCodeElo": 1522,
-    "arenaCodeVotes": 20307,
-    "benchlmScore": 64.77,
-    "benchlmCodingScore": 58.37
+    "arenaCodeVotes": 21115,
+    "benchlmScore": 64.96,
+    "benchlmCodingScore": 59.55
   },
   {
     "id": "anthropic/claude-sonnet-4.5",
@@ -8625,8 +8679,8 @@
     "activeParameters": null,
     "contextTokens": 200000,
     "huggingFaceId": "",
-    "benchlmScore": 54.49,
-    "benchlmCodingScore": 51.82
+    "benchlmScore": 54.91,
+    "benchlmCodingScore": 52.45
   },
   {
     "id": "anthropic/claude-sonnet-4.5:batch",
@@ -8653,8 +8707,8 @@
     "activeParameters": null,
     "contextTokens": 200000,
     "huggingFaceId": "",
-    "benchlmScore": 54.49,
-    "benchlmCodingScore": 51.82
+    "benchlmScore": 54.91,
+    "benchlmCodingScore": 52.45
   },
   {
     "id": "anthropic/claude-sonnet-4.6:batch",
@@ -8684,9 +8738,9 @@
     "arenaElo": 1472,
     "arenaVotes": 66512,
     "arenaCodeElo": 1522,
-    "arenaCodeVotes": 20307,
-    "benchlmScore": 64.77,
-    "benchlmCodingScore": 58.37
+    "arenaCodeVotes": 21115,
+    "benchlmScore": 64.96,
+    "benchlmCodingScore": 59.55
   },
   {
     "id": "anthropic/claude-sonnet-5:batch",
@@ -8712,8 +8766,8 @@
     "parameters": 400000000000,
     "activeParameters": null,
     "contextTokens": 1000000,
-    "benchlmScore": 65.02,
-    "benchlmCodingScore": 70.73
+    "benchlmScore": 65.21,
+    "benchlmCodingScore": 71.7
   },
   {
     "id": "arcee-ai/virtuoso-large",
@@ -8790,7 +8844,7 @@
     "activeParameters": null,
     "contextTokens": 922000,
     "huggingFaceId": "",
-    "benchlmScore": 50.91
+    "benchlmScore": 51.34
   },
   {
     "id": "bytedance-seed/seed-1.6-flash",
@@ -8817,7 +8871,7 @@
     "activeParameters": null,
     "contextTokens": 1048576,
     "huggingFaceId": "",
-    "benchlmScore": 45.69
+    "benchlmScore": 46.13
   },
   {
     "id": "bytedance-seed/seed-2-1-turbo",
@@ -8891,7 +8945,7 @@
     "maxCompletionTokens": 131072,
     "parameters": null,
     "activeParameters": null,
-    "benchlmScore": 50.51
+    "benchlmScore": 50.94
   },
   {
     "id": "bytedance-seed/seed-2.0-mini",
@@ -8918,7 +8972,7 @@
     "activeParameters": null,
     "contextTokens": 256000,
     "huggingFaceId": "",
-    "benchlmScore": 45.2
+    "benchlmScore": 45.63
   },
   {
     "id": "bytedance/ui-tars-1.5-7b",
@@ -9150,7 +9204,7 @@
     "activeParameters": null,
     "contextTokens": 128000,
     "huggingFaceId": "deepseek-ai/DeepSeek-R1",
-    "benchlmScore": 51.23
+    "benchlmScore": 51.4
   },
   {
     "id": "deepseek/deepseek-r1-0528",
@@ -9256,8 +9310,8 @@
     "activeParameters": null,
     "contextTokens": 163840,
     "huggingFaceId": "deepseek-ai/DeepSeek-V3.2",
-    "benchlmScore": 54.96,
-    "benchlmCodingScore": 49.96
+    "benchlmScore": 55.13,
+    "benchlmCodingScore": 50.48
   },
   {
     "id": "deepseek/deepseek-v3.2-exp",
@@ -9284,8 +9338,8 @@
     "activeParameters": null,
     "contextTokens": 163840,
     "huggingFaceId": "deepseek-ai/DeepSeek-V3.2-Exp",
-    "benchlmScore": 54.96,
-    "benchlmCodingScore": 49.96
+    "benchlmScore": 55.13,
+    "benchlmCodingScore": 50.48
   },
   {
     "id": "deepseek/deepseek-v4-flash-0731:batch",
@@ -9353,8 +9407,8 @@
     "arenaVotes": null,
     "arenaCodeElo": null,
     "arenaCodeVotes": null,
-    "benchlmScore": 61.02,
-    "benchlmCodingScore": 50.48,
+    "benchlmScore": 61.81,
+    "benchlmCodingScore": 51.61,
     "huggingFaceId": "deepseek-ai/DeepSeek-V4-Pro-0813",
     "parameters": null,
     "activeParameters": null,
@@ -9418,7 +9472,7 @@
     "outputSpeed": 208.5,
     "latencySeconds": 0.5,
     "huggingFaceId": "",
-    "benchlmScore": 47.75
+    "benchlmScore": 47.91
   },
   {
     "id": "google/gemini-2.5-flash-image",
@@ -9445,7 +9499,7 @@
     "activeParameters": null,
     "contextTokens": 1048576,
     "huggingFaceId": "",
-    "benchlmScore": 47.75
+    "benchlmScore": 47.91
   },
   {
     "id": "google/gemini-2.5-flash-lite",
@@ -9474,7 +9528,7 @@
     "outputSpeed": 305,
     "latencySeconds": 0.3,
     "huggingFaceId": "",
-    "benchlmScore": 47.75
+    "benchlmScore": 47.91
   },
   {
     "id": "google/gemini-2.5-flash-lite:batch",
@@ -9527,7 +9581,7 @@
     "activeParameters": null,
     "contextTokens": 1048576,
     "huggingFaceId": "",
-    "benchlmScore": 47.75
+    "benchlmScore": 47.91
   },
   {
     "id": "google/gemini-2.5-pro",
@@ -9556,8 +9610,8 @@
     "outputSpeed": 123.7,
     "latencySeconds": 22.5,
     "huggingFaceId": "",
-    "benchlmScore": 56.87,
-    "benchlmCodingScore": 34.4
+    "benchlmScore": 57.02,
+    "benchlmCodingScore": 35.53
   },
   {
     "id": "google/gemini-2.5-pro-preview",
@@ -9634,8 +9688,8 @@
     "parameters": 400000000000,
     "activeParameters": null,
     "huggingFaceId": "",
-    "benchlmScore": 56.87,
-    "benchlmCodingScore": 34.4
+    "benchlmScore": 57.02,
+    "benchlmCodingScore": 35.53
   },
   {
     "id": "google/gemini-3-flash-preview",
@@ -9815,8 +9869,8 @@
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 1048576,
-    "benchlmScore": 50.9,
-    "benchlmCodingScore": 42.6
+    "benchlmScore": 51.06,
+    "benchlmCodingScore": 43.02
   },
   {
     "id": "google/gemini-3.1-flash-lite-image",
@@ -9842,8 +9896,8 @@
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 1048576,
-    "benchlmScore": 50.9,
-    "benchlmCodingScore": 42.6
+    "benchlmScore": 51.06,
+    "benchlmCodingScore": 43.02
   },
   {
     "id": "google/gemini-3.1-flash-lite-preview",
@@ -9872,8 +9926,8 @@
     "outputSpeed": 298.5,
     "latencySeconds": 5.2,
     "huggingFaceId": "",
-    "benchlmScore": 50.9,
-    "benchlmCodingScore": 42.6
+    "benchlmScore": 51.06,
+    "benchlmCodingScore": 43.02
   },
   {
     "id": "google/gemini-3.1-flash-lite:batch",
@@ -9899,8 +9953,8 @@
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 1048576,
-    "benchlmScore": 50.9,
-    "benchlmCodingScore": 42.6
+    "benchlmScore": 51.06,
+    "benchlmCodingScore": 43.02
   },
   {
     "id": "google/gemini-3.1-pro-preview-customtools",
@@ -9987,8 +10041,8 @@
     "contextTokens": 1048576,
     "arenaCodeElo": 1449,
     "arenaCodeVotes": 228,
-    "benchlmScore": 65.5,
-    "benchlmCodingScore": 52.67
+    "benchlmScore": 65.67,
+    "benchlmCodingScore": 53.91
   },
   {
     "id": "google/gemini-3.5-flash:batch",
@@ -10014,8 +10068,8 @@
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 1048576,
-    "benchlmScore": 64.73,
-    "benchlmCodingScore": 62.33
+    "benchlmScore": 64.95,
+    "benchlmCodingScore": 63.39
   },
   {
     "id": "google/gemini-3.6-flash:batch",
@@ -10041,8 +10095,8 @@
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 1048576,
-    "benchlmScore": 75.66,
-    "benchlmCodingScore": 65.25
+    "benchlmScore": 75.84,
+    "benchlmCodingScore": 66.4
   },
   {
     "id": "google/gemini-3.7-flash:batch",
@@ -10068,8 +10122,8 @@
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 1048576,
-    "benchlmScore": 61.4,
-    "benchlmCodingScore": 66.82
+    "benchlmScore": 61.85,
+    "benchlmCodingScore": 67.76
   },
   {
     "id": "google/gemma-2-27b-it",
@@ -10147,8 +10201,8 @@
     "activeParameters": null,
     "contextTokens": 131072,
     "huggingFaceId": "google/gemma-3-27b-it",
-    "benchlmScore": 41.37,
-    "benchlmCodingScore": 37.79
+    "benchlmScore": 41.53,
+    "benchlmCodingScore": 38.25
   },
   {
     "id": "google/gemma-3-4b-it",
@@ -10435,7 +10489,7 @@
     "outputPerM": 2.96,
     "cacheReadPerM": 0.15,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 80000,
+    "maxCompletionTokens": 235929,
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 128000
@@ -10481,7 +10535,7 @@
     "hle": null,
     "omniscience": null,
     "openWeights": false,
-    "inputPerM": 0.5,
+    "inputPerM": 0.4,
     "outputPerM": 0.75,
     "cacheReadPerM": null,
     "cacheWritePerM": null,
@@ -10708,12 +10762,12 @@
     "contextTokens": 1047576,
     "outputSpeed": 196.9,
     "latencySeconds": 11.6,
-    "arenaElo": 1491,
-    "arenaVotes": 20242,
-    "arenaCodeElo": 1539,
-    "arenaCodeVotes": 6204,
-    "benchlmScore": 77.14,
-    "benchlmCodingScore": 65.7
+    "arenaElo": 1490,
+    "arenaVotes": 22215,
+    "arenaCodeElo": 1540,
+    "arenaCodeVotes": 7018,
+    "benchlmScore": 77.32,
+    "benchlmCodingScore": 66.84
   },
   {
     "id": "meta/muse-spark-1.2-contributor",
@@ -10844,8 +10898,8 @@
     "latencySeconds": 22.9,
     "contextTokens": 128000,
     "huggingFaceId": "MiniMaxAI/MiniMax-M2",
-    "benchlmScore": 63.29,
-    "benchlmCodingScore": 44.18
+    "benchlmScore": 63.5,
+    "benchlmCodingScore": 45.46
   },
   {
     "id": "minimax/minimax-m2-her",
@@ -10928,8 +10982,8 @@
     "latencySeconds": 24.5,
     "contextTokens": 1000000,
     "huggingFaceId": "MiniMaxAI/MiniMax-M2.5",
-    "benchlmScore": 58.92,
-    "benchlmCodingScore": 52.47
+    "benchlmScore": 59.1,
+    "benchlmCodingScore": 53.01
   },
   {
     "id": "minimax/minimax-m2.7",
@@ -10958,8 +11012,8 @@
     "latencySeconds": 40.9,
     "contextTokens": 256000,
     "huggingFaceId": "MiniMaxAI/MiniMax-M2.7",
-    "benchlmScore": 63.29,
-    "benchlmCodingScore": 44.18
+    "benchlmScore": 63.5,
+    "benchlmCodingScore": 45.46
   },
   {
     "id": "minimax/minimax-m2.7:free",
@@ -10986,8 +11040,8 @@
     "activeParameters": null,
     "contextTokens": 200000,
     "huggingFaceId": "MiniMaxAI/MiniMax-M2.7",
-    "benchlmScore": 63.29,
-    "benchlmCodingScore": 44.18
+    "benchlmScore": 63.5,
+    "benchlmCodingScore": 45.46
   },
   {
     "id": "minimax/minimax-m3:batch",
@@ -11014,8 +11068,8 @@
     "activeParameters": 23000000000,
     "contextTokens": 1000000,
     "huggingFaceId": "MiniMaxAI/Minimax-M3",
-    "arenaCodeElo": 1488,
-    "arenaCodeVotes": 10721
+    "arenaCodeElo": 1487,
+    "arenaCodeVotes": 11481
   },
   {
     "id": "minimax/minimax-m3:free",
@@ -11042,8 +11096,8 @@
     "activeParameters": 23000000000,
     "contextTokens": 1000000,
     "huggingFaceId": "MiniMaxAI/Minimax-M3",
-    "arenaCodeElo": 1488,
-    "arenaCodeVotes": 10721
+    "arenaCodeElo": 1487,
+    "arenaCodeVotes": 11481
   },
   {
     "id": "mistralai/codestral-2508",
@@ -11175,8 +11229,8 @@
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 32000,
-    "benchlmScore": 49.81,
-    "benchlmCodingScore": 28.84
+    "benchlmScore": 49.98,
+    "benchlmCodingScore": 29.95
   },
   {
     "id": "mistralai/mistral-large-2407",
@@ -11203,7 +11257,7 @@
     "activeParameters": null,
     "contextTokens": 128000,
     "huggingFaceId": "",
-    "benchlmScore": 42.16
+    "benchlmScore": 42.59
   },
   {
     "id": "mistralai/mistral-large-2512:batch",
@@ -11271,7 +11325,7 @@
     "latencySeconds": 1.5,
     "contextTokens": 262144,
     "huggingFaceId": "",
-    "benchlmScore": 43.56
+    "benchlmScore": 43.99
   },
   {
     "id": "mistralai/mistral-medium-3-5:batch",
@@ -11340,7 +11394,7 @@
     "latencySeconds": 1.4,
     "contextTokens": 1047576,
     "huggingFaceId": "",
-    "benchlmScore": 43.56
+    "benchlmScore": 43.99
   },
   {
     "id": "mistralai/mistral-medium-3.1:batch",
@@ -11576,7 +11630,7 @@
     "activeParameters": 44000000000,
     "contextTokens": 65536,
     "huggingFaceId": "mistralai/Mixtral-8x22B-Instruct-v0.1",
-    "benchlmScore": 49.21
+    "benchlmScore": 49.64
   },
   {
     "id": "mistralai/voxtral-small-24b-2507",
@@ -11634,9 +11688,9 @@
     "arenaElo": 1461,
     "arenaVotes": 37543,
     "arenaCodeElo": 1509,
-    "arenaCodeVotes": 9589,
-    "benchlmScore": 60.11,
-    "benchlmCodingScore": 51.09
+    "arenaCodeVotes": 9595,
+    "benchlmScore": 60.06,
+    "benchlmCodingScore": 52.1
   },
   {
     "id": "moonshotai/kimi-k2-0905",
@@ -11721,8 +11775,8 @@
     "latencySeconds": 48,
     "contextTokens": 262144,
     "huggingFaceId": "moonshotai/Kimi-K2.5",
-    "benchlmScore": 59.14,
-    "benchlmCodingScore": 56.8
+    "benchlmScore": 59.31,
+    "benchlmCodingScore": 57.26
   },
   {
     "id": "moonshotai/kimi-k2.6",
@@ -11753,9 +11807,9 @@
     "arenaElo": 1461,
     "arenaVotes": 37543,
     "arenaCodeElo": 1509,
-    "arenaCodeVotes": 9589,
-    "benchlmScore": 60.11,
-    "benchlmCodingScore": 51.09
+    "arenaCodeVotes": 9595,
+    "benchlmScore": 60.06,
+    "benchlmCodingScore": 52.1
   },
   {
     "id": "moonshotai/kimi-k3:batch",
@@ -11998,7 +12052,7 @@
     "parameters": 120000000000,
     "activeParameters": 12000000000,
     "huggingFaceId": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8",
-    "benchlmScore": 51.66
+    "benchlmScore": 52.09
   },
   {
     "id": "nvidia/nemotron-3-ultra-550b-a55b:batch",
@@ -12203,6 +12257,46 @@
     "contextTokens": 8192
   },
   {
+    "id": "openai/gpt-3.5-turbo:batch",
+    "name": "OpenAI: GPT-3.5 Turbo (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-3-5-turbo-batch",
+    "aaName": "OpenAI: GPT-3.5 Turbo (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "contextTokens": 16385,
+    "openWeights": false,
+    "inputPerM": 0.25,
+    "outputPerM": 0.75,
+    "cacheReadPerM": null,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 4096,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
     "id": "openai/gpt-4",
     "name": "OpenAI: GPT-4",
     "family": "OpenAI",
@@ -12226,8 +12320,8 @@
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 8192,
-    "benchlmScore": 51.07,
-    "benchlmCodingScore": 49.11
+    "benchlmScore": 51.23,
+    "benchlmCodingScore": 49.55
   },
   {
     "id": "openai/gpt-4-turbo",
@@ -12282,6 +12376,46 @@
     "contextTokens": 128000
   },
   {
+    "id": "openai/gpt-4-turbo:batch",
+    "name": "OpenAI: GPT-4 Turbo (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-4-turbo-batch",
+    "aaName": "OpenAI: GPT-4 Turbo (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "contextTokens": 128000,
+    "openWeights": false,
+    "inputPerM": 5,
+    "outputPerM": 15,
+    "cacheReadPerM": null,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 4096,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
     "id": "openai/gpt-4.1",
     "name": "OpenAI: GPT-4.1",
     "family": "OpenAI",
@@ -12308,8 +12442,8 @@
     "outputSpeed": 136.1,
     "latencySeconds": 0.9,
     "huggingFaceId": "",
-    "benchlmScore": 51.07,
-    "benchlmCodingScore": 49.11
+    "benchlmScore": 51.23,
+    "benchlmCodingScore": 49.55
   },
   {
     "id": "openai/gpt-4.1-mini",
@@ -12338,8 +12472,47 @@
     "outputSpeed": 72.3,
     "latencySeconds": 0.9,
     "huggingFaceId": "",
-    "benchlmScore": 44.33,
-    "benchlmCodingScore": 45.04
+    "benchlmScore": 44.93,
+    "benchlmCodingScore": 45.79
+  },
+  {
+    "id": "openai/gpt-4.1-mini:batch",
+    "name": "OpenAI: GPT-4.1 Mini (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-4-1-mini-batch",
+    "aaName": "OpenAI: GPT-4.1 Mini (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 0.2,
+    "outputPerM": 0.8,
+    "cacheReadPerM": 0.05,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 32768,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-4.1-nano",
@@ -12368,8 +12541,86 @@
     "outputSpeed": 133.3,
     "latencySeconds": 0.7,
     "huggingFaceId": "",
-    "benchlmScore": 42.43,
-    "benchlmCodingScore": 42.73
+    "benchlmScore": 42.87,
+    "benchlmCodingScore": 43.43
+  },
+  {
+    "id": "openai/gpt-4.1-nano:batch",
+    "name": "OpenAI: GPT-4.1 Nano (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-4-1-nano-batch",
+    "aaName": "OpenAI: GPT-4.1 Nano (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 0.05,
+    "outputPerM": 0.2,
+    "cacheReadPerM": 0.0125,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 32768,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-4.1:batch",
+    "name": "OpenAI: GPT-4.1 (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-4-1-batch",
+    "aaName": "OpenAI: GPT-4.1 (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 1,
+    "outputPerM": 4,
+    "cacheReadPerM": 0.25,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 32768,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-4o",
@@ -12397,7 +12648,7 @@
     "outputSpeed": 138.2,
     "latencySeconds": 0.9,
     "contextTokens": 128000,
-    "benchlmScore": 41.11
+    "benchlmScore": 41.28
   },
   {
     "id": "openai/gpt-4o-2024-05-13",
@@ -12532,6 +12783,85 @@
     "contextTokens": 128000
   },
   {
+    "id": "openai/gpt-4o-mini:batch",
+    "name": "OpenAI: GPT-4o-mini (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-4o-mini-batch",
+    "aaName": "OpenAI: GPT-4o-mini (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "contextTokens": 128000,
+    "openWeights": false,
+    "inputPerM": 0.075,
+    "outputPerM": 0.3,
+    "cacheReadPerM": 0.0375,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 16384,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-4o:batch",
+    "name": "OpenAI: GPT-4o (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-4o-batch",
+    "aaName": "OpenAI: GPT-4o (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 1.25,
+    "outputPerM": 5,
+    "cacheReadPerM": 0.625,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 16384,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
     "id": "openai/gpt-5",
     "name": "OpenAI: GPT-5",
     "family": "OpenAI",
@@ -12560,9 +12890,9 @@
     "arenaElo": 1476,
     "arenaVotes": 60896,
     "arenaCodeElo": 1458,
-    "arenaCodeVotes": 13672,
-    "benchlmScore": 73.56,
-    "benchlmCodingScore": 58.9
+    "arenaCodeVotes": 14506,
+    "benchlmScore": 73.72,
+    "benchlmCodingScore": 59.96
   },
   {
     "id": "openai/gpt-5-image",
@@ -12640,8 +12970,48 @@
     "outputSpeed": 93.1,
     "contextTokens": 272000,
     "huggingFaceId": "",
-    "benchlmScore": 43.29,
-    "benchlmCodingScore": 40.15
+    "benchlmScore": 43.47,
+    "benchlmCodingScore": 40.64
+  },
+  {
+    "id": "openai/gpt-5-mini:batch",
+    "name": "OpenAI: GPT-5 Mini (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-mini-batch",
+    "aaName": "OpenAI: GPT-5 Mini (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "contextTokens": 272000,
+    "openWeights": false,
+    "inputPerM": 0.125,
+    "outputPerM": 1,
+    "cacheReadPerM": 0.0125,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-5-nano",
@@ -12669,7 +13039,47 @@
     "contextTokens": 272000,
     "outputSpeed": 146.6,
     "huggingFaceId": "",
-    "benchlmScore": 46.66
+    "benchlmScore": 47.1
+  },
+  {
+    "id": "openai/gpt-5-nano:batch",
+    "name": "OpenAI: GPT-5 Nano (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-nano-batch",
+    "aaName": "OpenAI: GPT-5 Nano (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "contextTokens": 272000,
+    "openWeights": false,
+    "inputPerM": 0.025,
+    "outputPerM": 0.2,
+    "cacheReadPerM": 0.0025,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-5-pro",
@@ -12698,6 +13108,45 @@
     "huggingFaceId": ""
   },
   {
+    "id": "openai/gpt-5-pro:batch",
+    "name": "OpenAI: GPT-5 Pro (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-pro-batch",
+    "aaName": "OpenAI: GPT-5 Pro (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 7.5,
+    "outputPerM": 60,
+    "cacheReadPerM": null,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
     "id": "openai/gpt-5.1",
     "name": "OpenAI: GPT-5.1",
     "family": "OpenAI",
@@ -12724,8 +13173,8 @@
     "latencySeconds": 64.6,
     "contextTokens": 272000,
     "huggingFaceId": "",
-    "benchlmScore": 53.66,
-    "benchlmCodingScore": 53.44
+    "benchlmScore": 54.11,
+    "benchlmCodingScore": 54.11
   },
   {
     "id": "openai/gpt-5.1-codex",
@@ -12751,8 +13200,8 @@
     "parameters": 1000000000000,
     "activeParameters": null,
     "huggingFaceId": "",
-    "benchlmScore": 52.89,
-    "benchlmCodingScore": 48.85
+    "benchlmScore": 53.33,
+    "benchlmCodingScore": 49.58
   },
   {
     "id": "openai/gpt-5.1-codex-max",
@@ -12779,7 +13228,7 @@
     "activeParameters": null,
     "contextTokens": 400000,
     "huggingFaceId": "",
-    "benchlmScore": 55.21
+    "benchlmScore": 55.64
   },
   {
     "id": "openai/gpt-5.1-codex-mini",
@@ -12806,8 +13255,47 @@
     "activeParameters": null,
     "contextTokens": 272000,
     "huggingFaceId": "",
-    "benchlmScore": 52.89,
-    "benchlmCodingScore": 48.85
+    "benchlmScore": 53.33,
+    "benchlmCodingScore": 49.58
+  },
+  {
+    "id": "openai/gpt-5.1:batch",
+    "name": "OpenAI: GPT-5.1 (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-1-batch",
+    "aaName": "OpenAI: GPT-5.1 (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 0.625,
+    "outputPerM": 5,
+    "cacheReadPerM": 0.0625,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-5.2",
@@ -12835,8 +13323,8 @@
     "outputSpeed": 82.9,
     "contextTokens": 272000,
     "huggingFaceId": "",
-    "benchlmScore": 58.39,
-    "benchlmCodingScore": 54.6
+    "benchlmScore": 58.6,
+    "benchlmCodingScore": 55.14
   },
   {
     "id": "openai/gpt-5.2-chat",
@@ -12891,8 +13379,8 @@
     "activeParameters": null,
     "contextTokens": 272000,
     "huggingFaceId": "",
-    "benchlmScore": 58.36,
-    "benchlmCodingScore": 57.42
+    "benchlmScore": 58.55,
+    "benchlmCodingScore": 58.51
   },
   {
     "id": "openai/gpt-5.2-pro",
@@ -12919,7 +13407,85 @@
     "activeParameters": null,
     "contextTokens": 272000,
     "huggingFaceId": "",
-    "benchlmScore": 67.3
+    "benchlmScore": 67.45
+  },
+  {
+    "id": "openai/gpt-5.2-pro:batch",
+    "name": "OpenAI: GPT-5.2 Pro (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-2-pro-batch",
+    "aaName": "OpenAI: GPT-5.2 Pro (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 10.5,
+    "outputPerM": 84,
+    "cacheReadPerM": null,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-5.2:batch",
+    "name": "OpenAI: GPT-5.2 (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-2-batch",
+    "aaName": "OpenAI: GPT-5.2 (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 0.875,
+    "outputPerM": 7,
+    "cacheReadPerM": 0.0875,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-5.4",
@@ -12949,8 +13515,8 @@
     "huggingFaceId": "",
     "arenaElo": 1466,
     "arenaVotes": 63659,
-    "benchlmScore": 73.56,
-    "benchlmCodingScore": 58.9
+    "benchlmScore": 73.72,
+    "benchlmCodingScore": 59.96
   },
   {
     "id": "openai/gpt-5.4-image-2",
@@ -13004,8 +13570,48 @@
     "latencySeconds": 5.9,
     "contextTokens": 272000,
     "huggingFaceId": "",
-    "benchlmScore": 56.96,
-    "benchlmCodingScore": 46.58
+    "benchlmScore": 57.4,
+    "benchlmCodingScore": 47.78
+  },
+  {
+    "id": "openai/gpt-5.4-mini:batch",
+    "name": "OpenAI: GPT-5.4 Mini (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-4-mini-batch",
+    "aaName": "OpenAI: GPT-5.4 Mini (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "contextTokens": 272000,
+    "openWeights": false,
+    "inputPerM": 0.375,
+    "outputPerM": 2.25,
+    "cacheReadPerM": 0.0375,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-5.4-nano",
@@ -13034,8 +13640,48 @@
     "latencySeconds": 5.6,
     "contextTokens": 272000,
     "huggingFaceId": "",
-    "benchlmScore": 66.78,
-    "benchlmCodingScore": 41.24
+    "benchlmScore": 66.96,
+    "benchlmCodingScore": 42.43
+  },
+  {
+    "id": "openai/gpt-5.4-nano:batch",
+    "name": "OpenAI: GPT-5.4 Nano (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-4-nano-batch",
+    "aaName": "OpenAI: GPT-5.4 Nano (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "contextTokens": 272000,
+    "openWeights": false,
+    "inputPerM": 0.1,
+    "outputPerM": 0.625,
+    "cacheReadPerM": 0.01,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-5.4-pro",
@@ -13064,7 +13710,163 @@
     "huggingFaceId": "",
     "arenaElo": 1466,
     "arenaVotes": 63659,
-    "benchlmScore": 61.53
+    "benchlmScore": 61.95
+  },
+  {
+    "id": "openai/gpt-5.4-pro:batch",
+    "name": "OpenAI: GPT-5.4 Pro (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-4-pro-batch",
+    "aaName": "OpenAI: GPT-5.4 Pro (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 15,
+    "outputPerM": 90,
+    "cacheReadPerM": null,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-5.4:batch",
+    "name": "OpenAI: GPT-5.4 (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-4-batch",
+    "aaName": "OpenAI: GPT-5.4 (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 1.25,
+    "outputPerM": 7.5,
+    "cacheReadPerM": 0.125,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-5.5-pro:batch",
+    "name": "OpenAI: GPT-5.5 Pro (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-5-pro-batch",
+    "aaName": "OpenAI: GPT-5.5 Pro (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 15,
+    "outputPerM": 90,
+    "cacheReadPerM": null,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-5.5:batch",
+    "name": "OpenAI: GPT-5.5 (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-5-batch",
+    "aaName": "OpenAI: GPT-5.5 (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 2.5,
+    "outputPerM": 15,
+    "cacheReadPerM": 0.25,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-5.6-luna-pro",
@@ -13090,8 +13892,86 @@
     "parameters": 1000000000000,
     "activeParameters": null,
     "contextTokens": 922000,
-    "benchlmScore": 67.35,
-    "benchlmCodingScore": 73.59
+    "benchlmScore": 67.61,
+    "benchlmCodingScore": 74.52
+  },
+  {
+    "id": "openai/gpt-5.6-luna-pro:batch",
+    "name": "OpenAI: GPT-5.6 Luna Pro (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-6-luna-pro-batch",
+    "aaName": "OpenAI: GPT-5.6 Luna Pro (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 0.1,
+    "outputPerM": 0.6,
+    "cacheReadPerM": 0.01,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-5.6-luna:batch",
+    "name": "OpenAI: GPT-5.6 Luna (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-6-luna-batch",
+    "aaName": "OpenAI: GPT-5.6 Luna (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 0.1,
+    "outputPerM": 0.6,
+    "cacheReadPerM": 0.01,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-5.6-sol-pro",
@@ -13117,8 +13997,86 @@
     "parameters": 1000000000000,
     "activeParameters": null,
     "contextTokens": 922000,
-    "benchlmScore": 82.2,
-    "benchlmCodingScore": 79.01
+    "benchlmScore": 82.39,
+    "benchlmCodingScore": 79.91
+  },
+  {
+    "id": "openai/gpt-5.6-sol-pro:batch",
+    "name": "OpenAI: GPT-5.6 Sol Pro (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-6-sol-pro-batch",
+    "aaName": "OpenAI: GPT-5.6 Sol Pro (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 1,
+    "outputPerM": 5,
+    "cacheReadPerM": 0.1,
+    "cacheWritePerM": 1.25,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-5.6-sol:batch",
+    "name": "OpenAI: GPT-5.6 Sol (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-6-sol-batch",
+    "aaName": "OpenAI: GPT-5.6 Sol (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 1,
+    "outputPerM": 5,
+    "cacheReadPerM": 0.1,
+    "cacheWritePerM": 1.25,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-5.6-terra-pro",
@@ -13144,8 +14102,126 @@
     "parameters": 1000000000000,
     "activeParameters": null,
     "contextTokens": 922000,
-    "benchlmScore": 72.95,
-    "benchlmCodingScore": 69.29
+    "benchlmScore": 73.21,
+    "benchlmCodingScore": 70.28
+  },
+  {
+    "id": "openai/gpt-5.6-terra-pro:batch",
+    "name": "OpenAI: GPT-5.6 Terra Pro (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-6-terra-pro-batch",
+    "aaName": "OpenAI: GPT-5.6 Terra Pro (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 1,
+    "outputPerM": 6,
+    "cacheReadPerM": 0.1,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-5.6-terra:batch",
+    "name": "OpenAI: GPT-5.6 Terra (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-6-terra-batch",
+    "aaName": "OpenAI: GPT-5.6 Terra (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "contextTokens": 922000,
+    "openWeights": false,
+    "inputPerM": 1,
+    "outputPerM": 6,
+    "cacheReadPerM": 0.1,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": null,
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
+    "id": "openai/gpt-5:batch",
+    "name": "OpenAI: GPT-5 (batch)",
+    "family": "OpenAI",
+    "slug": "gpt-5-batch",
+    "aaName": "OpenAI: GPT-5 (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": false,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 0.625,
+    "outputPerM": 5,
+    "cacheReadPerM": 0.0625,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 128000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": 1000000000000,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/gpt-audio",
@@ -13355,8 +14431,8 @@
     "activeParameters": null,
     "contextTokens": 200000,
     "huggingFaceId": "",
-    "benchlmScore": 48.35,
-    "benchlmCodingScore": 50.05
+    "benchlmScore": 48.79,
+    "benchlmCodingScore": 50.74
   },
   {
     "id": "openai/o1-pro",
@@ -13382,7 +14458,7 @@
     "parameters": null,
     "activeParameters": null,
     "huggingFaceId": "",
-    "benchlmScore": 46.25
+    "benchlmScore": 46.68
   },
   {
     "id": "openai/o3-mini",
@@ -13411,8 +14487,8 @@
     "latencySeconds": 6.8,
     "contextTokens": 200000,
     "huggingFaceId": "",
-    "benchlmScore": 46.94,
-    "benchlmCodingScore": 47.54
+    "benchlmScore": 47.12,
+    "benchlmCodingScore": 48.07
   },
   {
     "id": "openai/o3-mini-high",
@@ -13443,6 +14519,45 @@
     "huggingFaceId": ""
   },
   {
+    "id": "openai/o3-mini:batch",
+    "name": "OpenAI: o3 Mini (batch)",
+    "family": "OpenAI",
+    "slug": "o3-mini-batch",
+    "aaName": "OpenAI: o3 Mini (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": true,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 0.55,
+    "outputPerM": 2.2,
+    "cacheReadPerM": 0.275,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 100000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
+  },
+  {
     "id": "openai/o3-pro",
     "name": "OpenAI: o3 Pro",
     "family": "OpenAI",
@@ -13466,7 +14581,46 @@
     "parameters": null,
     "activeParameters": null,
     "huggingFaceId": "",
-    "benchlmScore": 47.6
+    "benchlmScore": 47.79
+  },
+  {
+    "id": "openai/o3:batch",
+    "name": "OpenAI: o3 (batch)",
+    "family": "OpenAI",
+    "slug": "o3-batch",
+    "aaName": "OpenAI: o3 (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": true,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 1,
+    "outputPerM": 4,
+    "cacheReadPerM": 0.25,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 100000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openai/o4-mini",
@@ -13518,7 +14672,46 @@
     "parameters": null,
     "activeParameters": null,
     "huggingFaceId": "",
-    "benchlmScore": 50.65
+    "benchlmScore": 51.08
+  },
+  {
+    "id": "openai/o4-mini:batch",
+    "name": "OpenAI: o4 Mini (batch)",
+    "family": "OpenAI",
+    "slug": "o4-mini-batch",
+    "aaName": "OpenAI: o4 Mini (batch)",
+    "effort": null,
+    "released": null,
+    "isReasoning": true,
+    "intelligenceIndex": null,
+    "codingIndex": null,
+    "agenticIndex": null,
+    "tau2": null,
+    "hle": null,
+    "omniscience": null,
+    "openWeights": false,
+    "inputPerM": 0.55,
+    "outputPerM": 2.2,
+    "cacheReadPerM": 0.1375,
+    "cacheWritePerM": null,
+    "maxCompletionTokens": 100000,
+    "arenaElo": null,
+    "arenaVotes": null,
+    "arenaCodeElo": null,
+    "arenaCodeVotes": null,
+    "benchlmScore": null,
+    "benchlmCodingScore": null,
+    "huggingFaceId": "",
+    "parameters": null,
+    "activeParameters": null,
+    "hfDownloads": null,
+    "hfMMLU": null,
+    "hfGSM8K": null,
+    "hfHumanEval": null,
+    "hfARC": null,
+    "hfWinogrande": null,
+    "hfHellaSwag": null,
+    "hfTruthfulQA": null
   },
   {
     "id": "openrouter/auto",
@@ -14425,7 +15618,7 @@
     "outputSpeed": 37.9,
     "latencySeconds": 2.4,
     "huggingFaceId": "",
-    "benchlmScore": 48.41
+    "benchlmScore": 48.85
   },
   {
     "id": "qwen/qwen3-max-thinking",
@@ -14667,8 +15860,8 @@
     "outputSpeed": 76.1,
     "latencySeconds": 31.9,
     "huggingFaceId": "Qwen/Qwen3.5-27B",
-    "benchlmScore": 60.04,
-    "benchlmCodingScore": 54.44
+    "benchlmScore": 60.31,
+    "benchlmCodingScore": 55.02
   },
   {
     "id": "qwen/qwen3.5-9b:batch",
@@ -14834,8 +16027,8 @@
     "activeParameters": null,
     "arenaElo": 1460,
     "arenaVotes": 5196,
-    "arenaCodeElo": 1479,
-    "arenaCodeVotes": 2602
+    "arenaCodeElo": 1478,
+    "arenaCodeVotes": 2609
   },
   {
     "id": "qwen/qwen3.6-plus",
@@ -14864,9 +16057,9 @@
     "outputSpeed": 55.3,
     "huggingFaceId": "",
     "arenaCodeElo": 1460,
-    "arenaCodeVotes": 16336,
-    "benchlmScore": 64.99,
-    "benchlmCodingScore": 52.18
+    "arenaCodeVotes": 17107,
+    "benchlmScore": 65.14,
+    "benchlmCodingScore": 53.4
   },
   {
     "id": "qwen/qwen3.7-flash",
@@ -14920,9 +16113,9 @@
     "outputSpeed": 203.2,
     "latencySeconds": 14.1,
     "arenaCodeElo": 1517,
-    "arenaCodeVotes": 8380,
-    "benchlmScore": 71.79,
-    "benchlmCodingScore": 55.03
+    "arenaCodeVotes": 8381,
+    "benchlmScore": 71.97,
+    "benchlmCodingScore": 56.15
   },
   {
     "id": "qwen/qwen3.8-2.4t-a95b:batch",
@@ -15188,7 +16381,7 @@
     "latencySeconds": 9.9,
     "contextTokens": 1048576,
     "huggingFaceId": "stepfun-ai/Step-3.5-Flash",
-    "benchlmScore": 54.55
+    "benchlmScore": 54.73
   },
   {
     "id": "tencent/hunyuan-a13b-instruct",
@@ -15340,8 +16533,10 @@
     "maxCompletionTokens": 64000,
     "parameters": null,
     "activeParameters": null,
-    "benchlmScore": 79.16,
-    "benchlmCodingScore": 68.92
+    "benchlmScore": 79.87,
+    "benchlmCodingScore": 69.65,
+    "arenaCodeElo": 1631,
+    "arenaCodeVotes": 1276
   },
   {
     "id": "thedrummer/cydonia-24b-v4.1",
@@ -15482,8 +16677,8 @@
     "parameters": null,
     "activeParameters": null,
     "huggingFaceId": "thinkingmachines/Inkling-Small",
-    "benchlmScore": 64.02,
-    "benchlmCodingScore": 53.58
+    "benchlmScore": 64.21,
+    "benchlmCodingScore": 54.81
   },
   {
     "id": "thinkingmachines/inkling:batch",
@@ -15617,8 +16812,8 @@
     "huggingFaceId": "",
     "arenaElo": 1475,
     "arenaVotes": 26770,
-    "benchlmScore": 55.44,
-    "benchlmCodingScore": 46.12
+    "benchlmScore": 55.87,
+    "benchlmCodingScore": 46.78
   },
   {
     "id": "x-ai/grok-4.20-multi-agent",
@@ -15698,7 +16893,7 @@
     "activeParameters": null,
     "contextTokens": 128000,
     "huggingFaceId": "zai-org/GLM-4.5",
-    "benchlmScore": 58.35
+    "benchlmScore": 58.77
   },
   {
     "id": "z-ai/glm-4.5-air",
@@ -15727,7 +16922,7 @@
     "latencySeconds": 44.5,
     "contextTokens": 128000,
     "huggingFaceId": "zai-org/GLM-4.5-Air",
-    "benchlmScore": 47.3
+    "benchlmScore": 47.48
   },
   {
     "id": "z-ai/glm-4.5v",
@@ -15756,7 +16951,7 @@
     "outputSpeed": 68.6,
     "latencySeconds": 1.8,
     "huggingFaceId": "zai-org/GLM-4.5V",
-    "benchlmScore": 58.35
+    "benchlmScore": 58.77
   },
   {
     "id": "z-ai/glm-4.6",
@@ -15785,8 +16980,8 @@
     "outputSpeed": 59.1,
     "latencySeconds": 2.6,
     "huggingFaceId": "zai-org/GLM-4.6",
-    "benchlmScore": 54.66,
-    "benchlmCodingScore": 50.2
+    "benchlmScore": 54.83,
+    "benchlmCodingScore": 50.74
   },
   {
     "id": "z-ai/glm-4.6v",
@@ -15815,8 +17010,8 @@
     "outputSpeed": 71.5,
     "latencySeconds": 3.9,
     "huggingFaceId": "zai-org/GLM-4.6V",
-    "benchlmScore": 54.66,
-    "benchlmCodingScore": 50.2
+    "benchlmScore": 54.83,
+    "benchlmCodingScore": 50.74
   },
   {
     "id": "z-ai/glm-4.7",
@@ -15845,8 +17040,8 @@
     "latencySeconds": 27.3,
     "contextTokens": 200000,
     "huggingFaceId": "zai-org/GLM-4.7",
-    "benchlmScore": 60.91,
-    "benchlmCodingScore": 51.51
+    "benchlmScore": 61.12,
+    "benchlmCodingScore": 52.7
   },
   {
     "id": "z-ai/glm-4.7-flash",
@@ -15875,7 +17070,7 @@
     "latencySeconds": 24.3,
     "contextTokens": 200000,
     "huggingFaceId": "zai-org/GLM-4.7-Flash",
-    "benchlmScore": 50.65
+    "benchlmScore": 50.83
   },
   {
     "id": "z-ai/glm-5",
@@ -15907,9 +17102,9 @@
     "arenaElo": 1468,
     "arenaVotes": 42267,
     "arenaCodeElo": 1509,
-    "arenaCodeVotes": 9296,
-    "benchlmScore": 65.89,
-    "benchlmCodingScore": 60.82
+    "arenaCodeVotes": 9828,
+    "benchlmScore": 66.1,
+    "benchlmCodingScore": 61.36
   },
   {
     "id": "z-ai/glm-5-turbo",
@@ -15936,7 +17131,7 @@
     "activeParameters": null,
     "contextTokens": 16385,
     "huggingFaceId": "",
-    "benchlmScore": 66.3
+    "benchlmScore": 66.47
   },
   {
     "id": "z-ai/glm-5.1",
@@ -15967,9 +17162,9 @@
     "arenaElo": 1468,
     "arenaVotes": 42267,
     "arenaCodeElo": 1509,
-    "arenaCodeVotes": 9296,
-    "benchlmScore": 67.04,
-    "benchlmCodingScore": 61.5
+    "arenaCodeVotes": 9828,
+    "benchlmScore": 67.24,
+    "benchlmCodingScore": 62.6
   },
   {
     "id": "z-ai/glm-5.2:free",
@@ -16020,8 +17215,8 @@
     "maxCompletionTokens": 943717,
     "arenaElo": null,
     "arenaVotes": null,
-    "arenaCodeElo": null,
-    "arenaCodeVotes": null,
+    "arenaCodeElo": 1606,
+    "arenaCodeVotes": 1593,
     "benchlmScore": null,
     "benchlmCodingScore": null,
     "huggingFaceId": "zai-org/GLM-5.3-Flash",
@@ -16061,8 +17256,8 @@
     "activeParameters": null,
     "contextTokens": 204800,
     "huggingFaceId": "",
-    "benchlmScore": 62.53,
-    "benchlmCodingScore": 57.38
+    "benchlmScore": 62.7,
+    "benchlmCodingScore": 57.92
   },
   {
     "id": "~anthropic/claude-fable-latest",
@@ -16177,7 +17372,7 @@
     "hle": null,
     "omniscience": null,
     "openWeights": false,
-    "inputPerM": 0.03,
+    "inputPerM": 0.05,
     "outputPerM": 0.16,
     "cacheReadPerM": 0.013,
     "cacheWritePerM": null,
@@ -16352,11 +17547,11 @@
     "hle": null,
     "omniscience": null,
     "openWeights": false,
-    "inputPerM": 1.1875,
-    "outputPerM": 4.18,
-    "cacheReadPerM": 0.247,
+    "inputPerM": 1.17,
+    "outputPerM": 3.96,
+    "cacheReadPerM": 0.234,
     "cacheWritePerM": null,
-    "maxCompletionTokens": 131072,
+    "maxCompletionTokens": 943718,
     "parameters": null,
     "activeParameters": null,
     "contextTokens": 400000
