@@ -1036,6 +1036,11 @@ function ModelCard({
       { higherIsBetter: true, value: derived('speedAdjustedScore') },
       { higherIsBetter: true, value: derived('contextValue') },
       { higherIsBetter: true, value: derived('efficiencyScore') },
+      // Cost rows too, so the win tag covers the compare panel's full set (cheapest wins).
+      { higherIsBetter: false, value: (m) => m.inputPerM },
+      { higherIsBetter: false, value: (m) => m.outputPerM },
+      { higherIsBetter: false, value: (m) => m.cacheReadPerM },
+      { higherIsBetter: false, value: (m) => blendedCostOf(m) },
     ]
     return { wins: winCount(model, comparedModels, rows), total: rows.length }
   }, [model, comparedModels, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts])

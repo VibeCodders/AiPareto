@@ -83,6 +83,12 @@ describe('parseUrl', () => {
     expect(back.minPrice).toBe(12.5)
     expect(back.maxPrice).toBe(2500)
   })
+  it('round-trips a budget above the old 100k clamp', () => {
+    const s = parseUrl('?tbudget=250000', FAMILIES, METRIC_MAX)
+    expect(s.budget).toBe(250000)
+    const back = parseUrl(toSearch(s, FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)
+    expect(back.budget).toBe(250000)
+  })
 })
 
 describe('toSearch / parseUrl round-trip', () => {

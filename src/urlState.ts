@@ -53,6 +53,8 @@ export interface UrlState {
 
 /** Default per-unit budget for the top-value panel. */
 export const DEFAULT_BUDGET = 40
+/** Upper bound the per-unit budget is clamped to when reading from the URL (must match what the input can type). */
+export const MAX_BUDGET = 1_000_000
 
 /** How the top-value panel ranks its picks. */
 export type TopValueSort = 'value' | 'score' | 'efficiency'
@@ -168,7 +170,7 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     showLabels: p.get('labels') !== '0',
     estimateMissing: p.get('est') !== '0',
     xMetric: METRICS.includes(p.get('xmet') as MetricKey) ? (p.get('xmet') as MetricKey) : null,
-    budget: clampFloat(p.get('tbudget'), 0, 100_000, DEFAULT_BUDGET),
+    budget: clampFloat(p.get('tbudget'), 0, MAX_BUDGET, DEFAULT_BUDGET),
     topValueSort: TOP_VALUE_SORTS.includes(p.get('tsort') as TopValueSort) ? (p.get('tsort') as TopValueSort) : DEFAULT_TOP_VALUE_SORT,
   }
 }
