@@ -12,7 +12,7 @@ import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
 import { useTransientFlag } from './useTransientFlag'
 import { estimateModels, isCostEstimated, isEstimated, isFieldEstimated, type EstimatedModel } from './estimation'
-import { bestSlugsFor, winCount } from './compare'
+import { BENCHMARK_VALUE_ROWS, bestSlugsFor, winCount } from './compare'
 import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
@@ -889,6 +889,7 @@ export default function App() {
         onSelect={setSelectedId}
         budget={budget}
         onBudgetChange={setBudget}
+        onCompare={(ids) => setCompareIds((prev) => [...new Set([...prev, ...ids])])}
       />
 
       {selected && (
@@ -1023,21 +1024,11 @@ function ModelCard({
     if (comparedModels.length === 0) return null
     const derived = (k: MetricKey) => (m: Model) => computeMetric(m, k, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
     const rows: Array<{ higherIsBetter: boolean; value: (m: Model) => number | null }> = [
-      { higherIsBetter: true, value: (m) => m.intelligenceIndex },
-      { higherIsBetter: true, value: (m) => m.codingIndex },
-      { higherIsBetter: true, value: (m) => m.agenticIndex },
-      { higherIsBetter: true, value: (m) => m.tau2 },
-      { higherIsBetter: true, value: (m) => m.hle },
-      { higherIsBetter: true, value: (m) => m.omniscience },
-      { higherIsBetter: false, value: (m) => m.latencySeconds },
+      ...BENCHMARK_VALUE_ROWS,
       { higherIsBetter: true, value: derived('valueScore') },
       { higherIsBetter: true, value: derived('speedAdjustedScore') },
       { higherIsBetter: true, value: derived('contextValue') },
       { higherIsBetter: true, value: derived('efficiencyScore') },
-      { higherIsBetter: true, value: (m) => m.hfMMLU },
-      { higherIsBetter: true, value: (m) => m.arenaElo },
-      { higherIsBetter: true, value: (m) => m.arenaCodeElo },
-      { higherIsBetter: true, value: (m) => m.benchlmScore },
     ]
     return { wins: winCount(model, comparedModels, rows), total: rows.length }
   }, [model, comparedModels, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts])

@@ -127,6 +127,7 @@ export interface Strings {
   topValueByValue: string
   topValueByScore: string
   topValueEmpty: string
+  topValueCompare: string
   onFrontier: string
   dominates: string
   dominatesHint: string
@@ -302,6 +303,7 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueByValue: 'Per valore',
     topValueByScore: 'Per punteggio',
     topValueEmpty: 'Nessun modello o abbonamento entro il budget.',
+    topValueCompare: 'Confronta i top pick',
     onFrontier: 'Sulla frontiera',
     dominates: 'Domina',
     dominatesHint: 'Numero di modelli Pareto-dominati su entrambi gli assi',
@@ -475,6 +477,7 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueByValue: 'By value',
     topValueByScore: 'By score',
     topValueEmpty: 'No model or subscription within the budget.',
+    topValueCompare: 'Compare top picks',
     onFrontier: 'On frontier',
     dominates: 'Dominates',
     dominatesHint: 'Number of Pareto-dominated models on both axes',

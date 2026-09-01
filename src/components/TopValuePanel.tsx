@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
 import { costUnitLabel, formatMetric, formatUsd, frontierSlugsWithinBudget, topValueByBudget, type EfficiencyOpts } from '../pareto'
+import { isCostEstimated, isEstimated } from '../estimation'
 import type { T } from '../i18n'
 
 interface Props {
@@ -17,6 +18,8 @@ interface Props {
   /** Per-unit cost cap (controlled from the URL so it's shareable). */
   budget: number
   onBudgetChange: (n: number) => void
+  /** Adds the given model slugs to the compare set. */
+  onCompare: (ids: string[]) => void
 }
 
 const MAX_ROWS = 8
@@ -26,7 +29,7 @@ const MAX_ROWS = 8
  * the models/subscriptions with the best valueScore, reusing the shared Pareto engine to
  * mark which picks are not dominated inside the budget.
  */
-export default function TopValuePanel({ items, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, budget, onBudgetChange }: Props) {
+export default function TopValuePanel({ items, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, budget, onBudgetChange, onCompare }: Props) {
   const [sortBy, setSortBy] = useState<'value' | 'score'>('value')
 
   const unit = costUnitLabel(costView)
@@ -56,6 +59,9 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
               onChange={(e) => onBudgetChange(Math.max(0, Number(e.target.value)))}
             />
           </label>
+          <button className="btn" disabled={rows.length === 0} onClick={() => onCompare(rows.map((r) => r.model.slug))}>
+            ＋ {t.topValueCompare}
+          </button>
           <div className="seg" role="group" aria-label={t.topValueSort}>
             <button className={sortBy === 'value' ? 'on' : ''} onClick={() => setSortBy('value')}>{t.topValueByValue}</button>
             <button className={sortBy === 'score' ? 'on' : ''} onClick={() => setSortBy('score')}>{t.topValueByScore}</button>
@@ -79,28 +85,38 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
               </tr>
             </thead>
             <tbody>
-              {rows.map((r, i) => (
-                <tr
-                  key={r.model.slug}
-                  className={frontierSlugs.has(r.model.slug) ? 'row-frontier' : ''}
-                  title={t.details}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => onSelect(r.model.slug)}
-                >
-                  <td className="num">{i + 1}</td>
-                  <td className="bold">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {frontierSlugs.has(r.model.slug) && <span className="sub-badge" title={t.frontier}>★</span>}
-                      {r.model.isSubscription && <span className="sub-badge" title={r.model.subscription?.rateLimitDesc}>PLAN</span>}
-                      <span>{r.model.isSubscription ? r.model.name : r.model.aaName}</span>
-                    </div>
-                  </td>
-                  <td className="num muted">{r.model.family}</td>
-                  <td className="num">{formatUsd(r.cost)}{unit}</td>
-                  <td className="num">{formatMetric(metric, r.score)}</td>
-                  <td className="num bold">{formatMetric('valueScore', r.value)}</td>
-                </tr>
-              ))}
+              {rows.map((r, i) => {
+                const estCost = isCostEstimated(r.model, costView)
+                const est = estCost || isEstimated(r.model, metric, valueScoreBase)
+                return (
+                  <tr
+                    key={r.model.slug}
+                    className={frontierSlugs.has(r.model.slug) ? 'row-frontier' : ''}
+                    title={t.details}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onSelect(r.model.slug)}
+                  >
+                    <td className="num">{i + 1}</td>
+                    <td className="bold">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {frontierSlugs.has(r.model.slug) && <span className="sub-badge" title={t.frontier}>★</span>}
+                        {r.model.isSubscription && <span className="sub-badge" title={r.model.subscription?.rateLimitDesc}>PLAN</span>}
+                        <span>{r.model.isSubscription ? r.model.name : r.model.aaName}</span>
+                      </div>
+                    </td>
+                    <td className="num muted">{r.model.family}</td>
+                    <td className={`num ${estCost ? 'est' : ''}`} title={estCost ? t.estimated : undefined}>
+                      {estCost ? '≈ ' : ''}{formatUsd(r.cost)}{unit}
+                    </td>
+                    <td className={`num ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
+                      {est ? '≈ ' : ''}{formatMetric(metric, r.score)}
+                    </td>
+                    <td className={`num bold ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
+                      {est ? '≈ ' : ''}{formatMetric('valueScore', r.value)}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

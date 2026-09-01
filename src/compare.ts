@@ -37,6 +37,25 @@ export function bestSlug(
   return bestSlugsFor(models, higherIsBetter, value)[0] ?? null
 }
 
+/**
+ * Static benchmark/community value rows (Artificial Analysis + HF/Arena) shared by the
+ * compare panel's winner logic and the model card's win-count, so both agree on what
+ * counts as a "metric" and on the better direction.
+ */
+export const BENCHMARK_VALUE_ROWS: Array<{ higherIsBetter: boolean; value: (m: Model) => number | null }> = [
+  { higherIsBetter: true, value: (m) => m.intelligenceIndex },
+  { higherIsBetter: true, value: (m) => m.codingIndex },
+  { higherIsBetter: true, value: (m) => m.agenticIndex },
+  { higherIsBetter: true, value: (m) => m.tau2 },
+  { higherIsBetter: true, value: (m) => m.hle },
+  { higherIsBetter: true, value: (m) => m.omniscience },
+  { higherIsBetter: false, value: (m) => m.latencySeconds },
+  { higherIsBetter: true, value: (m) => m.hfMMLU },
+  { higherIsBetter: true, value: (m) => m.arenaElo },
+  { higherIsBetter: true, value: (m) => m.arenaCodeElo },
+  { higherIsBetter: true, value: (m) => m.benchlmScore },
+]
+
 /** Count of the given rows where `model` is the best among `models`. */
 export function winCount(
   model: Model,
