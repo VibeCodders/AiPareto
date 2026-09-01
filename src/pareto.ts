@@ -68,6 +68,11 @@ export function priceRatiosOf(m: Model): PriceRatios {
   }
 }
 
+/** Unit suffix for a cost view (e.g. per 1M tokens, or per task). */
+export function costUnitLabel(costView: CostView): string {
+  return costView === 'task' ? '/task' : '/1M'
+}
+
 export interface TopValueRow {
   model: Model
   /** Per-unit cost on the selected cost view (e.g. per 1M tokens, or per task). */
@@ -93,6 +98,7 @@ export function topValueByBudget(
   efficiencyOpts: EfficiencyOpts | undefined,
   budget: number,
   maxRows = 8,
+  rankBy: 'value' | 'score' = 'value',
 ): TopValueRow[] {
   if (budget <= 0) return []
   const scored: TopValueRow[] = []
@@ -104,7 +110,8 @@ export function topValueByBudget(
     if (score == null || value == null) continue
     scored.push({ model: m, cost, score, value })
   }
-  scored.sort((a, b) => b.value - a.value)
+  // Rank and cap by the requested axis: 'value' sorts by valueScore, 'score' by the metric.
+  scored.sort((a, b) => (rankBy === 'score' ? b.score - a.score : b.value - a.value))
   return scored.slice(0, maxRows)
 }
 

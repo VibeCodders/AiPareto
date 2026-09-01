@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
-import { blendedCostOf, computeMetric, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts } from '../pareto'
+import { blendedCostOf, computeMetric, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts, type FrontierUpgrade } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
@@ -25,15 +25,16 @@ type SortKey =
   | 'agenticIndex'
   | 'subscription'
   | 'frontierDelta'
+  | 'frontierCostGap'
   | 'dominates'
   | 'arenaElo'
   | 'arenaCodeElo'
   | 'benchlmScore'
   | 'hfDownloads'
 
-type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta' | 'cacheWritePerM' | 'dominates' | 'maxCompletionTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads'
+type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta' | 'frontierCostGap' | 'cacheWritePerM' | 'dominates' | 'maxCompletionTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads'
 
-const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' | 'cacheWrite' | 'dominates' | 'maxOutputTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads' }> = [
+const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' | 'frontierCostGap' | 'cacheWrite' | 'dominates' | 'maxOutputTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads' }> = [
   { key: 'subscription', labelKey: 'subscriptions' },
   { key: 'cacheWritePerM', labelKey: 'cacheWrite' },
   { key: 'codingIndex', labelKey: 'coding' },
@@ -41,6 +42,7 @@ const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latenc
   { key: 'outputSpeed', labelKey: 'outputSpeed' },
   { key: 'latencySeconds', labelKey: 'latency' },
   { key: 'frontierDelta', labelKey: 'vsFrontier' },
+  { key: 'frontierCostGap', labelKey: 'frontierCostGap' },
   { key: 'dominates', labelKey: 'dominates' },
   { key: 'maxCompletionTokens', labelKey: 'maxOutputTokens' },
   { key: 'arenaElo', labelKey: 'arenaElo' },
@@ -65,6 +67,7 @@ interface Props {
   compareIds: string[]
   onToggleCompare: (id: string) => void
   dominatedCounts: Map<string, number>
+  frontierUpgradeBySlug: Map<string, FrontierUpgrade | null>
 }
 
 const LS_COLS = 'ai-pareto-table-cols'
@@ -85,7 +88,7 @@ function loadVisibleCols(): Set<OptionalCol> {
   return new Set(DEFAULT_COLS)
 }
 
-export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare, dominatedCounts }: Props) {
+export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare, dominatedCounts, frontierUpgradeBySlug }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('score')
   const [desc, setDesc] = useState(() => !isLowerBetter(metric))
   const [visibleCols, setVisibleCols] = useState<Set<OptionalCol>>(loadVisibleCols)
@@ -139,6 +142,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
     if (sortKey === 'subscription') return m.subscription?.priceMonthly ?? (m.isSubscription ? 0 : 9999)
     if (sortKey === 'frontierDelta') return frontierDeltas.get(m.slug) ?? null
     if (sortKey === 'dominates') return dominatedCounts.get(m.slug) ?? 0
+    if (sortKey === 'frontierCostGap') return frontierUpgradeBySlug.get(m.slug)?.costDeltaPct ?? null
     if (sortKey === 'parameters') return m.parameters
     if (sortKey === 'activeParameters') return m.activeParameters
     return (m as unknown as Record<string, number | string | null>)[sortKey]
@@ -209,6 +213,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
               const blended = blendedCostOf(m)
               const delta = frontierDeltas.get(m.slug) ?? null
               const dominated = dominatedCounts.get(m.slug) ?? 0
+              const upgrade = frontierUpgradeBySlug.get(m.slug) ?? null
 
               const estScore = isEstimated(m, metric, valueScoreBase)
               const estInput = isFieldEstimated(m, 'inputPerM')
@@ -315,6 +320,11 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                   {visibleCols.has('frontierDelta') && (
                     <td className={`num ${delta != null && delta > 0.05 ? 'delta-behind' : 'delta-ok'}`} onClick={() => onSelect(m.slug)}>
                       {formatDelta(delta)}
+                    </td>
+                  )}
+                  {visibleCols.has('frontierCostGap') && (
+                    <td className="num" title={upgrade ? upgrade.model.aaName : undefined} onClick={() => onSelect(m.slug)}>
+                      {upgrade ? `${upgrade.costDeltaPct >= 0 ? '+' : '−'}${Math.round(Math.abs(upgrade.costDeltaPct))}%` : '—'}
                     </td>
                   )}
                   {visibleCols.has('dominates') && (

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { blendedCostOf, computeFrontier, computeMetric, costOf, dominates, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
+import { blendedCostOf, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
 function model(partial: Partial<Model> = {}): Model {
@@ -244,9 +244,25 @@ describe('topValueByBudget', () => {
   it('returns [] for a zero budget', () => {
     expect(topValueByBudget([model()], 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 0)).toHaveLength(0)
   })
+  it('ranks by the metric score when requested', () => {
+    const smart = model({ slug: 'smart', intelligenceIndex: 95, inputPerM: 0.5 })
+    const cheap = model({ slug: 'cheap', intelligenceIndex: 55 })
+    const byScore = topValueByBudget([smart, cheap], 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 1, 8, 'score')
+    const byValue = topValueByBudget([smart, cheap], 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 1, 8, 'value')
+    expect(byScore[0].model.slug).toBe('smart')
+    expect(byValue[0].model.slug).toBe('cheap')
+  })
   it('respects the maxRows cap', () => {
     const many = Array.from({ length: 12 }, (_, i) => model({ intelligenceIndex: 50 + i }))
     expect(topValueByBudget(many, 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 100, 5)).toHaveLength(5)
+  })
+})
+
+describe('costUnitLabel', () => {
+  it('labels task view per task and everything else per 1M', () => {
+    expect(costUnitLabel('task')).toBe('/task')
+    expect(costUnitLabel('input')).toBe('/1M')
+    expect(costUnitLabel('blended')).toBe('/1M')
   })
 })
 

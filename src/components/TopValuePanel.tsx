@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
-import { formatMetric, formatUsd, frontierSlugsWithinBudget, topValueByBudget, type EfficiencyOpts } from '../pareto'
+import { costUnitLabel, formatMetric, formatUsd, frontierSlugsWithinBudget, topValueByBudget, type EfficiencyOpts } from '../pareto'
 import type { T } from '../i18n'
 
 interface Props {
@@ -26,13 +26,12 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
   const [budget, setBudget] = useState(DEFAULT_BUDGET)
   const [sortBy, setSortBy] = useState<'value' | 'score'>('value')
 
-  const unit = costView === 'task' ? '/task' : '/1M'
+  const unit = costUnitLabel(costView)
 
-  const rows = useMemo(() => {
-    const picks = topValueByBudget(items, costView, taskInput, taskOutput, metric, valueScoreBase, efficiencyOpts, budget, MAX_ROWS)
-    if (sortBy === 'score') picks.sort((a, b) => b.score - a.score)
-    return picks
-  }, [items, costView, taskInput, taskOutput, metric, valueScoreBase, efficiencyOpts, budget, sortBy])
+  const rows = useMemo(
+    () => topValueByBudget(items, costView, taskInput, taskOutput, metric, valueScoreBase, efficiencyOpts, budget, MAX_ROWS, sortBy),
+    [items, costView, taskInput, taskOutput, metric, valueScoreBase, efficiencyOpts, budget, sortBy],
+  )
 
   const frontierSlugs = useMemo(
     () => frontierSlugsWithinBudget(items, costView, taskInput, taskOutput, budget, valueScoreBase),

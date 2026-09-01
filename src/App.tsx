@@ -3,7 +3,7 @@ import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
 import type { CostView, EfficiencyWeights, MetricKey, Model, Point, SubscriptionPlan, ValueScoreBase } from './types'
-import { blendedCostOf, computeFrontier, computeMetric, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
+import { blendedCostOf, computeFrontier, computeMetric, costUnitLabel, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
@@ -516,6 +516,15 @@ export default function App() {
     return p ? frontierUpgradeOf(p, frontier, isLowerBetter(metric)) : null
   }, [selected, frontierSlugs, points, frontier, metric])
 
+  // Same upgrade cost, resolved per row so the table can sort/display it too.
+  const frontierUpgradeBySlug = useMemo(() => {
+    const map = new Map<string, FrontierUpgrade | null>()
+    for (const p of points) {
+      map.set(p.model.slug, frontierSlugs.has(p.model.slug) ? null : frontierUpgradeOf(p, frontier, isLowerBetter(metric)))
+    }
+    return map
+  }, [points, frontier, frontierSlugs, metric])
+
   // Frontier math above always runs against the full filtered set, regardless of paretoOnly —
   // this only narrows what's actually displayed in the chart/table/CSV afterwards.
   const displayedPoints = useMemo(() => (paretoOnly ? points.filter((p) => frontierSlugs.has(p.model.slug)) : points), [points, paretoOnly, frontierSlugs])
@@ -828,7 +837,7 @@ export default function App() {
             colorFor={colorFor}
             metricName={metricLabelOf(t, metric)}
             xName={xNameLabelOf(t, xMetric, costView, taskInput, taskOutput, kTokens)}
-            xUnit={xMetric ? '' : costView === 'task' ? '/task' : '/1M'}
+            xUnit={xMetric ? '' : costUnitLabel(costView)}
             xIsMetric={xMetric != null}
             formatScore={(v: number) => formatMetric(metric, v)}
             formatTick={(v: number) => formatAxisTick(metric, v)}
@@ -927,6 +936,7 @@ export default function App() {
             compareIds={compareIds}
             onToggleCompare={toggleCompare}
             dominatedCounts={dominatedCounts}
+            frontierUpgradeBySlug={frontierUpgradeBySlug}
           />
         )}
       </section>
