@@ -121,6 +121,7 @@ export interface Strings {
   frontierUpgrade: string
   bestStepHint: string
   addFrontierToCompare: string
+  replaceCompareFrontier: string
   bestInCompare: string
   bestInCompareTitle: string
   winsAmong: string
@@ -304,6 +305,7 @@ export const STRINGS: Record<Lang, Strings> = {
     frontierScoreGain: 'Δ punteggio per salire',
     bestStepHint: 'miglior ritorno sul salto (punteggio per % di costo)',
     addFrontierToCompare: 'Confronta i modelli di frontiera',
+    replaceCompareFrontier: 'Sostituisci il confronto con i modelli di frontiera',
     frontierUpgrade: 'Salto di frontiera',
     bestInCompare: 'Miglior valore',
     bestInCompareTitle: 'Best value per questa metrica tra i modelli confrontati',
@@ -486,6 +488,7 @@ export const STRINGS: Record<Lang, Strings> = {
     frontierScoreGain: 'Score to step up',
     bestStepHint: 'best step-up return (score per % of cost)',
     addFrontierToCompare: 'Compare frontier models',
+    replaceCompareFrontier: 'Replace the compare set with the frontier models',
     frontierUpgrade: 'Frontier step',
     bestInCompare: 'Best value',
     bestInCompareTitle: 'Best value for this metric among the compared models',
