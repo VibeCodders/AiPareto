@@ -3,7 +3,7 @@ import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
 import type { CostView, EfficiencyWeights, MetricKey, Model, Point, SubscriptionPlan, ValueScoreBase } from './types'
-import { blendedCostOf, computeFrontier, computeMetric, costUnitLabel, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
+import { blendedCostOf, computeFrontier, computeMetric, costUnitLabel, dominates, formatAxisTick, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { DEFAULT_BUDGET, parseUrl, toSearch, type UrlState } from './urlState'
@@ -1061,7 +1061,7 @@ function ModelCard({
         <div>
           <span className="muted">{t.frontierCostGap}</span>
           <b title={frontierUpgrade ? `${frontierUpgrade.model.aaName} · +${formatMetric(metric, frontierUpgrade.scoreGain)} ${metricLabelOf(t, metric)}` : undefined}>
-            {frontierUpgrade ? `${frontierUpgrade.costDeltaPct >= 0 ? '+' : '−'}${Math.round(Math.abs(frontierUpgrade.costDeltaPct))}% ${t.cost}` : '—'}
+            {frontierUpgrade ? `${formatCostChangePct(frontierUpgrade.costDeltaPct)} ${t.cost}` : '—'}
           </b>
         </div>
         <div><span className="muted">{t.dominates}</span><b title={t.dominatesHint}>{dominatedCount}</b></div>

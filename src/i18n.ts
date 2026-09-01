@@ -126,6 +126,7 @@ export interface Strings {
   topValueSort: string
   topValueByValue: string
   topValueByScore: string
+  topValueByEfficiency: string
   topValueEmpty: string
   topValueCompare: string
   onFrontier: string
@@ -302,6 +303,7 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueSort: 'Ordina top value',
     topValueByValue: 'Per valore',
     topValueByScore: 'Per punteggio',
+    topValueByEfficiency: 'Per efficiency',
     topValueEmpty: 'Nessun modello o abbonamento entro il budget.',
     topValueCompare: 'Confronta i top pick',
     onFrontier: 'Sulla frontiera',
@@ -476,6 +478,7 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueSort: 'Sort top value',
     topValueByValue: 'By value',
     topValueByScore: 'By score',
+    topValueByEfficiency: 'By efficiency',
     topValueEmpty: 'No model or subscription within the budget.',
     topValueCompare: 'Compare top picks',
     onFrontier: 'On frontier',

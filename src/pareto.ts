@@ -100,7 +100,7 @@ export function topValueByBudget(
   efficiencyOpts: EfficiencyOpts | undefined,
   budget: number,
   maxRows = 8,
-  rankBy: 'value' | 'score' = 'value',
+  rankBy: 'value' | 'score' | 'efficiency' = 'value',
 ): TopValueRow[] {
   if (budget <= 0) return []
   const scored: TopValueRow[] = []
@@ -113,8 +113,12 @@ export function topValueByBudget(
     if (score == null || value == null) continue
     scored.push({ model: m, cost, score, value, efficiency })
   }
-  // Rank and cap by the requested axis: 'value' sorts by valueScore, 'score' by the metric.
-  scored.sort((a, b) => (rankBy === 'score' ? b.score - a.score : b.value - a.value))
+  // Rank and cap by the requested axis: 'value' sorts by valueScore, 'score' by the metric, 'efficiency' by efficiency.
+  scored.sort((a, b) => {
+    if (rankBy === 'score') return b.score - a.score
+    if (rankBy === 'efficiency') return (b.efficiency ?? -Infinity) - (a.efficiency ?? -Infinity)
+    return b.value - a.value
+  })
   return scored.slice(0, maxRows)
 }
 
@@ -289,6 +293,12 @@ export function formatDelta(v: number | null | undefined): string {
   if (v == null) return '—'
   if (v <= 0.05) return '★ 0%'
   return `-${v.toFixed(0)}%`
+}
+
+/** Signed % change with a dash for missing values (e.g. "+12%", "−5%", "—"). */
+export function formatCostChangePct(pct: number | null | undefined): string {
+  if (pct == null) return '—'
+  return `${pct >= 0 ? '+' : '−'}${Math.round(Math.abs(pct))}%`
 }
 
 export interface FrontierUpgrade {

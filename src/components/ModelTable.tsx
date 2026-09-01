@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
-import { blendedCostOf, computeMetric, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts, type FrontierUpgrade } from '../pareto'
+import { blendedCostOf, computeMetric, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts, type FrontierUpgrade } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
@@ -324,7 +324,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                   )}
                   {visibleCols.has('frontierCostGap') && (
                     <td className="num" title={upgrade ? upgrade.model.aaName : undefined} onClick={() => onSelect(m.slug)}>
-                      {upgrade ? `${upgrade.costDeltaPct >= 0 ? '+' : '−'}${Math.round(Math.abs(upgrade.costDeltaPct))}%` : '—'}
+                      {formatCostChangePct(upgrade?.costDeltaPct)}
                     </td>
                   )}
                   {visibleCols.has('dominates') && (

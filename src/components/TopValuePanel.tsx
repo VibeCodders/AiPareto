@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
-import { budgetedPareto, costUnitLabel, formatMetric, formatUsd, topValueByBudget, type EfficiencyOpts } from '../pareto'
+import { budgetedPareto, costUnitLabel, formatCostChangePct, formatMetric, formatUsd, topValueByBudget, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated } from '../estimation'
 import { exportModelsCsv } from '../csv'
 import type { T } from '../i18n'
@@ -31,7 +31,7 @@ const MAX_ROWS = 8
  * mark which picks are not dominated inside the budget.
  */
 export default function TopValuePanel({ items, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, budget, onBudgetChange, onCompare }: Props) {
-  const [sortBy, setSortBy] = useState<'value' | 'score'>('value')
+  const [sortBy, setSortBy] = useState<'value' | 'score' | 'efficiency'>('value')
 
   const unit = costUnitLabel(costView)
 
@@ -75,6 +75,7 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
           <div className="seg" role="group" aria-label={t.topValueSort}>
             <button className={sortBy === 'value' ? 'on' : ''} onClick={() => setSortBy('value')}>{t.topValueByValue}</button>
             <button className={sortBy === 'score' ? 'on' : ''} onClick={() => setSortBy('score')}>{t.topValueByScore}</button>
+            <button className={sortBy === 'efficiency' ? 'on' : ''} onClick={() => setSortBy('efficiency')}>{t.topValueByEfficiency}</button>
           </div>
         </div>
       </div>
@@ -125,11 +126,7 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
                       if (step == null) return t.frontierCostGap
                       return `${t.frontierCostGap}: ${step.target.aaName}`
                     })()}>
-                      {(() => {
-                        const step = costToNext.get(r.model.slug)
-                        if (step == null) return '—'
-                        return `${step.pct >= 0 ? '+' : '−'}${Math.round(Math.abs(step.pct))}%`
-                      })()}
+                      {formatCostChangePct(costToNext.get(r.model.slug)?.pct)}
                     </td>
                     <td className={`num ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
                       {est ? '≈ ' : ''}{formatMetric(metric, r.score)}

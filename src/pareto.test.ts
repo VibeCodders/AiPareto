@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { blendedCostOf, budgetedPareto, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
+import { blendedCostOf, budgetedPareto, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatCostChangePct, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
 function model(partial: Partial<Model> = {}): Model {
@@ -252,6 +252,15 @@ describe('topValueByBudget', () => {
     expect(byScore[0].model.slug).toBe('smart')
     expect(byValue[0].model.slug).toBe('cheap')
   })
+  it('ranks by efficiency score when requested', () => {
+    // Efficiency here weights speed only, so the fast model outranks the slow one at equal smarts.
+    const opts = { weights: { value: 0, speed: 1, context: 0 }, norm: { value: 1, speed: 100, context: 1 } }
+    const highEff = model({ slug: 'highEff', intelligenceIndex: 90, latencySeconds: 1 })
+    const lowEff = model({ slug: 'lowEff', intelligenceIndex: 90, latencySeconds: 100 })
+    const byEff = topValueByBudget([highEff, lowEff], 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', opts, 10, 8, 'efficiency')
+    expect(byEff.length).toBe(2)
+    expect(byEff[0].model.slug).toBe('highEff')
+  })
   it('respects the maxRows cap', () => {
     const many = Array.from({ length: 12 }, (_, i) => model({ intelligenceIndex: 50 + i }))
     expect(topValueByBudget(many, 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 100, 5)).toHaveLength(5)
@@ -270,6 +279,16 @@ describe('budgetedPareto', () => {
     expect(res.frontierSlugs.size).toBe(2)
     expect(res.costToNext.has('cheap')).toBe(true) // % cost to step up to 'mid'
     expect(res.costToNext.has('pricey')).toBe(false)
+  })
+})
+
+describe('formatCostChangePct', () => {
+  it('formats signed % changes and a dash for missing values', () => {
+    expect(formatCostChangePct(12.4)).toBe('+12%')
+    expect(formatCostChangePct(-5.6)).toBe('−6%')
+    expect(formatCostChangePct(0)).toBe('+0%')
+    expect(formatCostChangePct(null)).toBe('—')
+    expect(formatCostChangePct(undefined)).toBe('—')
   })
 })
 
