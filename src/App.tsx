@@ -11,7 +11,7 @@ import { deletePreset, getPreset, listPresets, savePreset, type Preset } from '.
 import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
 import { useTransientFlag } from './useTransientFlag'
-import { estimateModels, isCostEstimated, isEstimated, isFieldEstimated, type EstimatedModel } from './estimation'
+import { estimateModels, estimatedFieldCount, isCostEstimated, isEstimated, isFieldEstimated, type EstimatedModel } from './estimation'
 import { BENCHMARK_VALUE_ROWS, bestSlugsFor, winCount } from './compare'
 import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
@@ -1042,7 +1042,7 @@ function ModelCard({
   const estContext = isFieldEstimated(model, 'contextTokens')
   const estParameters = isFieldEstimated(model, 'parameters')
   const estActiveParameters = isFieldEstimated(model, 'activeParameters')
-  const hasAnyEstimate = (model as { estimatedMetrics?: Set<string> }).estimatedMetrics?.size ?? 0
+  const hasAnyEstimate = estimatedFieldCount(model)
 
   // Subscriptions are synthesized items (id = "sub:…") that don't exist on OpenRouter/AA —
   // link to the underlying plan's model instead.
@@ -1086,7 +1086,7 @@ function ModelCard({
           {model.openWeights && <span className="tag tag-open">open weights</span>}
           {isBestAmongCompared && <span className="tag tag-open" title={t.bestInCompareTitle}>★ {t.bestInCompare}: {metricLabelOf(t, metric)}</span>}
           {comparedWins && <span className="tag" title={t.bestInCompareTitle}>🏅 {comparedWins.wins}/{comparedWins.total} {t.winsAmong}</span>}
-          {hasAnyEstimate > 0 && <span className="tag tag-est">≈ {t.estimated}</span>}
+          {hasAnyEstimate > 0 && <span className="tag tag-est" title={t.estimatedHint}>≈ {hasAnyEstimate} {t.estimatedFields}</span>}
           <button className={`btn compare-toggle ${inCompare ? 'on' : ''}`} onClick={onToggleCompare}>
             {inCompare ? `✓ ${t.removeFromCompare}` : `+ ${t.addToCompare}`}
           </button>

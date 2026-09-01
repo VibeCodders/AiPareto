@@ -156,6 +156,7 @@ export interface Strings {
   pngSaved: string
   estimateMissing: string
   estimated: string
+  estimatedFields: string
   estimatedHint: string
   xAxis: string
   xAxisCost: string
@@ -334,6 +335,7 @@ export const STRINGS: Record<Lang, Strings> = {
     pngSaved: 'PNG scaricato!',
     estimateMissing: 'Stima valori mancanti',
     estimated: 'stimato',
+    estimatedFields: 'campi stimati',
     estimatedHint: 'I valori mancanti sono stimati da modelli simili (k-NN: famiglia + punteggi); ≈ indica una stima',
     xAxis: 'Asse X',
     xAxisCost: 'Costo',
@@ -510,6 +512,7 @@ export const STRINGS: Record<Lang, Strings> = {
     pngSaved: 'PNG downloaded!',
     estimateMissing: 'Estimate missing values',
     estimated: 'estimated',
+    estimatedFields: 'estimated fields',
     estimatedHint: 'Missing values are estimated from similar models (k-NN: family + scores); ≈ marks an estimate',
     xAxis: 'X axis',
     xAxisCost: 'Cost',

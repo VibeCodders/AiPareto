@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Model } from './types'
-import { isCostEstimated, isFieldEstimated, estimateModels, type EstimatedModel } from './estimation'
+import { estimatedFieldCount, isCostEstimated, isFieldEstimated, estimateModels, type EstimatedModel } from './estimation'
 
 /** Minimal model with the numeric fields the estimator reads, defaults null for the rest. */
 function model(partial: Partial<Model> = {}): Model {
@@ -91,5 +91,15 @@ describe('estimateModels', () => {
     const est = out.find((m) => m.slug === 'gap') as EstimatedModel
     expect(isFieldEstimated(est, 'cacheReadPerM')).toBe(true)
     expect(isCostEstimated(est, 'cache')).toBe(true)
+  })
+})
+
+describe('estimatedFieldCount', () => {
+  it('counts imputed fields and returns 0 when there are none', () => {
+    const none = model({ cacheReadPerM: 0.25 }) // no imputed fields
+    expect(estimatedFieldCount(none)).toBe(0)
+    const est = model({ id: 'gap', slug: 'gap', cacheReadPerM: null }) as Model & { estimatedMetrics?: Set<string> }
+    est.estimatedMetrics = new Set(['cacheReadPerM', 'latencySeconds'])
+    expect(estimatedFieldCount(est)).toBe(2)
   })
 })

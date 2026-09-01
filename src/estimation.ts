@@ -502,6 +502,12 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
   })
 }
 
+/** How many fields/benchmarks on this model were imputed (0 when none or not estimated). */
+export function estimatedFieldCount(model: Model): number {
+  const est = (model as Partial<EstimatedModel>).estimatedMetrics
+  return est ? est.size : 0
+}
+
 /** Check whether a specific field on the model was estimated. */
 export function isFieldEstimated(model: Model, field: string): boolean {
   const est = (model as Partial<EstimatedModel>).estimatedMetrics
