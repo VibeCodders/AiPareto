@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
 import type { TopValueSort } from '../urlState'
-import { budgetedPareto, cheapestAboveBudget, costUnitLabel, formatCostChangePct, formatMetric, formatUsd, topValueByBudget, type EfficiencyOpts } from '../pareto'
+import { budgetedPareto, budgetTradeoffOf, costUnitLabel, formatCostChangePct, formatMetric, formatUsd, topValueByBudget, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated } from '../estimation'
 import { exportModelsCsv } from '../csv'
 import type { T } from '../i18n'
@@ -49,9 +49,9 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
     [items, costView, taskInput, taskOutput, budget, valueScoreBase],
   )
 
-  // The cheapest pick just above the cap, so users see what raising the budget unlocks.
-  const nextAbove = useMemo(
-    () => cheapestAboveBudget(items, costView, taskInput, taskOutput, budget, valueScoreBase),
+  // The real tradeoff of raising the cap: cheapest pick just above it vs best-value pick inside.
+  const tradeoff = useMemo(
+    () => budgetTradeoffOf(items, costView, taskInput, taskOutput, budget, valueScoreBase),
     [items, costView, taskInput, taskOutput, budget, valueScoreBase],
   )
 
@@ -154,17 +154,18 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
           </table>
         </div>
       )}
-      {nextAbove && (
+      {tradeoff.next && (
         <p
           className="muted top-value-next"
           title={t.details}
           style={{ cursor: 'pointer' }}
-          onClick={() => onSelect(nextAbove.model.slug)}
+          onClick={() => onSelect(tradeoff.next!.model.slug)}
         >
           {t.nextAboveBudgetPrefix}{' '}
-          <b>{nextAbove.model.isSubscription ? nextAbove.model.name : nextAbove.model.aaName}</b>{' '}
-          · {formatUsd(nextAbove.cost)}{unit} · {t.valueScore} {formatMetric('valueScore', nextAbove.value)}
-          {rows.length > 0 && ` · ${formatCostChangePct(((nextAbove.cost - rows[0].cost) / rows[0].cost) * 100)} ${t.cost}`}
+          <b>{tradeoff.next.model.isSubscription ? tradeoff.next.model.name : tradeoff.next.model.aaName}</b>{' '}
+          · {formatUsd(tradeoff.next.cost)}{unit} · {t.valueScore} {formatMetric('valueScore', tradeoff.next.value)}
+          {tradeoff.costDeltaPct != null && ` · Δ${t.cost} ${formatCostChangePct(tradeoff.costDeltaPct)}`}
+          {tradeoff.valueDeltaPct != null && ` · Δ${t.valueScore} ${formatCostChangePct(tradeoff.valueDeltaPct)}`}
         </p>
       )}
     </section>

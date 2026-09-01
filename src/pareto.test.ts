@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { blendedCostOf, budgetedPareto, cheapestAboveBudget, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatCostChangePct, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
+import { blendedCostOf, budgetTradeoffOf, budgetedPareto, cheapestAboveBudget, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatCostChangePct, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
 function model(partial: Partial<Model> = {}): Model {
@@ -279,6 +279,23 @@ describe('budgetedPareto', () => {
     expect(res.frontierSlugs.size).toBe(2)
     expect(res.costToNext.has('cheap')).toBe(true) // % cost to step up to 'mid'
     expect(res.costToNext.has('pricey')).toBe(false)
+  })
+})
+
+describe('budgetTradeoffOf', () => {
+  it('reports the % cost and value change from the best in-budget pick to the next-above one', () => {
+    const best = model({ slug: 'best', intelligenceIndex: 80, inputPerM: 0.4, outputPerM: 0.4 }) // blended 0.4, value 200
+    const next = model({ slug: 'next', intelligenceIndex: 250, inputPerM: 2, outputPerM: 2 }) // blended 2, value 125
+    const res = budgetTradeoffOf([best, next], 'blended', 3000, 1000, 1, 'intelligenceIndex')
+    expect(res.best?.model.slug).toBe('best')
+    expect(res.next?.model.slug).toBe('next')
+    expect(res.costDeltaPct).toBeCloseTo(((2 - 0.4) / 0.4) * 100)
+    expect(res.valueDeltaPct).toBeCloseTo(((125 - 200) / 200) * 100)
+  })
+  it('returns null deltas when there is no in-budget pick with a value', () => {
+    const res = budgetTradeoffOf([model({ slug: 'next', intelligenceIndex: 250, inputPerM: 2, outputPerM: 2 })], 'blended', 3000, 1000, 1, 'intelligenceIndex')
+    expect(res.costDeltaPct).toBeNull()
+    expect(res.valueDeltaPct).toBeNull()
   })
 })
 

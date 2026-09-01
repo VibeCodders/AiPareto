@@ -186,6 +186,44 @@ export function cheapestAboveBudget(
   return best
 }
 
+export interface BudgetTradeoff {
+  /** Cheapest pick costing above `budget`, and its valueScore. */
+  next: { model: Model; cost: number; value: number } | null
+  /** The highest-valueScore pick within the budget, and its cost. */
+  best: { model: Model; cost: number; value: number } | null
+  /** % cost change from the best in-budget value pick to the next-above-budget pick. */
+  costDeltaPct: number | null
+  /** % valueScore change between them (negative = raising the budget does not buy better value). */
+  valueDeltaPct: number | null
+}
+
+/**
+ * The real tradeoff of raising the budget cap: how the cheapest pick just above `budget`
+ * compares (in % of cost and of valueScore) to the best-value pick available inside it -
+ * so the user sees immediately whether the extra spend is worth it in value terms.
+ */
+export function budgetTradeoffOf(
+  items: Model[],
+  costView: CostView,
+  taskInput: number,
+  taskOutput: number,
+  budget: number,
+  valueScoreBase: ValueScoreBase = 'intelligenceIndex',
+): BudgetTradeoff {
+  const next = cheapestAboveBudget(items, costView, taskInput, taskOutput, budget, valueScoreBase)
+  let best: { model: Model; cost: number; value: number } | null = null
+  for (const m of items) {
+    const cost = costOf(m, costView, taskInput, taskOutput)
+    if (cost == null || cost <= 0 || cost > budget) continue
+    const value = valueScoreOf(m, costView, taskInput, taskOutput, valueScoreBase)
+    if (value == null) continue
+    if (!best || value > best.value) best = { model: m, cost, value }
+  }
+  const costDeltaPct = best && next && best.cost > 0 ? ((next.cost - best.cost) / best.cost) * 100 : null
+  const valueDeltaPct = best && next && best.value > 0 ? ((next.value - best.value) / best.value) * 100 : null
+  return { next, best, costDeltaPct, valueDeltaPct }
+}
+
 /** Benchmark score per dollar. Defaults to Intelligence Index; pass another benchmark to get e.g. coding-per-$ or agentic-per-$. */
 export function valueScoreOf(
   m: Model,
