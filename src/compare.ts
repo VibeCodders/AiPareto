@@ -39,21 +39,35 @@ export function bestSlug(
 
 /**
  * Static benchmark/community value rows (Artificial Analysis + HF/Arena) shared by the
- * compare panel's winner logic and the model card's win-count, so both agree on what
- * counts as a "metric" and on the better direction.
+ * compare panel's winner highlighting and the model card's win-count, so both agree on
+ * exactly which rows count as a "metric" and on the better direction. Includes `labelKey`
+ * so the compare panel can attach its per-row display formatting without keeping a
+ * second, drift-prone list.
  */
-export const BENCHMARK_VALUE_ROWS: Array<{ higherIsBetter: boolean; value: (m: Model) => number | null }> = [
-  { higherIsBetter: true, value: (m) => m.intelligenceIndex },
-  { higherIsBetter: true, value: (m) => m.codingIndex },
-  { higherIsBetter: true, value: (m) => m.agenticIndex },
-  { higherIsBetter: true, value: (m) => m.tau2 },
-  { higherIsBetter: true, value: (m) => m.hle },
-  { higherIsBetter: true, value: (m) => m.omniscience },
-  { higherIsBetter: false, value: (m) => m.latencySeconds },
-  { higherIsBetter: true, value: (m) => m.hfMMLU },
-  { higherIsBetter: true, value: (m) => m.arenaElo },
-  { higherIsBetter: true, value: (m) => m.arenaCodeElo },
-  { higherIsBetter: true, value: (m) => m.benchlmScore },
+export interface BenchmarkValueRow {
+  labelKey: string
+  higherIsBetter: boolean
+  value: (m: Model) => number | null
+}
+
+export const BENCHMARK_VALUE_ROWS: BenchmarkValueRow[] = [
+  { labelKey: 'intel', higherIsBetter: true, value: (m) => m.intelligenceIndex },
+  { labelKey: 'coding', higherIsBetter: true, value: (m) => m.codingIndex },
+  { labelKey: 'agentic', higherIsBetter: true, value: (m) => m.agenticIndex },
+  { labelKey: 'tau2', higherIsBetter: true, value: (m) => m.tau2 },
+  { labelKey: 'hle', higherIsBetter: true, value: (m) => m.hle },
+  { labelKey: 'omniscience', higherIsBetter: true, value: (m) => m.omniscience },
+  { labelKey: 'outputSpeed', higherIsBetter: true, value: (m) => m.outputSpeed },
+  { labelKey: 'latency', higherIsBetter: false, value: (m) => m.latencySeconds },
+  { labelKey: 'context', higherIsBetter: true, value: (m) => m.contextTokens },
+  { labelKey: 'maxOutputTokens', higherIsBetter: true, value: (m) => m.maxCompletionTokens },
+  { labelKey: 'parameters', higherIsBetter: true, value: (m) => m.parameters },
+  { labelKey: 'activeParameters', higherIsBetter: true, value: (m) => m.activeParameters },
+  { labelKey: 'hfMMLU', higherIsBetter: true, value: (m) => m.hfMMLU },
+  { labelKey: 'arenaElo', higherIsBetter: true, value: (m) => m.arenaElo },
+  { labelKey: 'arenaCodeElo', higherIsBetter: true, value: (m) => m.arenaCodeElo },
+  { labelKey: 'benchlmScore', higherIsBetter: true, value: (m) => m.benchlmScore },
+  { labelKey: 'hfDownloads', higherIsBetter: true, value: (m) => m.hfDownloads },
 ]
 
 /** Count of the given rows where `model` is the best among `models`. */

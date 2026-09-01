@@ -1,7 +1,7 @@
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
 import { blendedCostOf, computeMetric, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
-import { bestSlugsFor } from '../compare'
+import { BENCHMARK_VALUE_ROWS, bestSlugsFor } from '../compare'
 import type { T } from '../i18n'
 
 interface Row {
@@ -15,25 +15,33 @@ interface Row {
   costView?: CostView
 }
 
-const BENCHMARK_ROWS: Row[] = [
-  { labelKey: 'intel', higherIsBetter: true, value: (m) => m.intelligenceIndex, format: (v) => formatMetric('intelligenceIndex', v), estMetric: 'intelligenceIndex' },
-  { labelKey: 'coding', higherIsBetter: true, value: (m) => m.codingIndex, format: (v) => formatMetric('codingIndex', v), estMetric: 'codingIndex' },
-  { labelKey: 'agentic', higherIsBetter: true, value: (m) => m.agenticIndex, format: (v) => formatMetric('agenticIndex', v), estMetric: 'agenticIndex' },
-  { labelKey: 'tau2', higherIsBetter: true, value: (m) => m.tau2, format: (v) => formatMetric('tau2', v), estMetric: 'tau2' },
-  { labelKey: 'hle', higherIsBetter: true, value: (m) => m.hle, format: (v) => formatMetric('hle', v), estMetric: 'hle' },
-  { labelKey: 'omniscience', higherIsBetter: true, value: (m) => m.omniscience, format: (v) => formatMetric('omniscience', v), estMetric: 'omniscience' },
-  { labelKey: 'outputSpeed', higherIsBetter: true, value: (m) => m.outputSpeed, format: (v) => formatMetric('outputSpeed', v), estMetric: 'outputSpeed' },
-  { labelKey: 'latency', higherIsBetter: false, value: (m) => m.latencySeconds, format: (v) => formatMetric('latencySeconds', v), estMetric: 'latencySeconds' },
-  { labelKey: 'context', higherIsBetter: true, value: (m) => m.contextTokens, format: (v) => formatTokens(v), estMetric: 'contextTokens' },
-  { labelKey: 'maxOutputTokens', higherIsBetter: true, value: (m) => m.maxCompletionTokens, format: (v) => formatTokens(v), estField: 'maxCompletionTokens' },
-  { labelKey: 'parameters', higherIsBetter: true, value: (m) => m.parameters, format: (v) => formatParams(v), estField: 'parameters' },
-  { labelKey: 'activeParameters', higherIsBetter: true, value: (m) => m.activeParameters, format: (v) => formatParams(v), estField: 'activeParameters' },
-  { labelKey: 'hfMMLU', higherIsBetter: true, value: (m) => m.hfMMLU, format: (v) => formatMetric('hfMMLU', v), estMetric: 'hfMMLU' },
-  { labelKey: 'arenaElo', higherIsBetter: true, value: (m) => m.arenaElo, format: (v) => formatMetric('arenaElo', v), estMetric: 'arenaElo' },
-  { labelKey: 'arenaCodeElo', higherIsBetter: true, value: (m) => m.arenaCodeElo, format: (v) => formatMetric('arenaCodeElo', v), estMetric: 'arenaCodeElo' },
-  { labelKey: 'benchlmScore', higherIsBetter: true, value: (m) => m.benchlmScore, format: (v) => formatMetric('benchlmScore', v), estMetric: 'benchlmScore' },
-  { labelKey: 'hfDownloads', higherIsBetter: true, value: (m) => m.hfDownloads, format: (v) => formatTokens(v), estField: 'hfDownloads' },
-]
+// Per-row display formatting + estimate source for the shared benchmark rows, keyed by
+// the rows' labelKey. The row SET lives in compare.ts (BENCHMARK_VALUE_ROWS) so the card's
+// win-count and the compare panel always agree; only presentation lives here.
+const BENCHMARK_DISPLAY: Record<string, Pick<Row, 'format' | 'estMetric' | 'estField'>> = {
+  intel: { format: (v) => formatMetric('intelligenceIndex', v), estMetric: 'intelligenceIndex' },
+  coding: { format: (v) => formatMetric('codingIndex', v), estMetric: 'codingIndex' },
+  agentic: { format: (v) => formatMetric('agenticIndex', v), estMetric: 'agenticIndex' },
+  tau2: { format: (v) => formatMetric('tau2', v), estMetric: 'tau2' },
+  hle: { format: (v) => formatMetric('hle', v), estMetric: 'hle' },
+  omniscience: { format: (v) => formatMetric('omniscience', v), estMetric: 'omniscience' },
+  outputSpeed: { format: (v) => formatMetric('outputSpeed', v), estMetric: 'outputSpeed' },
+  latency: { format: (v) => formatMetric('latencySeconds', v), estMetric: 'latencySeconds' },
+  context: { format: (v) => formatTokens(v), estMetric: 'contextTokens' },
+  maxOutputTokens: { format: (v) => formatTokens(v), estField: 'maxCompletionTokens' },
+  parameters: { format: (v) => formatParams(v), estField: 'parameters' },
+  activeParameters: { format: (v) => formatParams(v), estField: 'activeParameters' },
+  hfMMLU: { format: (v) => formatMetric('hfMMLU', v), estMetric: 'hfMMLU' },
+  arenaElo: { format: (v) => formatMetric('arenaElo', v), estMetric: 'arenaElo' },
+  arenaCodeElo: { format: (v) => formatMetric('arenaCodeElo', v), estMetric: 'arenaCodeElo' },
+  benchlmScore: { format: (v) => formatMetric('benchlmScore', v), estMetric: 'benchlmScore' },
+  hfDownloads: { format: (v) => formatTokens(v), estField: 'hfDownloads' },
+}
+
+const BENCHMARK_ROWS: Row[] = BENCHMARK_VALUE_ROWS.map((r) => {
+  const display = BENCHMARK_DISPLAY[r.labelKey]
+  return { labelKey: r.labelKey as Row['labelKey'], higherIsBetter: r.higherIsBetter, value: r.value, format: display.format, estMetric: display.estMetric, estField: display.estField }
+})
 
 interface Props {
   models: Model[]

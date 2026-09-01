@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Model } from './types'
-import { bestSlug, bestSlugsFor, winCount } from './compare'
+import { BENCHMARK_VALUE_ROWS, bestSlug, bestSlugsFor, winCount } from './compare'
 
 function model(slug: string, score: number): Model {
   return { ...emptyModel(), slug, intelligenceIndex: score }
@@ -72,6 +72,24 @@ describe('bestSlug / bestSlugsFor', () => {
     const ms = [{ ...emptyModel(), slug: 'none', intelligenceIndex: null }]
     expect(bestSlug(ms, true, byIntel)).toBeNull()
     expect(bestSlugsFor(ms, true, byIntel)).toEqual([])
+  })
+})
+
+describe('BENCHMARK_VALUE_ROWS', () => {
+  it('is the canonical full benchmark set shared with the compare panel', () => {
+    // One entry per row the compare panel highlights (AA + derived spec + HF/Arena community).
+    const keys = BENCHMARK_VALUE_ROWS.map((r) => r.labelKey)
+    expect(keys).toEqual([
+      'intel', 'coding', 'agentic', 'tau2', 'hle', 'omniscience',
+      'outputSpeed', 'latency', 'context', 'maxOutputTokens', 'parameters', 'activeParameters',
+      'hfMMLU', 'arenaElo', 'arenaCodeElo', 'benchlmScore', 'hfDownloads',
+    ])
+  })
+  it('winCount sees the full set (incl. outputSpeed/hfDownloads previously missed)', () => {
+    const fast = { ...emptyModel(), slug: 'fast', intelligenceIndex: 60, outputSpeed: 500, hfDownloads: 5_000_000 }
+    const slow = { ...emptyModel(), slug: 'slow', intelligenceIndex: 90 }
+    // fast wins outputSpeed and hfDownloads (higher-is-better); slow wins intel/latency? no.
+    expect(winCount(fast, [fast, slow], BENCHMARK_VALUE_ROWS)).toBe(2)
   })
 })
 
