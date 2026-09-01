@@ -92,6 +92,31 @@ describe('estimateModels', () => {
     expect(isFieldEstimated(est, 'cacheReadPerM')).toBe(true)
     expect(isCostEstimated(est, 'cache')).toBe(true)
   })
+
+  it('derives outputPerM from a same-family input/output ratio', () => {
+    const full = model({ slug: 'full', family: 'F', inputPerM: 1, outputPerM: 3 })
+    const gap = model({ id: 'gap', slug: 'gap', family: 'F', inputPerM: 2, outputPerM: null })
+    const out = estimateModels([full, gap])
+    const est = out.find((m) => m.slug === 'gap') as EstimatedModel
+    expect(est.outputPerM).toBe(6) // 2 * (3 / 1)
+    expect(isFieldEstimated(est, 'outputPerM')).toBe(true)
+  })
+
+  it('falls back to the industry baseline for cache write (input * 1.25)', () => {
+    const m = model({ inputPerM: 0.2, outputPerM: 0.4 }) // cacheWritePerM stays null
+    const out = estimateModels([m])
+    const est = out[0] as EstimatedModel
+    expect(est.cacheWritePerM).toBeCloseTo(0.2 * 1.25)
+    expect(isFieldEstimated(est, 'cacheWritePerM')).toBe(true)
+  })
+
+  it('assumes dense active params (= total) when no MoE pattern matches', () => {
+    const m = model({ name: 'Phi 4', id: 'phi-4', parameters: 5_000_000_000, activeParameters: null })
+    const out = estimateModels([m])
+    const est = out[0] as EstimatedModel
+    expect(est.activeParameters).toBe(5_000_000_000)
+    expect(isFieldEstimated(est, 'activeParameters')).toBe(true)
+  })
 })
 
 describe('estimatedFieldCount', () => {
