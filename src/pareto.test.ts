@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Model, Point } from './types'
-import { blendedCostOf, computeFrontier, computeMetric, costOf, dominates, formatMetric, frontierDeltaOf, priceRatiosOf } from './pareto'
+import { blendedCostOf, computeFrontier, computeMetric, costOf, dominates, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
 function model(partial: Partial<Model> = {}): Model {
@@ -114,6 +114,31 @@ describe('dominates', () => {
   it('respects lower-is-better metrics', () => {
     // latency: lower score is better
     expect(dominates(point('a', 1, 5), point('b', 2, 9), true, true)).toBe(true)
+  })
+})
+
+describe('frontierUpgradeOf', () => {
+  it('finds the cheapest frontier model with a better score', () => {
+    const p = point('p', 1.5, 50)
+    const frontier = [point('cheap', 1, 40), point('mid', 2, 55), point('top', 3, 70)]
+    const up = frontierUpgradeOf(p, frontier, false)
+    expect(up).not.toBeNull()
+    expect(up?.model.slug).toBe('mid')
+    expect(up?.scoreGain).toBeCloseTo(5)
+    expect(up?.costDeltaPct).toBeCloseTo((0.5 / 1.5) * 100)
+  })
+  it('returns null when the point is already on the frontier', () => {
+    const f = point('f', 2, 55)
+    expect(frontierUpgradeOf(f, [f], false)).toBeNull()
+  })
+  it('returns null when nothing scores better', () => {
+    const top = point('top', 3, 70)
+    expect(frontierUpgradeOf(top, [point('under', 2, 60)], false)).toBeNull()
+  })
+  it('handles lower-is-better metrics (latency)', () => {
+    const p = point('p', 2, 60)
+    const up = frontierUpgradeOf(p, [point('fast', 1.5, 40)], true)
+    expect(up?.scoreGain).toBeCloseTo(20) // lower latency is better
   })
 })
 

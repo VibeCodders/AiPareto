@@ -3,7 +3,7 @@ import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
 import type { CostView, EfficiencyWeights, MetricKey, Model, Point, SubscriptionPlan, ValueScoreBase } from './types'
-import { blendedCostOf, computeFrontier, computeMetric, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, priceRatiosOf, type EfficiencyOpts } from './pareto'
+import { blendedCostOf, computeFrontier, computeMetric, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
@@ -500,6 +500,14 @@ export default function App() {
 
   const selected = useMemo(() => (selectedId ? ALL_ITEMS.find((m) => m.slug === selectedId) ?? null : null), [selectedId, ALL_ITEMS])
 
+  // For a model behind the frontier, the cheapest frontier model with a strictly better score
+  // (and how much score that step buys per % of extra cost).
+  const frontierUpgrade = useMemo(() => {
+    if (!selected || frontierSlugs.has(selected.slug)) return null
+    const p = points.find((q) => q.model.slug === selected.slug)
+    return p ? frontierUpgradeOf(p, frontier, isLowerBetter(metric)) : null
+  }, [selected, frontierSlugs, points, frontier, metric])
+
   // Frontier math above always runs against the full filtered set, regardless of paretoOnly —
   // this only narrows what's actually displayed in the chart/table/CSV afterwards.
   const displayedPoints = useMemo(() => (paretoOnly ? points.filter((p) => frontierSlugs.has(p.model.slug)) : points), [points, paretoOnly, frontierSlugs])
@@ -862,6 +870,7 @@ export default function App() {
           efficiencyOpts={efficiencyOpts}
           t={t}
           inCompare={compareIds.includes(selected.slug)}
+          frontierUpgrade={frontierUpgrade}
           onToggleCompare={() => toggleCompare(selected.slug)}
         />
       )}
@@ -918,6 +927,7 @@ function ModelCard({
   metric,
   frontier,
   frontierDelta,
+  frontierUpgrade,
   dominatedCount,
   costView,
   taskInput,
@@ -932,6 +942,7 @@ function ModelCard({
   metric: MetricKey
   frontier: boolean
   frontierDelta: number | null
+  frontierUpgrade: FrontierUpgrade | null
   dominatedCount: number
   costView: CostView
   taskInput: number
@@ -994,6 +1005,16 @@ function ModelCard({
         <StatCell label={t.activeParameters} estimated={estActiveParameters} title={t.estimated} value={formatParams(model.activeParameters)} />
         <StatCell label={t.release} value={model.released ?? '—'} />
       </div>
+      {frontierUpgrade && (
+        <div className="mc-upgrade">
+          <span className="tag tag-open">{t.frontierUpgrade}</span>{' '}
+          {frontierUpgrade.model.aaName}{' '}
+          <b>
+            {isLowerBetter(metric) ? '−' : '+'}{formatMetric(metric, frontierUpgrade.scoreGain)} {metricLabelOf(t, metric)}
+            · {Math.round(frontierUpgrade.costDeltaPct)}% {t.cost}
+          </b>
+        </div>
+      )}
       {model.isSubscription && model.subscription && (
         <div className="mc-subscription">
           {model.paygoEquivalentMonthly != null && (

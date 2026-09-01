@@ -116,6 +116,7 @@ export interface Strings {
   weightContext: string
   valueScoreBase: string
   vsFrontier: string
+  frontierUpgrade: string
   onFrontier: string
   dominates: string
   dominatesHint: string
@@ -280,6 +281,7 @@ export const STRINGS: Record<Lang, Strings> = {
     weightContext: 'Peso contesto/$',
     valueScoreBase: 'Base Value Score',
     vsFrontier: 'Δ vs frontiera',
+    frontierUpgrade: 'Salto di frontiera',
     onFrontier: 'Sulla frontiera',
     dominates: 'Domina',
     dominatesHint: 'Numero di modelli Pareto-dominati su entrambi gli assi',
@@ -442,6 +444,7 @@ export const STRINGS: Record<Lang, Strings> = {
     weightContext: 'Context/$ weight',
     valueScoreBase: 'Value Score basis',
     vsFrontier: 'Δ vs frontier',
+    frontierUpgrade: 'Frontier step',
     onFrontier: 'On frontier',
     dominates: 'Dominates',
     dominatesHint: 'Number of Pareto-dominated models on both axes',

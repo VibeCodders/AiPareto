@@ -199,6 +199,33 @@ export function formatDelta(v: number | null | undefined): string {
   return `-${v.toFixed(0)}%`
 }
 
+export interface FrontierUpgrade {
+  /** The frontier model to step up to (the cheapest one scoring strictly better). */
+  model: Model
+  /** Price increase over the current point, as a percentage of its cost. */
+  costDeltaPct: number
+  /** Score gained by stepping up (positive for higher-is-better metrics, also positive when latency drops). */
+  scoreGain: number
+}
+
+/**
+ * For a point behind the frontier, find the cheapest frontier model that scores strictly
+ * better — the "next step up" in the Pareto sense — and how much score it buys per % of cost.
+ * Returns null when the point is already on the frontier or nothing scores better.
+ */
+export function frontierUpgradeOf(point: Point, frontier: Point[], lowerIsBetter: boolean): FrontierUpgrade | null {
+  const better = frontier.filter(
+    (f) => f.model.slug !== point.model.slug && (lowerIsBetter ? f.score < point.score : f.score > point.score),
+  )
+  if (better.length === 0) return null
+  const cheapest = better.reduce((a, b) => (a.x < b.x ? a : b))
+  return {
+    model: cheapest.model,
+    costDeltaPct: point.x > 0 ? ((cheapest.x - point.x) / point.x) * 100 : 0,
+    scoreGain: lowerIsBetter ? point.score - cheapest.score : cheapest.score - point.score,
+  }
+}
+
 /**
  * Pareto-optimal points: a point is on the frontier if no other point has
  * an X value at least as good AND a better score (>= for higher-is-better metrics,
