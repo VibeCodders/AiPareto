@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
-import { blendedCostOf, computeMetric, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts, type FrontierUpgrade } from '../pareto'
+import { blendedCostOf, computeMetric, costOf, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts, type FrontierUpgrade } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import type { T } from '../i18n'
 
@@ -339,7 +339,17 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                     </td>
                   )}
                   {visibleCols.has('frontierScoreGain') && (
-                    <td className="num" title={upgrade ? `${upgrade.model.aaName}${isBestStep ? ` · ${t.bestStepHint}` : ''}` : undefined} onClick={() => onSelect(m.slug)}>
+                    <td
+                      className="num"
+                      title={
+                        upgrade
+                          ? isBestStep
+                            ? `${upgrade.model.aaName} · ${t.bestStepHint} · ${formatUsd(costOf(m, costView))} → ${formatUsd(costOf(upgrade.model, costView))} (${formatCostChangePct(upgrade.costDeltaPct)})`
+                            : upgrade.model.aaName
+                          : undefined
+                      }
+                      onClick={() => onSelect(m.slug)}
+                    >
                       {upgrade ? `${isBestStep ? '⚡ ' : ''}+${formatMetric(metric, upgrade.scoreGain)}` : '—'}
                     </td>
                   )}
