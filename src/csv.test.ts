@@ -56,22 +56,23 @@ describe('exportModelsCsv', () => {
     const text = await blob.text() // BOM already decoded
     const lines = text.split('\r\n')
     expect(lines[0]).toBe('# budget=40/1M')
-    expect(lines[1].split(';')).toContain(t.model)
-    expect(lines[1].split(';').length).toBeGreaterThan(5)
+    expect(lines[1]).toBe('# estimated: 1/2')
+    expect(lines[2].split(';')).toContain(t.model)
+    expect(lines[2].split(';').length).toBeGreaterThan(5)
     // The imputed field is flagged in the final 'estimated' column.
-    expect(lines[3].split(';').pop()).toBe('outputSpeed')
+    expect(lines[4].split(';').pop()).toBe('outputSpeed')
   })
 
   it('quotes a cell containing the separator', async () => {
     exportModelsCsv([model({ aaName: 'a;b,c' })], 'input', 3000, 1000, t)
     const text = await (await captured[0].blob).text()
-    const row = text.split('\r\n')[1]
+    const row = text.split('\r\n').find((l) => l.startsWith('m;'))
     expect(row).toContain('m;"a;b,c";f;')
   })
 
-  it('omits the filter summary line when none is given', async () => {
+  it('always writes an estimates summary line, even without a filter summary', async () => {
     exportModelsCsv([model()], 'input', 3000, 1000, t)
     const text = await (await captured[0].blob).text()
-    expect(text.startsWith('#')).toBe(false)
+    expect(text.split('\r\n')[0]).toBe('# estimated: 0/1')
   })
 })

@@ -1,6 +1,7 @@
 import type { CostView, Model } from './types'
 import type { T } from './i18n'
 import { blendedCostOf, contextValueOf, costOf, efficiencyScoreOf, speedAdjustedScoreOf, valueScoreOf } from './pareto'
+import { estimatedFieldCount } from './estimation'
 import { downloadBlob } from './download'
 
 
@@ -120,6 +121,9 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
   })
 
   const lines = [headers, ...rows].map((r) => r.map(cell).join(';'))
+  // Let the reader gauge data confidence at a glance: how many rows rely on imputed values.
+  const estimatedModels = models.filter((m) => estimatedFieldCount(m) > 0).length
+  lines.unshift(`# ${t.estimated}: ${estimatedModels}/${models.length}`)
   if (filterSummary) lines.unshift(`# ${filterSummary}`)
   const csv = lines.join('\r\n')
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
