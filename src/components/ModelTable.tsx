@@ -79,7 +79,13 @@ interface Props {
 }
 
 // Columns shown when the URL carries no explicit selection (matches the pre-URL default).
-const DEFAULT_COLS: string[] = ['subscription']
+export const DEFAULT_COLS: string[] = ['subscription']
+
+/** Which of `selected` to actually show: an empty selection falls back to the default set, then invalid keys are dropped. */
+export function pickVisibleCols(selected: string[], valid: readonly string[]): string[] {
+  const source = selected.length > 0 ? selected : DEFAULT_COLS
+  return source.filter((k) => valid.includes(k))
+}
 
 const SORT_KEYS: SortKey[] = [
   'name', 'family', 'score', 'inputPerM', 'outputPerM', 'cacheReadPerM', 'cacheWritePerM', 'blended',
@@ -94,9 +100,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
   const sortKey: SortKey = SORT_KEYS.includes(sortKeyRaw as SortKey) ? (sortKeyRaw as SortKey) : 'score'
   const desc = sortDesc
   // An empty selection (the URL default) falls back to the default column set.
-  const validKeys = (visibleColKeys.length > 0 ? visibleColKeys : DEFAULT_COLS).filter(
-    (k): k is OptionalCol => OPTIONAL_COLS.some((c) => c.key === k),
-  )
+  const validKeys = pickVisibleCols(visibleColKeys, OPTIONAL_COLS.map((c) => c.key)) as OptionalCol[]
   const visibleCols = new Set<OptionalCol>(validKeys)
 
   const toggleCol = (k: OptionalCol) => {
