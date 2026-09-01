@@ -39,6 +39,9 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Coverage
+        run: npm run coverage -- --coverage.reporter=text-summary
+
       - name: Build
         run: npm run build
 
