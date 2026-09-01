@@ -13,6 +13,13 @@ export default defineConfig({
       reporter: ['text', 'html'],
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.test.ts', 'src/data/**', 'src/vite-env.d.ts'],
+      // Global floor so the CI Coverage step fails on coverage regressions.
+      thresholds: {
+        statements: 75,
+        branches: 68,
+        functions: 78,
+        lines: 80,
+      },
     },
   },
   build: {
