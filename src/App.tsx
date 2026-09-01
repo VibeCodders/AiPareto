@@ -713,6 +713,7 @@ export default function App() {
               <button className={`badge ${sizeBy === 'none' ? 'on' : ''}`} onClick={() => setSizeBy('none')}>{t.sizeNone}</button>
               <button className={`badge ${sizeBy === 'context' ? 'on' : ''}`} onClick={() => setSizeBy('context')}>{t.sizeContext}</button>
               <button className={`badge ${sizeBy === 'speed' ? 'on' : ''}`} onClick={() => setSizeBy('speed')}>{t.sizeSpeed}</button>
+              <button className={`badge ${sizeBy === 'downloads' ? 'on' : ''}`} onClick={() => setSizeBy('downloads')}>{t.sizeDownload}</button>
             </div>
           </div>
           <label className="check">

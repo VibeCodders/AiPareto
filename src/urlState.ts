@@ -37,8 +37,8 @@ export interface UrlState {
   paretoOnly: boolean
   /** Subscriptions-only filter: hide plans whose priceMonthly exceeds this. 0 = no limit. Ignored for pay-as-you-go models. */
   maxMonthlyCost: number
-  /** Third dimension encoded as point size: context window, output speed, or uniform. */
-  sizeBy: 'none' | 'context' | 'speed'
+  /** Third dimension encoded as point size: context window, output speed, downloads, or uniform. */
+  sizeBy: SizeBy
   /** Show model names next to the Pareto frontier points. */
   showLabels: boolean
   /** Fill missing benchmark/spec values with similarity-based estimates (marked ≈). */
@@ -47,6 +47,8 @@ export interface UrlState {
   xMetric: MetricKey | null
 }
 
+
+type SizeBy = 'none' | 'context' | 'speed' | 'downloads'
 
 const METRICS: MetricKey[] = [
   'intelligenceIndex',
@@ -67,7 +69,7 @@ const METRICS: MetricKey[] = [
 ]
 const VALUE_SCORE_BASES: ValueScoreBase[] = ['intelligenceIndex', 'codingIndex', 'agenticIndex']
 const COST_VIEWS: CostView[] = ['input', 'blended', 'cache', 'output', 'task']
-const SIZE_BYS: Array<'none' | 'context' | 'speed'> = ['none', 'context', 'speed']
+const SIZE_BYS: SizeBy[] = ['none', 'context', 'speed', 'downloads']
 
 /** Metrics where a lower value is better (e.g. latency). */
 export function isLowerBetter(metric: MetricKey): boolean {
@@ -141,7 +143,7 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     showTrend: p.get('trend') === '1',
     paretoOnly: p.get('paretoonly') === '1',
     maxMonthlyCost: clampFloat(p.get('maxmo'), 0, 100000, 0),
-    sizeBy: SIZE_BYS.includes(p.get('size') as 'none' | 'context' | 'speed') ? (p.get('size') as 'none' | 'context' | 'speed') : 'none',
+    sizeBy: SIZE_BYS.includes(p.get('size') as SizeBy) ? (p.get('size') as SizeBy) : 'none',
     showLabels: p.get('labels') !== '0',
     estimateMissing: p.get('est') !== '0',
     xMetric: METRICS.includes(p.get('xmet') as MetricKey) ? (p.get('xmet') as MetricKey) : null,

@@ -239,6 +239,8 @@ export function formatMetric(metric: MetricKey, v: number | null | undefined): s
       return `${formatTokens(v)}/$`
     case 'efficiencyScore':
       return v.toFixed(0)
+    case 'arenaElo':
+      return String(Math.round(v))
     default:
       return v.toFixed(1)
   }

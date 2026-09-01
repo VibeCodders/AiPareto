@@ -7,6 +7,8 @@
  * the computed style of the corresponding element, and write the concrete color
  * values onto the clone before rasterizing it to a canvas.
  */
+import { downloadBlob } from './download'
+
 export async function downloadChartPng(svgEl: SVGSVGElement, filename: string): Promise<void> {
   const clone = svgEl.cloneNode(true) as SVGSVGElement
   const liveEls = svgEl.querySelectorAll('*')
@@ -57,14 +59,7 @@ export async function downloadChartPng(svgEl: SVGSVGElement, filename: string): 
 
     const pngBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
     if (!pngBlob) throw new Error('Failed to encode PNG')
-    const pngUrl = URL.createObjectURL(pngBlob)
-    const a = document.createElement('a')
-    a.href = pngUrl
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(pngUrl)
+    downloadBlob(pngBlob, filename)
   } finally {
     URL.revokeObjectURL(url)
   }

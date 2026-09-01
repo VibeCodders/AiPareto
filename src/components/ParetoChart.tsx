@@ -6,7 +6,7 @@ import type { T } from '../i18n'
 
 export const FRONTIER_COLOR = '#f59e0b'
 
-export type SizeBy = 'none' | 'context' | 'speed'
+export type SizeBy = 'none' | 'context' | 'speed' | 'downloads'
 
 interface Props {
   points: Point[]
@@ -122,9 +122,10 @@ const chartStateRef: { current: { sizeBy: SizeBy; showLabels: boolean; highlight
 /** Radius of a point for a raw sizing value, mapped log-linearly across the domain. */
 export function sizeFromValue(v: number, sizeBy: SizeBy): number {
   if (sizeBy === 'none' || v == null || v <= 0) return 5
-  const domain: Record<'context' | 'speed', [number, number]> = {
+  const domain: Record<'context' | 'speed' | 'downloads', [number, number]> = {
     context: [16_000, 4_000_000],
     speed: [15, 600],
+    downloads: [5_000, 40_000_000],
   }
   const [lo, hi] = domain[sizeBy]
   const t = Math.min(1, Math.max(0, (Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))))
@@ -184,7 +185,15 @@ function ScatterShape(props: ShapeProps) {
     )
   }
 
-  const raw = model ? (st.sizeBy === 'context' ? model.contextTokens : st.sizeBy === 'speed' ? model.outputSpeed : null) : null
+  const raw = model
+    ? st.sizeBy === 'context'
+      ? model.contextTokens
+      : st.sizeBy === 'speed'
+      ? model.outputSpeed
+      : st.sizeBy === 'downloads'
+      ? model.hfDownloads
+      : null
+    : null
   const size = sizeFromValue(raw ?? 0, st.sizeBy)
   const r = isActive ? size * 1.25 + 1 : size
 
@@ -259,6 +268,13 @@ function sizeLegendItems(sizeBy: SizeBy): { value: number; label: string }[] {
       { value: 15, label: '15 tok/s' },
       { value: 100, label: '100 tok/s' },
       { value: 600, label: '600 tok/s' },
+    ]
+  }
+  if (sizeBy === 'downloads') {
+    return [
+      { value: 5_000, label: formatTokens(5_000) },
+      { value: 1_000_000, label: formatTokens(1_000_000) },
+      { value: 40_000_000, label: formatTokens(40_000_000) },
     ]
   }
   return []

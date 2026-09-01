@@ -136,6 +136,7 @@ export interface Strings {
   sizeNone: string
   sizeContext: string
   sizeSpeed: string
+  sizeDownload: string
   frontierLabels: string
   downloadPng: string
   pngSaved: string
@@ -292,6 +293,7 @@ export const STRINGS: Record<Lang, Strings> = {
     sizeNone: 'Uniforme',
     sizeContext: 'Contesto',
     sizeSpeed: 'Velocità',
+    sizeDownload: 'Download',
     frontierLabels: 'Etichette frontiera',
     downloadPng: 'Scarica PNG',
     pngSaved: 'PNG scaricato!',
@@ -446,6 +448,7 @@ export const STRINGS: Record<Lang, Strings> = {
     sizeNone: 'Uniform',
     sizeContext: 'Context',
     sizeSpeed: 'Speed',
+    sizeDownload: 'Downloads',
     frontierLabels: 'Frontier labels',
     downloadPng: 'Download PNG',
     pngSaved: 'PNG downloaded!',

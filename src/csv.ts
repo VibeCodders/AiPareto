@@ -1,6 +1,8 @@
 import type { CostView, Model } from './types'
 import type { T } from './i18n'
 import { blendedCostOf, contextValueOf, costOf, efficiencyScoreOf, speedAdjustedScoreOf, valueScoreOf } from './pareto'
+import { downloadBlob } from './download'
+
 
 function num(n: number | null | undefined): string {
   if (n == null) return ''
@@ -121,12 +123,5 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
   if (filterSummary) lines.unshift(`# ${filterSummary}`)
   const csv = lines.join('\r\n')
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `ai-pareto-${new Date().toISOString().slice(0, 10)}${filenameSuffix}.csv`
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  URL.revokeObjectURL(url)
+  downloadBlob(blob, `ai-pareto-${new Date().toISOString().slice(0, 10)}${filenameSuffix}.csv`)
 }
