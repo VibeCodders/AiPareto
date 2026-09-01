@@ -61,6 +61,7 @@ describe('blendedCostOf', () => {
   it('returns null when either price is missing', () => {
     expect(blendedCostOf(model({ inputPerM: 0.1, outputPerM: null }))).toBeNull()
     expect(blendedCostOf(model({ inputPerM: null, outputPerM: 0.2 }))).toBeNull()
+    expect(blendedCostOf(model({ inputPerM: null, outputPerM: null }))).toBeNull()
   })
 })
 
@@ -70,6 +71,13 @@ describe('priceRatiosOf', () => {
     expect(r.output).toBeCloseTo(3)
     expect(r.cacheRead).toBeCloseTo(0.25)
     expect(r.cacheWrite).toBeCloseTo(1.25) // no cache write on the model -> industry fallback
+  })
+  it('uses fallbacks when either price is missing or zero', () => {
+    const r = priceRatiosOf(model({ inputPerM: 0.1, outputPerM: null }))
+    expect(r.output).toBeCloseTo(3)
+    expect(r.cacheRead).toBeCloseTo(0.25)
+    // a zero input price can't anchor ratios -> falls back too
+    expect(priceRatiosOf(model({ inputPerM: 0, outputPerM: 0.2 })).output).toBeCloseTo(3)
   })
 })
 
@@ -84,6 +92,14 @@ describe('costOf', () => {
   it('computes per-task cost from token counts', () => {
     // input price applies to input tokens, output price to output tokens.
     expect(costOf(m, 'task')).toBeCloseTo((3000 / 1e6) * 1 + (1000 / 1e6) * 4)
+  })
+  it('charges the flat effective rate for subscriptions', () => {
+    const sub = model({ isSubscription: true, effectiveCostPerM: 5, inputPerM: 1, outputPerM: 4 })
+    expect(costOf(sub, 'input')).toBe(5)
+    expect(costOf(sub, 'output')).toBe(5)
+    expect(costOf(sub, 'blended')).toBe(5)
+    // task view scales the flat rate by the full token count
+    expect(costOf(sub, 'task', 3000, 1000)).toBeCloseTo((4000 / 1e6) * 5)
   })
 })
 
@@ -102,6 +118,19 @@ describe('computeFrontier', () => {
     const front = computeFrontier([point('a', 1, 5), point('dup', 1, 5)], false, true)
     expect(front).toHaveLength(1)
   })
+  it('returns [] for no points', () => {
+    expect(computeFrontier([], false, true)).toEqual([])
+  })
+  it('keeps the lowest-latency point for lower-is-better metrics', () => {
+    // latency: lower score is better. a is cheaper, b is faster -> both on the frontier.
+    const front = computeFrontier([point('a', 1, 10), point('b', 2, 4)], true, true)
+    expect(front.map((p) => p.model.slug)).toEqual(['a', 'b'])
+  })
+  it('treats larger X as better when X is a higher-is-better metric', () => {
+    // context on X: more is better, so b (more context AND higher score) dominates a.
+    const front = computeFrontier([point('a', 100, 50), point('b', 200, 60)], false, false)
+    expect(front.map((p) => p.model.slug)).toEqual(['b'])
+  })
 })
 
 describe('dominates', () => {
@@ -114,6 +143,15 @@ describe('dominates', () => {
   it('respects lower-is-better metrics', () => {
     // latency: lower score is better
     expect(dominates(point('a', 1, 5), point('b', 2, 9), true, true)).toBe(true)
+  })
+  it('returns false when both axes are equal', () => {
+    expect(dominates(point('a', 1, 5), point('b', 1, 5), false, true)).toBe(false)
+  })
+  it('honors a higher-is-better X metric', () => {
+    // more context AND higher score dominates
+    expect(dominates(point('a', 200, 60), point('b', 100, 50), false, false)).toBe(true)
+    // equal score but more context -> still dominates via the strict X
+    expect(dominates(point('a', 200, 50), point('b', 100, 50), false, false)).toBe(true)
   })
 })
 
@@ -152,6 +190,17 @@ describe('frontierDeltaOf', () => {
     const f = point('f', 2, 10)
     expect(frontierDeltaOf(f, [f], false, true)).toBe(0)
   })
+  it('reports positive delta for lower-is-better metrics', () => {
+    // point latency (8) is worse than frontier latency (4)
+    expect(frontierDeltaOf(point('p', 2, 8), [point('f', 2, 4)], true, true)).toBeCloseTo(100)
+  })
+  it('returns null when the point beats the whole frontier', () => {
+    // cheapest frontier point costs 1, our point is cheaper (0.5) with no reference
+    expect(frontierDeltaOf(point('p', 0.5, 50), [point('f', 1, 30)], false, true)).toBeNull()
+  })
+  it('returns null when the reference score is zero', () => {
+    expect(frontierDeltaOf(point('p', 2, 5), [point('f', 2, 0)], false, true)).toBeNull()
+  })
 })
 
 describe('computeMetric', () => {
@@ -172,5 +221,14 @@ describe('formatMetric', () => {
   })
   it('returns a dash for missing values', () => {
     expect(formatMetric('intelligenceIndex', null)).toBe('—')
+  })
+  it('formats derived and community metrics', () => {
+    expect(formatMetric('contextValue', 2_500_000)).toBe('2.5M/$')
+    expect(formatMetric('valueScore', 51.6)).toBe('51.6')
+    expect(formatMetric('arenaCodeElo', 1345.7)).toBe('1346')
+  })
+  it('rounds tokens appropriately at the million boundary', () => {
+    expect(formatMetric('contextTokens', 999_999)).toBe('1000k')
+    expect(formatMetric('contextTokens', 1_000_000)).toBe('1.0M')
   })
 })
