@@ -1,6 +1,6 @@
 import type { CostView, Model } from './types'
 import type { T } from './i18n'
-import { contextValueOf, costOf, efficiencyScoreOf, speedAdjustedScoreOf, valueScoreOf } from './pareto'
+import { blendedCostOf, contextValueOf, costOf, efficiencyScoreOf, speedAdjustedScoreOf, valueScoreOf } from './pareto'
 
 function num(n: number | null | undefined): string {
   if (n == null) return ''
@@ -58,6 +58,10 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
     t.efficiencyScore,
     t.parameters,
     t.activeParameters,
+    t.hfDownloads,
+    t.arenaElo,
+    t.arenaCodeElo,
+    t.benchlmScore,
     'estimated',
   ]
 
@@ -70,7 +74,7 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
   const weights = { value: 1, speed: 1, context: 1 }
 
   const rows = models.map((m) => {
-    const blended = m.inputPerM != null && m.outputPerM != null ? 0.8 * m.inputPerM + 0.2 * m.outputPerM : null
+    const blended = blendedCostOf(m)
     const taskCost = costOf(m, 'task', taskInput, taskOutput)
     return [
       m.id,
@@ -104,6 +108,10 @@ export function exportModelsCsv(models: Model[], costView: CostView, taskInput: 
       num(efficiencyScoreOf(m, costView, taskInput, taskOutput, { weights, norm })),
       m.parameters != null ? String(m.parameters) : '',
       m.activeParameters != null ? String(m.activeParameters) : '',
+      m.hfDownloads != null ? String(m.hfDownloads) : '',
+      m.arenaElo != null ? String(m.arenaElo) : '',
+      m.arenaCodeElo != null ? String(m.arenaCodeElo) : '',
+      m.benchlmScore != null ? String(m.benchlmScore) : '',
       // Metrics whose value was imputed (e.g. "codingIndex+latencySeconds"), empty when none.
       [...((m as { estimatedMetrics?: Set<string> }).estimatedMetrics ?? [])].sort().join('+'),
     ]

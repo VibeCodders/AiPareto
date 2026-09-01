@@ -3,13 +3,14 @@ import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
 import type { CostView, EfficiencyWeights, MetricKey, Model, Point, SubscriptionPlan, ValueScoreBase } from './types'
-import { computeFrontier, computeMetric, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, type EfficiencyOpts } from './pareto'
+import { blendedCostOf, computeFrontier, computeMetric, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, type EfficiencyOpts } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
 import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
 import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
+import { useTransientFlag } from './useTransientFlag'
 import { estimateModels, isCostEstimated, isEstimated, isFieldEstimated, type EstimatedModel } from './estimation'
 import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
@@ -92,6 +93,16 @@ function metricLabelOf(t: T, key: MetricKey): string {
   return t[METRICS.find((m) => m.key === key)!.labelKey]
 }
 
+function costViewLabelOf(t: T, key: CostView): string {
+  return t[COST_VIEWS.find((v) => v.key === key)!.labelKey]
+}
+
+function xNameLabelOf(t: T, xMetric: MetricKey | null, costView: CostView, taskInput: number, taskOutput: number, kTokens: (n: number) => string): string {
+  if (xMetric != null) return metricLabelOf(t, xMetric)
+  if (costView === 'task') return `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})`
+  return costViewLabelOf(t, costView)
+}
+
 function colorFor(family: string): string {
   let h = 0
   for (const ch of family) h = (h * 31 + ch.charCodeAt(0)) >>> 0
@@ -124,7 +135,7 @@ export default function App() {
   const [presetId, setPresetId] = useState<string | null>(() => (INITIAL.presetId && getPreset(INITIAL.presetId) ? INITIAL.presetId : null))
   const [savingPreset, setSavingPreset] = useState(false)
   const [presetName, setPresetName] = useState('')
-  const [copied, setCopied] = useState(false)
+  const [copied, triggerCopied] = useTransientFlag()
   const [reasoningOnly, setReasoningOnly] = useState(INITIAL.reasoningOnly)
   const [openWeightsOnly, setOpenWeightsOnly] = useState(INITIAL.openWeightsOnly)
   const [minPrice, setMinPrice] = useState(INITIAL.minPrice)
@@ -146,7 +157,7 @@ export default function App() {
   const [xMetric, setXMetric] = useState<MetricKey | null>(INITIAL.xMetric)
   const chartSvgRef = useRef<SVGSVGElement | null>(null)
   const [svgReady, setSvgReady] = useState(false)
-  const [pngSaved, setPngSaved] = useState(false)
+  const [pngSaved, triggerPngSaved] = useTransientFlag()
 
   const t = STRINGS[lang]
 
@@ -357,8 +368,7 @@ export default function App() {
       document.execCommand('copy')
       ta.remove()
     }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    triggerCopied()
   }
 
   const resetFilters = () => {
@@ -583,7 +593,7 @@ export default function App() {
             </select>
             {xMetric != null && (
               <span className="legend-muted" style={{ fontSize: 11 }}>
-                {t.cost}: {t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
+                {t.cost}: {costViewLabelOf(t, costView)}
               </span>
             )}
             {costView === 'task' && (
@@ -776,7 +786,7 @@ export default function App() {
             logScale={logScale}
             colorFor={colorFor}
             metricName={metricLabelOf(t, metric)}
-            xName={xMetric ? t[METRICS.find((m) => m.key === xMetric)!.labelKey] : costView === 'task' ? `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})` : t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
+            xName={xNameLabelOf(t, xMetric, costView, taskInput, taskOutput, kTokens)}
             xUnit={xMetric ? '' : costView === 'task' ? '/task' : '/1M'}
             xIsMetric={xMetric != null}
             formatScore={(v: number) => formatMetric(metric, v)}
@@ -804,8 +814,7 @@ export default function App() {
             onClick={async () => {
               if (!chartSvgRef.current) return
               await downloadChartPng(chartSvgRef.current, `ai-pareto-${metric}-${costView}-${new Date().toISOString().slice(0, 10)}.png`)
-              setPngSaved(true)
-              setTimeout(() => setPngSaved(false), 1500)
+              triggerPngSaved()
             }}
           >
             {pngSaved ? `✓ ${t.pngSaved}` : `⬇ ${t.downloadPng}`}
@@ -910,8 +919,7 @@ function ModelCard({
 }) {
   const score = computeMetric(model, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
   const scoreEstimated = isEstimated(model, metric, valueScoreBase)
-  const blended =
-    model.inputPerM != null && model.outputPerM != null ? 0.8 * model.inputPerM + 0.2 * model.outputPerM : null
+  const blended = blendedCostOf(model)
 
   const estInput = isFieldEstimated(model, 'inputPerM')
   const estOutput = isFieldEstimated(model, 'outputPerM')
@@ -946,7 +954,7 @@ function ModelCard({
       </div>
       <div className="mc-grid">
         <div><span className="muted">{t.family}</span><b>{model.family}</b></div>
-        <div><span className="muted">{t[METRICS.find((m) => m.key === metric)!.labelKey]}</span><b className={scoreEstimated ? 'est' : ''} title={scoreEstimated ? t.estimated : undefined}>{scoreEstimated ? '≈ ' : ''}{formatMetric(metric, score)}</b></div>
+        <div><span className="muted">{metricLabelOf(t, metric)}</span><b className={scoreEstimated ? 'est' : ''} title={scoreEstimated ? t.estimated : undefined}>{scoreEstimated ? '≈ ' : ''}{formatMetric(metric, score)}</b></div>
         <div><span className="muted">{t.vsFrontier}</span><b className={frontierDelta != null && frontierDelta > 0.05 ? 'delta-behind' : 'delta-ok'}>{formatDelta(frontierDelta)}</b></div>
         <div><span className="muted">{t.dominates}</span><b title={t.dominatesHint}>{dominatedCount}</b></div>
         <div><span className="muted">{t.input}</span><b className={estInput ? 'est' : ''} title={estInput ? t.estimated : undefined}>{estInput ? '≈ ' : ''}{formatUsd(model.inputPerM)}/1M</b></div>

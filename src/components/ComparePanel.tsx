@@ -46,6 +46,13 @@ interface Props {
 export default function ComparePanel({ models, compareIds, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onRemove, onClear, onExport }: Props) {
   const compared = compareIds.map((slug) => models.find((m) => m.slug === slug)).filter((m): m is Model => m != null)
 
+  // A value shown in a comparison row counts as an estimate when any of the fields or
+  // derived metrics backing it were imputed. Shared by the benchmark and cost rows.
+  const isRowEstimated = (row: Row, m: Model): boolean =>
+    (row.estField ? isFieldEstimated(m, row.estField) : false) ||
+    (row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false) ||
+    (row.costView ? isCostEstimated(m, row.costView) : false)
+
   const bestSlug = (row: Row): string | null => {
     let best: { slug: string; v: number } | null = null
     for (const m of compared) {
@@ -116,10 +123,7 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
                   <tr key={String(row.labelKey)}>
                     <td className="muted">{t[row.labelKey] as string}</td>
                     {compared.map((m) => {
-                      const est =
-                        (row.estField ? isFieldEstimated(m, row.estField) : false) ||
-                        (row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false) ||
-                        (row.costView ? isCostEstimated(m, row.costView) : false)
+                      const est = isRowEstimated(row, m)
                       return (
                         <td key={m.slug} className={`${winner === m.slug ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={winner === m.slug ? t.rank : est ? t.estimated : undefined}>
                           {est ? '≈ ' : ''}{row.format(row.value(m))}
@@ -136,10 +140,7 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
                   <tr key={String(row.labelKey)}>
                     <td className="muted">{t[row.labelKey] as string}</td>
                     {compared.map((m) => {
-                      const est =
-                        (row.estField ? isFieldEstimated(m, row.estField) : false) ||
-                        (row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false) ||
-                        (row.costView ? isCostEstimated(m, row.costView) : false)
+                      const est = isRowEstimated(row, m)
                       return (
                         <td key={m.slug} className={`${winner === m.slug ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={winner === m.slug ? t.rank : est ? t.estimated : undefined}>
                           {est ? '≈ ' : ''}{row.format(row.value(m))}

@@ -149,6 +149,10 @@ export interface Strings {
   resetZoom: string
   zoomHint: string
   exportFrontierCsv: string
+  arenaElo: string
+  arenaCodeElo: string
+  benchlmScore: string
+  hfDownloads: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -301,6 +305,10 @@ export const STRINGS: Record<Lang, Strings> = {
     resetZoom: 'Azzera zoom',
     zoomHint: 'Rotella: zoom · Trascina: pan · Doppio clic: azzera',
     exportFrontierCsv: 'Esporta CSV frontiera',
+    arenaElo: 'Arena ELO (chat)',
+    arenaCodeElo: 'Arena ELO (code)',
+    benchlmScore: 'BenchLM',
+    hfDownloads: 'Download (HF)',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -451,6 +459,10 @@ export const STRINGS: Record<Lang, Strings> = {
     resetZoom: 'Reset zoom',
     zoomHint: 'Wheel: zoom · Drag: pan · Double-click: reset',
     exportFrontierCsv: 'Export frontier CSV',
+    arenaElo: 'Arena ELO (chat)',
+    arenaCodeElo: 'Arena ELO (code)',
+    benchlmScore: 'BenchLM',
+    hfDownloads: 'Downloads (HF)',
   },
 }
 

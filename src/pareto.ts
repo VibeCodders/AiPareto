@@ -34,6 +34,19 @@ export function costOf(m: Model, view: CostView, taskInput = 3000, taskOutput = 
   }
 }
 
+/**
+ * Blended 80/20 input/output cost (USD per 1M tokens) from a model's own raw prices.
+ * Unlike costOf(m, 'blended') this ignores the subscription shortcut and always uses
+ * the model's input/output fields — so it stays identical whether pricing is pay-as-you-go
+ * or derived for a subscription. Returns null when either price is missing.
+ */
+export function blendedCostOf(m: Model): number | null {
+  const i = m.inputPerM
+  const o = m.outputPerM
+  if (i != null && o != null) return 0.8 * i + 0.2 * o
+  return null
+}
+
 
 /** Benchmark score per dollar. Defaults to Intelligence Index; pass another benchmark to get e.g. coding-per-$ or agentic-per-$. */
 export function valueScoreOf(

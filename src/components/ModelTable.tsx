@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
-import { computeMetric, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts } from '../pareto'
+import { blendedCostOf, computeMetric, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
@@ -26,10 +26,15 @@ type SortKey =
   | 'subscription'
   | 'frontierDelta'
   | 'dominates'
+  | 'maxCompletionTokens'
+  | 'arenaElo'
+  | 'arenaCodeElo'
+  | 'benchlmScore'
+  | 'hfDownloads'
 
-type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta' | 'cacheWritePerM' | 'dominates' | 'maxCompletionTokens'
+type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta' | 'cacheWritePerM' | 'dominates' | 'maxCompletionTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads'
 
-const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' | 'cacheWrite' | 'dominates' | 'maxOutputTokens' }> = [
+const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' | 'cacheWrite' | 'dominates' | 'maxOutputTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads' }> = [
   { key: 'subscription', labelKey: 'subscriptions' },
   { key: 'cacheWritePerM', labelKey: 'cacheWrite' },
   { key: 'codingIndex', labelKey: 'coding' },
@@ -39,6 +44,10 @@ const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latenc
   { key: 'frontierDelta', labelKey: 'vsFrontier' },
   { key: 'dominates', labelKey: 'dominates' },
   { key: 'maxCompletionTokens', labelKey: 'maxOutputTokens' },
+  { key: 'arenaElo', labelKey: 'arenaElo' },
+  { key: 'arenaCodeElo', labelKey: 'arenaCodeElo' },
+  { key: 'benchlmScore', labelKey: 'benchlmScore' },
+  { key: 'hfDownloads', labelKey: 'hfDownloads' },
 ]
 
 interface Props {
@@ -93,7 +102,6 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
     { key: 'blended', label: t.blended, num: true },
     ...OPTIONAL_COLS.filter((c) => c.key !== 'subscription' && c.key !== 'cacheWritePerM' && visibleCols.has(c.key)).map((c) => ({ key: c.key, label: t[c.labelKey], num: true })),
     { key: 'contextTokens', label: t.context, num: true },
-    { key: 'maxCompletionTokens', label: t.maxOutputTokens, num: true },
     { key: 'released', label: t.release, num: true },
   ]
 
@@ -172,7 +180,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
               const isSel = selectedId === m.slug
               const isComparing = compareIds.includes(m.slug)
               const score = computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
-              const blended = m.inputPerM != null && m.outputPerM != null ? 0.8 * m.inputPerM + 0.2 * m.outputPerM : null
+              const blended = blendedCostOf(m)
               const delta = frontierDeltas.get(m.slug) ?? null
               const dominated = dominatedCounts.get(m.slug) ?? 0
 
@@ -189,6 +197,11 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
               const estContext = isFieldEstimated(m, 'contextTokens')
               const estParameters = isFieldEstimated(m, 'parameters')
               const estActiveParameters = isFieldEstimated(m, 'activeParameters')
+              const estMaxOut = isFieldEstimated(m, 'maxCompletionTokens')
+              const estArenaElo = isFieldEstimated(m, 'arenaElo')
+              const estArenaCodeElo = isFieldEstimated(m, 'arenaCodeElo')
+              const estBenchlm = isFieldEstimated(m, 'benchlmScore')
+              const estDownloads = isFieldEstimated(m, 'hfDownloads')
 
               return (
                 <tr
@@ -281,6 +294,31 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                   {visibleCols.has('dominates') && (
                     <td className="num" title={t.dominatesHint} onClick={() => onSelect(m.slug)}>
                       {dominated}
+                    </td>
+                  )}
+                  {visibleCols.has('maxCompletionTokens') && (
+                    <td className={`num ${estMaxOut ? 'est' : ''}`} title={estMaxOut ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {estMaxOut ? '≈ ' : ''}{formatTokens(m.maxCompletionTokens)}
+                    </td>
+                  )}
+                  {visibleCols.has('arenaElo') && (
+                    <td className={`num ${estArenaElo ? 'est' : ''}`} title={estArenaElo ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {estArenaElo ? '≈ ' : ''}{m.arenaElo != null ? Math.round(m.arenaElo) : '—'}
+                    </td>
+                  )}
+                  {visibleCols.has('arenaCodeElo') && (
+                    <td className={`num ${estArenaCodeElo ? 'est' : ''}`} title={estArenaCodeElo ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {estArenaCodeElo ? '≈ ' : ''}{m.arenaCodeElo != null ? Math.round(m.arenaCodeElo) : '—'}
+                    </td>
+                  )}
+                  {visibleCols.has('benchlmScore') && (
+                    <td className={`num ${estBenchlm ? 'est' : ''}`} title={estBenchlm ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {estBenchlm ? '≈ ' : ''}{m.benchlmScore != null ? m.benchlmScore.toFixed(1) : '—'}
+                    </td>
+                  )}
+                  {visibleCols.has('hfDownloads') && (
+                    <td className={`num ${estDownloads ? 'est' : ''}`} title={estDownloads ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
+                      {estDownloads ? '≈ ' : ''}{formatTokens(m.hfDownloads)}
                     </td>
                   )}
                   <td className={`num ${estContext ? 'est' : ''}`} title={estContext ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
