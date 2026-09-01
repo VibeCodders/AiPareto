@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { Model, Point } from './types'
+import type { CostView, MetricKey, Model, Point } from './types'
 import { blendedCostOf, computeFrontier, computeMetric, costOf, dominates, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
@@ -131,6 +131,18 @@ describe('computeFrontier', () => {
     const front = computeFrontier([point('a', 100, 50), point('b', 200, 60)], false, false)
     expect(front.map((p) => p.model.slug)).toEqual(['b'])
   })
+  it('keeps flat subscriptions on the frontier regardless of the cost view', () => {
+    // A subscription charges its flat effective rate on every unit view, so its X position
+    // (and thus the frontier) must be identical whether we price input, blended or output.
+    const sub = model({ id: 'sub', slug: 'sub', isSubscription: true, effectiveCostPerM: 5, intelligenceIndex: 80 })
+    const cheap = model({ slug: 'cheap', intelligenceIndex: 50 }) // paygo, blended cost ~0.12
+    for (const view of ['input', 'blended', 'output'] as CostView[]) {
+      expect(costOf(sub, view)).toBe(5)
+      const pts = [sub, cheap].map((m) => ({ model: m, x: costOf(m, view, 3000, 1000)!, score: m.intelligenceIndex! }))
+      const slugs = computeFrontier(pts, false, true).map((p) => p.model.slug)
+      expect(slugs).toEqual(['cheap', 'sub'])
+    }
+  })
 })
 
 describe('dominates', () => {
@@ -201,6 +213,17 @@ describe('frontierDeltaOf', () => {
   it('returns null when the reference score is zero', () => {
     expect(frontierDeltaOf(point('p', 2, 5), [point('f', 2, 0)], false, true)).toBeNull()
   })
+  it('computes the delta against a task-cost X axis', () => {
+    // X values derived from per-task cost, not an arbitrary unit: same prices => same X,
+    // so the point sits behind the frontier at its own cost and lags the frontier by 25%.
+    const mk = (slug: string, intel: number) => {
+      const m = model({ slug, intelligenceIndex: intel, inputPerM: 1, outputPerM: 2 })
+      return { model: m, x: costOf(m, 'task', 3000, 1000)!, score: m.intelligenceIndex! }
+    }
+    const frontierPoint = mk('f', 80)
+    const behind = mk('p', 60)
+    expect(frontierDeltaOf(behind, [frontierPoint], false, true)).toBeCloseTo(25)
+  })
 })
 
 describe('topValueByBudget', () => {
@@ -254,5 +277,27 @@ describe('formatMetric', () => {
   it('rounds tokens appropriately at the million boundary', () => {
     expect(formatMetric('contextTokens', 999_999)).toBe('1000k')
     expect(formatMetric('contextTokens', 1_000_000)).toBe('1.0M')
+  })
+  it('covers every MetricKey', () => {
+    const all: MetricKey[] = [
+      'intelligenceIndex', 'codingIndex', 'agenticIndex', 'tau2', 'hle', 'omniscience',
+      'outputSpeed', 'latencySeconds', 'contextTokens', 'valueScore', 'speedAdjustedScore',
+      'contextValue', 'efficiencyScore', 'hfMMLU', 'hfGSM8K', 'hfHumanEval', 'hfARC',
+      'hfWinogrande', 'hfHellaSwag', 'hfTruthfulQA', 'arenaElo', 'arenaCodeElo', 'benchlmScore',
+    ]
+    // Missing values always render as a dash, for every metric type.
+    for (const key of all) {
+      expect(formatMetric(key, null)).toBe('—')
+      const v = formatMetric(key, 1234.56)
+      expect(v.length).toBeGreaterThan(0)
+      expect(v).not.toBe('—')
+    }
+    // Representative exact formats per kind.
+    expect(formatMetric('intelligenceIndex', 1234.56)).toBe('1234.6')
+    expect(formatMetric('outputSpeed', 1234.56)).toBe('1235 tok/s')
+    expect(formatMetric('latencySeconds', 1234.56)).toBe('1234.6s')
+    expect(formatMetric('efficiencyScore', 1234.56)).toBe('1235')
+    expect(formatMetric('arenaElo', 1234.56)).toBe('1235')
+    expect(formatMetric('arenaCodeElo', 1234.56)).toBe('1235')
   })
 })
