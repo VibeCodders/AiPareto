@@ -130,6 +130,8 @@ export interface Strings {
   topValueEmpty: string
   topValueCompare: string
   nextAboveBudgetPrefix: string
+  worseValue: string
+  worseValueHint: string
   onFrontier: string
   dominates: string
   dominatesHint: string
@@ -309,6 +311,8 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueEmpty: 'Nessun modello o abbonamento entro il budget.',
     topValueCompare: 'Confronta i top pick',
     nextAboveBudgetPrefix: 'Alza il budget per sbloccare',
+    worseValue: 'valore peggiore',
+    worseValueHint: "Alzare il budget non migliora il valore: il pick sopra il tetto ha un valueScore inferiore al miglior valore in-budget",
     onFrontier: 'Sulla frontiera',
     dominates: 'Domina',
     dominatesHint: 'Numero di modelli Pareto-dominati su entrambi gli assi',
@@ -486,6 +490,8 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueEmpty: 'No model or subscription within the budget.',
     topValueCompare: 'Compare top picks',
     nextAboveBudgetPrefix: 'Raise the budget to unlock',
+    worseValue: 'worse value',
+    worseValueHint: 'Raising the budget does not improve value: the pick above the cap has a lower valueScore than the best in-budget pick',
     onFrontier: 'On frontier',
     dominates: 'Dominates',
     dominatesHint: 'Number of Pareto-dominated models on both axes',

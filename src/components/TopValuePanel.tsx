@@ -154,9 +154,9 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
           </table>
         </div>
       )}
-      {tradeoff.next && (
+      {tradeoff.next && tradeoff.best && (
         <p
-          className="muted top-value-next"
+          className={`muted top-value-next${tradeoff.valueDeltaPct != null && tradeoff.valueDeltaPct < 0 ? ' top-value-worse' : ''}`}
           title={t.details}
           style={{ cursor: 'pointer' }}
           onClick={() => onSelect(tradeoff.next!.model.slug)}
@@ -165,7 +165,11 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
           <b>{tradeoff.next.model.isSubscription ? tradeoff.next.model.name : tradeoff.next.model.aaName}</b>{' '}
           · {formatUsd(tradeoff.next.cost)}{unit} · {t.valueScore} {formatMetric('valueScore', tradeoff.next.value)}
           {tradeoff.costDeltaPct != null && ` · Δ${t.cost} ${formatCostChangePct(tradeoff.costDeltaPct)}`}
-          {tradeoff.valueDeltaPct != null && ` · Δ${t.valueScore} ${formatCostChangePct(tradeoff.valueDeltaPct)}`}
+          {tradeoff.valueDeltaPct != null && ` · Δ${t.valueScore} ${formatCostChangePct(tradeoff.valueDeltaPct)}`}{' '}
+          (vs {tradeoff.best.model.isSubscription ? tradeoff.best.model.name : tradeoff.best.model.aaName})
+          {tradeoff.valueDeltaPct != null && tradeoff.valueDeltaPct < 0 && (
+            <span className="tag tag-warn" title={t.worseValueHint}>⚠ {t.worseValue}</span>
+          )}
         </p>
       )}
     </section>
