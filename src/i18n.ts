@@ -129,6 +129,7 @@ export interface Strings {
   topValueByEfficiency: string
   topValueEmpty: string
   topValueCompare: string
+  nextAboveBudgetPrefix: string
   onFrontier: string
   dominates: string
   dominatesHint: string
@@ -306,6 +307,7 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueByEfficiency: 'Per efficiency',
     topValueEmpty: 'Nessun modello o abbonamento entro il budget.',
     topValueCompare: 'Confronta i top pick',
+    nextAboveBudgetPrefix: 'Alza il budget per sbloccare',
     onFrontier: 'Sulla frontiera',
     dominates: 'Domina',
     dominatesHint: 'Numero di modelli Pareto-dominati su entrambi gli assi',
@@ -481,6 +483,7 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueByEfficiency: 'By efficiency',
     topValueEmpty: 'No model or subscription within the budget.',
     topValueCompare: 'Compare top picks',
+    nextAboveBudgetPrefix: 'Raise the budget to unlock',
     onFrontier: 'On frontier',
     dominates: 'Dominates',
     dominatesHint: 'Number of Pareto-dominated models on both axes',

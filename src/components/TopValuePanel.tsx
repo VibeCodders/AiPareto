@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
 import type { TopValueSort } from '../urlState'
-import { budgetedPareto, costUnitLabel, formatCostChangePct, formatMetric, formatUsd, topValueByBudget, type EfficiencyOpts } from '../pareto'
+import { budgetedPareto, cheapestAboveBudget, costUnitLabel, formatCostChangePct, formatMetric, formatUsd, topValueByBudget, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated } from '../estimation'
 import { exportModelsCsv } from '../csv'
 import type { T } from '../i18n'
@@ -46,6 +46,12 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
 
   const { frontierSlugs, costToNext } = useMemo(
     () => budgetedPareto(items, costView, taskInput, taskOutput, budget, valueScoreBase),
+    [items, costView, taskInput, taskOutput, budget, valueScoreBase],
+  )
+
+  // The cheapest pick just above the cap, so users see what raising the budget unlocks.
+  const nextAbove = useMemo(
+    () => cheapestAboveBudget(items, costView, taskInput, taskOutput, budget, valueScoreBase),
     [items, costView, taskInput, taskOutput, budget, valueScoreBase],
   )
 
@@ -147,6 +153,13 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
             </tbody>
           </table>
         </div>
+      )}
+      {nextAbove && (
+        <p className="muted top-value-next">
+          {t.nextAboveBudgetPrefix}{' '}
+          <b>{nextAbove.model.isSubscription ? nextAbove.model.name : nextAbove.model.aaName}</b>{' '}
+          · {formatUsd(nextAbove.cost)}{unit} · {t.valueScore} {formatMetric('valueScore', nextAbove.value)}
+        </p>
       )}
     </section>
   )

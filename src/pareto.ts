@@ -165,6 +165,27 @@ export function budgetedPareto(
 }
 
 
+/** Cheapest model costing above `budget` on the given cost view, and its valueScore — what the next dollar of budget unlocks. */
+export function cheapestAboveBudget(
+  items: Model[],
+  costView: CostView,
+  taskInput: number,
+  taskOutput: number,
+  budget: number,
+  valueScoreBase: ValueScoreBase = 'intelligenceIndex',
+): { model: Model; cost: number; value: number } | null {
+  if (budget < 0) return null
+  let best: { model: Model; cost: number; value: number } | null = null
+  for (const m of items) {
+    const cost = costOf(m, costView, taskInput, taskOutput)
+    if (cost == null || !Number.isFinite(cost) || cost <= budget) continue
+    const value = valueScoreOf(m, costView, taskInput, taskOutput, valueScoreBase)
+    if (value == null) continue
+    if (!best || cost < best.cost) best = { model: m, cost, value }
+  }
+  return best
+}
+
 /** Benchmark score per dollar. Defaults to Intelligence Index; pass another benchmark to get e.g. coding-per-$ or agentic-per-$. */
 export function valueScoreOf(
   m: Model,

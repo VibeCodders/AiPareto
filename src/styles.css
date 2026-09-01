@@ -532,6 +532,12 @@ h1 {
   max-width: 760px;
 }
 
+.top-value-next {
+  max-width: 760px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
 .mc-upgrade {
   margin-top: 10px;
   padding: 8px 10px;

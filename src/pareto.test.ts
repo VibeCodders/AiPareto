@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { blendedCostOf, budgetedPareto, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatCostChangePct, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
+import { blendedCostOf, budgetedPareto, cheapestAboveBudget, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatCostChangePct, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
 function model(partial: Partial<Model> = {}): Model {
@@ -279,6 +279,27 @@ describe('budgetedPareto', () => {
     expect(res.frontierSlugs.size).toBe(2)
     expect(res.costToNext.has('cheap')).toBe(true) // % cost to step up to 'mid'
     expect(res.costToNext.has('pricey')).toBe(false)
+  })
+})
+
+describe('cheapestAboveBudget', () => {
+  it('returns the cheapest model costing above the cap, with its value', () => {
+    const inBudget = model({ slug: 'cheap', intelligenceIndex: 60 }) // 0.12/1M
+    const near = model({ slug: 'near', intelligenceIndex: 200, inputPerM: 1.5, outputPerM: 1.5 }) // blended 1.5
+    const far = model({ slug: 'far', intelligenceIndex: 400, inputPerM: 3, outputPerM: 3 }) // blended 3
+    const res = cheapestAboveBudget([inBudget, near, far], 'blended', 3000, 1000, 1)
+    expect(res).not.toBeNull()
+    expect(res!.model.slug).toBe('near')
+    expect(res!.cost).toBeCloseTo(1.5) // blended = 0.8*1.5 + 0.2*1.5
+    // value = score / cost
+    expect(res!.value).toBeCloseTo(200 / 1.5)
+  })
+  it('returns null when nothing costs above the budget', () => {
+    const m = model({ slug: 'cheap', intelligenceIndex: 60 })
+    expect(cheapestAboveBudget([m], 'blended', 3000, 1000, 100)).toBeNull()
+  })
+  it('returns null for a negative budget', () => {
+    expect(cheapestAboveBudget([model()], 'blended', 3000, 1000, -1)).toBeNull()
   })
 })
 
