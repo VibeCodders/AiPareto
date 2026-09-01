@@ -93,6 +93,7 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
                 <th className="num">{t.frontierCostGap}</th>
                 <th className="num">{t.score}</th>
                 <th className="num">{t.valueScore}</th>
+                <th className="num">{t.efficiencyScore}</th>
               </tr>
             </thead>
             <tbody>
@@ -135,6 +136,9 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
                     </td>
                     <td className={`num bold ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
                       {est ? '≈ ' : ''}{formatMetric('valueScore', r.value)}
+                    </td>
+                    <td className={`num ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
+                      {r.efficiency != null ? `${est ? '≈ ' : ''}${formatMetric('efficiencyScore', r.efficiency)}` : '—'}
                     </td>
                   </tr>
                 )

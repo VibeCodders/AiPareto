@@ -875,7 +875,7 @@ export default function App() {
             {pngSaved ? `✓ ${t.pngSaved}` : `⬇ ${t.downloadPng}`}
           </button>
         </div>
-        {showTrend && <TrendChart models={BASE_MODELS} metric={metric} metricName={metricLabelOf(t, metric)} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} efficiencyOpts={efficiencyOpts} t={t} />}
+        {showTrend && <TrendChart models={DISPLAY_BASE} metric={metric} metricName={metricLabelOf(t, metric)} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} efficiencyOpts={efficiencyOpts} t={t} />}
       </section>
 
       <TopValuePanel

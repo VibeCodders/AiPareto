@@ -81,6 +81,8 @@ export interface TopValueRow {
   score: number
   /** Benchmark points earned per dollar (valueScore). */
   value: number
+  /** Weighted 0-100 efficiency score (value/speed/context), when computed. */
+  efficiency: number | null
 }
 
 /**
@@ -107,8 +109,9 @@ export function topValueByBudget(
     if (cost == null || cost <= 0 || cost > budget) continue
     const score = computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
     const value = valueScoreOf(m, costView, taskInput, taskOutput, valueScoreBase)
+    const efficiency = efficiencyOpts ? computeMetric(m, 'efficiencyScore', costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts) : null
     if (score == null || value == null) continue
-    scored.push({ model: m, cost, score, value })
+    scored.push({ model: m, cost, score, value, efficiency })
   }
   // Rank and cap by the requested axis: 'value' sorts by valueScore, 'score' by the metric.
   scored.sort((a, b) => (rankBy === 'score' ? b.score - a.score : b.value - a.value))
