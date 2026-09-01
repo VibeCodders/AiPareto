@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
 import { blendedCostOf, computeMetric, costOf, formatCostChangePct, formatDelta, formatMetric, formatParams, formatStepUpGain, formatTokens, formatUsd, type EfficiencyOpts, type FrontierUpgrade } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
+import { estClass, estMark, estTitle } from '../estMarkup'
+import { colorFor, displayNameOf } from '../modelMeta'
 import type { T } from '../i18n'
 
 type SortKey =
@@ -285,17 +287,17 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                   <td className="bold" onClick={() => onSelect(m.slug)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       {m.isSubscription && <span className="sub-badge" title={m.subscription?.rateLimitDesc}>★ PLAN</span>}
-                      <span>{m.isSubscription ? m.name : m.aaName}</span>
+                      <span>{displayNameOf(m)}</span>
                     </div>
                   </td>
                   <td className="muted" onClick={() => onSelect(m.slug)}>
-                    {m.family}
+                    <span className="family-dot" style={{ background: colorFor(m.family) }} />{m.family}
                   </td>
-                  <td className={`num ${estParameters ? 'est' : ''}`} title={estParameters ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {estParameters ? '≈ ' : ''}{formatParams(m.parameters)}
+                  <td className={`num${estClass(estParameters)}`} title={estTitle(estParameters, t.estimated)} onClick={() => onSelect(m.slug)}>
+                    {estMark(estParameters, formatParams(m.parameters))}
                   </td>
-                  <td className={`num ${estActiveParameters ? 'est' : ''}`} title={estActiveParameters ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {estActiveParameters ? '≈ ' : ''}{formatParams(m.activeParameters)}
+                  <td className={`num${estClass(estActiveParameters)}`} title={estTitle(estActiveParameters, t.estimated)} onClick={() => onSelect(m.slug)}>
+                    {estMark(estActiveParameters, formatParams(m.activeParameters))}
                   </td>
                   {visibleCols.has('subscription') && (
                     <td onClick={() => onSelect(m.slug)}>
@@ -309,44 +311,44 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                       )}
                     </td>
                   )}
-                  <td className={`num bold ${estScore ? 'est' : ''}`} title={estScore ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {estScore ? '≈ ' : ''}{formatMetric(metric, score)}
+                  <td className={`num bold${estClass(estScore)}`} title={estTitle(estScore, t.estimated)} onClick={() => onSelect(m.slug)}>
+                    {estMark(estScore, formatMetric(metric, score))}
                   </td>
-                  <td className={`num ${estInput ? 'est' : ''}`} title={estInput ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {estInput ? '≈ ' : ''}{formatUsd(m.isSubscription ? (m.inputPerM ?? m.effectiveCostPerM) : m.inputPerM)}
+                  <td className={`num${estClass(estInput)}`} title={estTitle(estInput, t.estimated)} onClick={() => onSelect(m.slug)}>
+                    {estMark(estInput, formatUsd(m.isSubscription ? (m.inputPerM ?? m.effectiveCostPerM) : m.inputPerM))}
                   </td>
-                  <td className={`num ${estOutput ? 'est' : ''}`} title={estOutput ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {m.outputPerM != null ? `${estOutput ? '≈ ' : ''}${formatUsd(m.outputPerM)}` : '—'}
+                  <td className={`num${estClass(estOutput)}`} title={estTitle(estOutput, t.estimated)} onClick={() => onSelect(m.slug)}>
+                    {m.outputPerM != null ? estMark(estOutput, formatUsd(m.outputPerM)) : '—'}
                   </td>
-                  <td className={`num ${estCache ? 'est' : ''}`} title={estCache ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {m.cacheReadPerM != null ? `${estCache ? '≈ ' : ''}${formatUsd(m.cacheReadPerM)}` : '—'}
+                  <td className={`num${estClass(estCache)}`} title={estTitle(estCache, t.estimated)} onClick={() => onSelect(m.slug)}>
+                    {m.cacheReadPerM != null ? estMark(estCache, formatUsd(m.cacheReadPerM)) : '—'}
                   </td>
                   {visibleCols.has('cacheWritePerM') && (
-                    <td className={`num ${estCacheWrite ? 'est' : ''}`} title={estCacheWrite ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {m.cacheWritePerM != null ? `${estCacheWrite ? '≈ ' : ''}${formatUsd(m.cacheWritePerM)}` : '—'}
+                    <td className={`num${estClass(estCacheWrite)}`} title={estTitle(estCacheWrite, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {m.cacheWritePerM != null ? estMark(estCacheWrite, formatUsd(m.cacheWritePerM)) : '—'}
                     </td>
                   )}
-                  <td className={`num bold ${estBlended ? 'est' : ''}`} title={estBlended ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {blended != null ? `${estBlended ? '≈ ' : ''}${formatUsd(blended)}` : '—'}
+                  <td className={`num bold${estClass(estBlended)}`} title={estTitle(estBlended, t.estimated)} onClick={() => onSelect(m.slug)}>
+                    {blended != null ? estMark(estBlended, formatUsd(blended)) : '—'}
                   </td>
                   {visibleCols.has('codingIndex') && (
-                    <td className={`num ${estCoding ? 'est' : ''}`} title={estCoding ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {m.codingIndex != null ? `${estCoding ? '≈ ' : ''}${m.codingIndex.toFixed(1)}` : '—'}
+                    <td className={`num${estClass(estCoding)}`} title={estTitle(estCoding, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {m.codingIndex != null ? estMark(estCoding, formatMetric('codingIndex', m.codingIndex)) : '—'}
                     </td>
                   )}
                   {visibleCols.has('agenticIndex') && (
-                    <td className={`num ${estAgentic ? 'est' : ''}`} title={estAgentic ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {m.agenticIndex != null ? `${estAgentic ? '≈ ' : ''}${m.agenticIndex.toFixed(1)}` : '—'}
+                    <td className={`num${estClass(estAgentic)}`} title={estTitle(estAgentic, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {m.agenticIndex != null ? estMark(estAgentic, formatMetric('agenticIndex', m.agenticIndex)) : '—'}
                     </td>
                   )}
                   {visibleCols.has('outputSpeed') && (
-                    <td className={`num ${estSpeed ? 'est' : ''}`} title={estSpeed ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {m.outputSpeed != null ? `${estSpeed ? '≈ ' : ''}${Math.round(m.outputSpeed)} tok/s` : '—'}
+                    <td className={`num${estClass(estSpeed)}`} title={estTitle(estSpeed, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {m.outputSpeed != null ? estMark(estSpeed, formatMetric('outputSpeed', m.outputSpeed)) : '—'}
                     </td>
                   )}
                   {visibleCols.has('latencySeconds') && (
-                    <td className={`num ${estLatency ? 'est' : ''}`} title={estLatency ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {m.latencySeconds != null ? `${estLatency ? '≈ ' : ''}${m.latencySeconds.toFixed(1)}s` : '—'}
+                    <td className={`num${estClass(estLatency)}`} title={estTitle(estLatency, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {m.latencySeconds != null ? estMark(estLatency, formatMetric('latencySeconds', m.latencySeconds)) : '—'}
                     </td>
                   )}
                   {visibleCols.has('frontierDelta') && (
@@ -365,7 +367,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                       title={
                         upgrade
                           ? isBestStep
-                            ? `${upgrade.model.aaName} · ${t.bestStepHint} · ${formatUsd(costOf(m, costView))} → ${formatUsd(costOf(upgrade.model, costView))} (${formatCostChangePct(upgrade.costDeltaPct)})`
+                            ? `${upgrade.model.aaName} · ${t.bestStepHint} · ${formatUsd(costOf(m, costView, taskInput, taskOutput))} → ${formatUsd(costOf(upgrade.model, costView, taskInput, taskOutput))} (${formatCostChangePct(upgrade.costDeltaPct)})`
                             : upgrade.model.aaName
                           : undefined
                       }
@@ -380,32 +382,32 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                     </td>
                   )}
                   {visibleCols.has('maxCompletionTokens') && (
-                    <td className={`num ${estMaxOut ? 'est' : ''}`} title={estMaxOut ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {estMaxOut ? '≈ ' : ''}{formatTokens(m.maxCompletionTokens)}
+                    <td className={`num${estClass(estMaxOut)}`} title={estTitle(estMaxOut, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {estMark(estMaxOut, formatTokens(m.maxCompletionTokens))}
                     </td>
                   )}
                   {visibleCols.has('arenaElo') && (
-                    <td className={`num ${estArenaElo ? 'est' : ''}`} title={estArenaElo ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {estArenaElo ? '≈ ' : ''}{m.arenaElo != null ? Math.round(m.arenaElo) : '—'}
+                    <td className={`num${estClass(estArenaElo)}`} title={estTitle(estArenaElo, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {m.arenaElo != null ? estMark(estArenaElo, formatMetric('arenaElo', m.arenaElo)) : '—'}
                     </td>
                   )}
                   {visibleCols.has('arenaCodeElo') && (
-                    <td className={`num ${estArenaCodeElo ? 'est' : ''}`} title={estArenaCodeElo ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {estArenaCodeElo ? '≈ ' : ''}{m.arenaCodeElo != null ? Math.round(m.arenaCodeElo) : '—'}
+                    <td className={`num${estClass(estArenaCodeElo)}`} title={estTitle(estArenaCodeElo, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {m.arenaCodeElo != null ? estMark(estArenaCodeElo, formatMetric('arenaCodeElo', m.arenaCodeElo)) : '—'}
                     </td>
                   )}
                   {visibleCols.has('benchlmScore') && (
-                    <td className={`num ${estBenchlm ? 'est' : ''}`} title={estBenchlm ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {estBenchlm ? '≈ ' : ''}{m.benchlmScore != null ? m.benchlmScore.toFixed(1) : '—'}
+                    <td className={`num${estClass(estBenchlm)}`} title={estTitle(estBenchlm, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {m.benchlmScore != null ? estMark(estBenchlm, formatMetric('benchlmScore', m.benchlmScore)) : '—'}
                     </td>
                   )}
                   {visibleCols.has('hfDownloads') && (
-                    <td className={`num ${estDownloads ? 'est' : ''}`} title={estDownloads ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                      {estDownloads ? '≈ ' : ''}{formatTokens(m.hfDownloads)}
+                    <td className={`num${estClass(estDownloads)}`} title={estTitle(estDownloads, t.estimated)} onClick={() => onSelect(m.slug)}>
+                      {estMark(estDownloads, formatTokens(m.hfDownloads))}
                     </td>
                   )}
-                  <td className={`num ${estContext ? 'est' : ''}`} title={estContext ? t.estimated : undefined} onClick={() => onSelect(m.slug)}>
-                    {estContext ? '≈ ' : ''}{formatTokens(m.contextTokens)}
+                  <td className={`num${estClass(estContext)}`} title={estTitle(estContext, t.estimated)} onClick={() => onSelect(m.slug)}>
+                    {estMark(estContext, formatTokens(m.contextTokens))}
                   </td>
                   <td className="num muted" onClick={() => onSelect(m.slug)}>
                     {m.released ?? '—'}

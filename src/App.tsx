@@ -13,6 +13,7 @@ import { downloadChartPng } from './chartExport'
 import { useTransientFlag } from './useTransientFlag'
 import { estimateModels, estimatedFieldCount, isCostEstimated, isEstimated, isFieldEstimated, type EstimatedModel } from './estimation'
 import { BENCHMARK_VALUE_ROWS, bestSlugsFor, winCount } from './compare'
+import { colorFor } from './modelMeta'
 import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
@@ -103,12 +104,6 @@ const urlParams = new URLSearchParams(window.location.search)
 const urlHasLang = urlParams.get('lang') != null
 const urlHasTheme = urlParams.get('theme') != null
 
-const PALETTE = [
-  '#f472b6', '#a78bfa', '#34d399', '#fbbf24', '#60a5fa', '#fb7185',
-  '#2dd4bf', '#c084fc', '#f97316', '#4ade80', '#38bdf8', '#e879f9',
-  '#a3e635', '#facc15', '#22d3ee', '#fda4af', '#93c5fd', '#86efac',
-]
-
 // Every metric we can place on an axis (Y badges + X-axis community benchmarks).
 const AXIS_METRICS: Array<{ key: MetricKey; labelKey: keyof T }> = [...METRICS, ...COMMON_METRICS]
 
@@ -128,12 +123,6 @@ function xNameLabelOf(t: T, xMetric: MetricKey | null, costView: CostView, taskI
   if (xMetric != null) return metricLabelOf(t, xMetric)
   if (costView === 'task') return `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})`
   return costViewLabelOf(t, costView)
-}
-
-function colorFor(family: string): string {
-  let h = 0
-  for (const ch of family) h = (h * 31 + ch.charCodeAt(0)) >>> 0
-  return PALETTE[h % PALETTE.length]
 }
 
 const COST_VIEWS: Array<{ key: CostView; labelKey: 'costViewInput' | 'costViewBlended' | 'costViewCache' | 'costViewOutput' | 'costViewTask' }> = [
@@ -214,7 +203,7 @@ export default function App() {
       const actualTokensMonthly = sub.estimatedTokensMonthly * usageFactor
       const effectiveCostPerM = (sub.priceMonthly / actualTokensMonthly) * 1e6
       // What paying per-token for the underlying model would cost at the same estimated usage, for comparison.
-      const paygoBlended = baseModel.inputPerM != null && baseModel.outputPerM != null ? 0.8 * baseModel.inputPerM + 0.2 * baseModel.outputPerM : null
+      const paygoBlended = blendedCostOf(baseModel)
       const paygoEquivalentMonthly = paygoBlended != null ? (paygoBlended * actualTokensMonthly) / 1e6 : null
 
       const subEstimatedMetrics = new Set<string>(
@@ -483,7 +472,7 @@ export default function App() {
       if (maxEffortOnly && m.effort != null && m.effort !== 'max') return false
       if (!includeEfforts && m.effort != null) return false
       if (q && !`${m.aaName} ${m.name} ${m.id}`.toLowerCase().includes(q)) return false
-      const price = costOf(m, costView)
+      const price = costOf(m, costView, taskInput, taskOutput)
       if (price == null || price <= 0) return false
       if (price < minPrice || price > maxPrice) return false
       if (minContext > 0 && (m.contextTokens == null || m.contextTokens < minContext)) return false
@@ -492,7 +481,7 @@ export default function App() {
     })
       .map((m): Point | null => {
         // X is either the selected cost view or an arbitrary metric.
-        const x = xMetric != null ? computeMetric(m, xMetric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts) : costOf(m, costView)!
+        const x = xMetric != null ? computeMetric(m, xMetric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts) : costOf(m, costView, taskInput, taskOutput)!
         if (x == null || x <= 0 || !Number.isFinite(x)) return null
         const isXEst = xMetric != null ? isEstimated(m, xMetric, valueScoreBase) : isCostEstimated(m, costView)
         const isScoreEst = isEstimated(m, metric, valueScoreBase)
@@ -868,7 +857,7 @@ export default function App() {
             logScale={logScale}
             colorFor={colorFor}
             metricName={metricLabelOf(t, metric)}
-            xName={xNameLabelOf(t, xMetric, costView, taskInput, taskOutput, kTokens)}
+            xName={xNameLabelOf(t, xMetric, costView, taskInput, taskOutput, formatTokens)}
             xUnit={xMetric ? '' : costUnitLabel(costView)}
             xIsMetric={xMetric != null}
             formatScore={(v: number) => formatMetric(metric, v)}
@@ -993,10 +982,6 @@ export default function App() {
   )
 }
 
-function kTokens(n: number): string {
-  return n >= 1000 ? `${Math.round(n / 100) / 10}k` : String(n)
-}
-
 function ModelCard({
   model,
   metric,
@@ -1101,7 +1086,7 @@ function ModelCard({
         {/* How much % the cost changes to reach the first frontier model with a strictly better score. */}
         <div>
           <span className="muted">{t.frontierCostGap}</span>
-          <b title={frontierUpgrade ? `${frontierUpgrade.model.aaName} · ${formatStepUpGain(metric, frontierUpgrade.scoreGain)} ${metricLabelOf(t, metric)} · ${formatUsd(costOf(model, costView))} → ${formatUsd(costOf(frontierUpgrade.model, costView))}` : undefined}>
+          <b title={frontierUpgrade ? `${frontierUpgrade.model.aaName} · ${formatStepUpGain(metric, frontierUpgrade.scoreGain)} ${metricLabelOf(t, metric)} · ${formatUsd(costOf(model, costView, taskInput, taskOutput))} → ${formatUsd(costOf(frontierUpgrade.model, costView, taskInput, taskOutput))}` : undefined}>
             {frontierUpgrade ? `${formatCostChangePct(frontierUpgrade.costDeltaPct)} ${t.cost}` : '—'}
           </b>
         </div>

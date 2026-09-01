@@ -2,6 +2,8 @@ import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
 import { blendedCostOf, computeMetric, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import { BENCHMARK_VALUE_ROWS, bestSlugsFor } from '../compare'
+import { estClass, estMark, estTitle } from '../estMarkup'
+import { displayNameOf } from '../modelMeta'
 import type { T } from '../i18n'
 
 interface Row {
@@ -101,7 +103,7 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
                 <th></th>
                 {compared.map((m) => (
                   <th key={m.slug}>
-                    {m.aaName}
+                    {displayNameOf(m)}
                     <button className="btn compare-remove" title={t.removeFromCompare} onClick={() => onRemove(m.slug)}>✕</button>
                   </th>
                 ))}
@@ -134,8 +136,8 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
                       const est = isRowEstimated(row, m)
                       const isWinner = winners.includes(m.slug)
                       return (
-                        <td key={m.slug} className={`${isWinner ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={isWinner ? t.rank : est ? t.estimated : undefined}>
-                          {est ? '≈ ' : ''}{row.format(row.value(m))}
+                        <td key={m.slug} className={`${isWinner ? 'compare-best' : ''}${estClass(est)}`} title={isWinner ? t.rank : estTitle(est, t.estimated)}>
+                          {estMark(est, row.format(row.value(m)))}
                         </td>
                       )
                     })}
@@ -152,8 +154,8 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
                       const est = isRowEstimated(row, m)
                       const isWinner = winners.includes(m.slug)
                       return (
-                        <td key={m.slug} className={`${isWinner ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={isWinner ? t.rank : est ? t.estimated : undefined}>
-                          {est ? '≈ ' : ''}{row.format(row.value(m))}
+                        <td key={m.slug} className={`${isWinner ? 'compare-best' : ''}${estClass(est)}`} title={isWinner ? t.rank : estTitle(est, t.estimated)}>
+                          {estMark(est, row.format(row.value(m)))}
                         </td>
                       )
                     })}

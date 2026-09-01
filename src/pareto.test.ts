@@ -279,6 +279,8 @@ describe('budgetedPareto', () => {
     expect(res.frontierSlugs.size).toBe(2)
     expect(res.costToNext.has('cheap')).toBe(true) // % cost to step up to 'mid'
     expect(res.costToNext.has('pricey')).toBe(false)
+    // The in-budget cost×valueScore points are exposed too (used by the budget sparkline).
+    expect(res.points.map((p) => p.model.slug).sort()).toEqual(['cheap', 'mid'])
   })
 })
 

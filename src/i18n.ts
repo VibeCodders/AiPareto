@@ -133,6 +133,8 @@ export interface Strings {
   topValueByEfficiency: string
   topValueEmpty: string
   topValueCompare: string
+  budgetFrontierTitle: string
+  budgetFrontierHint: string
   nextAboveBudgetPrefix: string
   worseValue: string
   worseValueHint: string
@@ -318,6 +320,8 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueByEfficiency: 'Per efficiency',
     topValueEmpty: 'Nessun modello o abbonamento entro il budget.',
     topValueCompare: 'Confronta i top pick',
+    budgetFrontierTitle: 'Frontiera di valore nel budget',
+    budgetFrontierHint: 'Ogni punto: valore (score/$) in funzione del costo, solo modelli entro il tetto; la linea ambra è la frontiera di valore',
     nextAboveBudgetPrefix: 'Alza il budget per sbloccare',
     worseValue: 'valore peggiore',
     worseValueHint: "Alzare il budget non migliora il valore: il pick sopra il tetto ha un valueScore inferiore al miglior valore in-budget",
@@ -501,6 +505,8 @@ export const STRINGS: Record<Lang, Strings> = {
     topValueByEfficiency: 'By efficiency',
     topValueEmpty: 'No model or subscription within the budget.',
     topValueCompare: 'Compare top picks',
+    budgetFrontierTitle: 'Value frontier within budget',
+    budgetFrontierHint: 'Each point: value (score/$) vs cost, only models within the cap; the amber line is the value frontier',
     nextAboveBudgetPrefix: 'Raise the budget to unlock',
     worseValue: 'worse value',
     worseValueHint: 'Raising the budget does not improve value: the pick above the cap has a lower valueScore than the best in-budget pick',

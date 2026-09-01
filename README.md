@@ -18,6 +18,7 @@ sull'asse X il costo (prezzi OpenRouter, USD per 1M token), sull'asse Y il punte
 - **Stato dei filtri nell'URL** (`?metric=…&cost=…&tin=…`): copia l'URL per condividere una vista. Oltre ai filtri, nell'URL viaggiano anche l'**ordinamento della tabella** (`ts`/`td`), le **colonne visibili** (`cols`), il **budget** del pannello Top value (`tbudget`) e il suo **ordinamento** (`tsort`).
 - **Preset nominati** (localStorage): salva una combinazione di parametri, ricaricala dal dropdown, eliminala, e condividila via link (`?…&p=<id>`); il link è autosufficiente anche per chi non ha il preset.
 - **Pannello "Top value nel budget"**: dato un tetto di costo per unità, elenca modelli e abbonamenti col miglior valueScore (ordinabile per valore/punteggio/efficiency), marca con ★ i pick Pareto-ottimali nel budget, mostra stime `≈`, il **trade-off** tra il miglior valore in-budget e il primo pick sopra il tetto (Δ costo % e Δ valore %, con ⚠ se alzare il budget non migliora il valore), permette di **confrontare i top pick** e di **esportarli in CSV**. Budget e ordinamento sono persistenti nell'URL e nei preset.
+- **Mini-frontiera del valore nel budget**: sotto i top pick, una sparkline (asse X costo log, asse Y valueScore) mostra la **frontiera di valore** dei modelli entro il tetto, la riga verticale del budget e il pick col miglior valore evidenziato; ogni punto è cliccabile (apre la scheda modello) con tooltip nome/costo/valore.
 - **Analisi di salto di frontiera**: per ogni modello dietro la frontiera la tabella mostra quanto **costa in %** raggiungere il prossimo pick di frontiera con punteggio migliore e **quanto punteggio si guadagna** (con segno corretto anche per metriche lower-is-better tipo latenza); la riga col **miglior ROI sul salto** (punteggio per % di costo) è evidenziata, e scheda/tabella mostrano il **costo assoluto** del movimento.
 - **Esportazione CSV** della tabella e dei top pick (separatore `;`, BOM UTF-8, compatibile con Excel): si apre con una riga `#` con i filtri attivi e una riga `# estimated: X/Y` che riassume quanti modelli dipendono da stime.
 - **Confidenza del dato**: la scheda modello mostra il **numero di campi stimati** (`≈ N estimated fields`) con la metodologia in tooltip.
@@ -39,8 +40,8 @@ npm run coverage # unit test + report di copertura (soglia in vite.config)
 ## Test e CI
 
 La suite (vitest) copre le utility condivise (`pareto`, `compare`, `urlState`, `estimation`,
-`csv`, `download`, `chartExport`, colonne visibili). La CI esegue typecheck, test, **copertura
-con soglia minima** e build prima del deploy su GitHub Pages.
+`csv`, `download`, `chartExport`, colonne visibili, `estMarkup`, `modelMeta`, `budgetFrontier`).
+La CI esegue typecheck, test, **copertura con soglia minima** e build prima del deploy su GitHub Pages.
 
 ## Dati
 

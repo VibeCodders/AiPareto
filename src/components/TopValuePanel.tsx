@@ -4,6 +4,9 @@ import type { TopValueSort } from '../urlState'
 import { budgetedPareto, budgetTradeoffOf, costUnitLabel, formatCostChangePct, formatMetric, formatUsd, topValueByBudget, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated } from '../estimation'
 import { exportModelsCsv } from '../csv'
+import { estClass, estMark, estTitle } from '../estMarkup'
+import { colorFor, displayNameOf } from '../modelMeta'
+import BudgetSparkline from './BudgetSparkline'
 import type { T } from '../i18n'
 
 interface Props {
@@ -44,7 +47,7 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
     [items, costView, taskInput, taskOutput, metric, valueScoreBase, efficiencyOpts, budget, sortBy],
   )
 
-  const { frontierSlugs, costToNext } = useMemo(
+  const { frontierSlugs, costToNext, points } = useMemo(
     () => budgetedPareto(items, costView, taskInput, taskOutput, budget, valueScoreBase),
     [items, costView, taskInput, taskOutput, budget, valueScoreBase],
   )
@@ -124,28 +127,28 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         {frontierSlugs.has(r.model.slug) && <span className="sub-badge" title={t.frontier}>★</span>}
                         {r.model.isSubscription && <span className="sub-badge" title={r.model.subscription?.rateLimitDesc}>PLAN</span>}
-                        <span>{r.model.isSubscription ? r.model.name : r.model.aaName}</span>
+                        <span>{displayNameOf(r.model)}</span>
                       </div>
                     </td>
-                    <td className="num muted">{r.model.family}</td>
-                    <td className={`num ${estCost ? 'est' : ''}`} title={estCost ? t.estimated : undefined}>
-                      {estCost ? '≈ ' : ''}{formatUsd(r.cost)}{unit}
+                    <td className="num muted"><span className="family-dot" style={{ background: colorFor(r.model.family) }} />{r.model.family}</td>
+                    <td className={`num${estClass(estCost)}`} title={estTitle(estCost, t.estimated)}>
+                      {estMark(estCost, formatUsd(r.cost))}{unit}
                     </td>
                     <td className="num" title={(() => {
                       const step = costToNext.get(r.model.slug)
                       if (step == null) return t.frontierCostGap
-                      return `${t.frontierCostGap}: ${step.target.aaName}`
+                      return `${t.frontierCostGap}: ${displayNameOf(step.target)}`
                     })()}>
                       {formatCostChangePct(costToNext.get(r.model.slug)?.pct)}
                     </td>
-                    <td className={`num ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
-                      {est ? '≈ ' : ''}{formatMetric(metric, r.score)}
+                    <td className={`num${estClass(est)}`} title={estTitle(est, t.estimated)}>
+                      {estMark(est, formatMetric(metric, r.score))}
                     </td>
-                    <td className={`num bold ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
-                      {est ? '≈ ' : ''}{formatMetric('valueScore', r.value)}
+                    <td className={`num bold${estClass(est)}`} title={estTitle(est, t.estimated)}>
+                      {estMark(est, formatMetric('valueScore', r.value))}
                     </td>
-                    <td className={`num ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
-                      {r.efficiency != null ? `${est ? '≈ ' : ''}${formatMetric('efficiencyScore', r.efficiency)}` : '—'}
+                    <td className={`num${estClass(est)}`} title={estTitle(est, t.estimated)}>
+                      {r.efficiency != null ? estMark(est, formatMetric('efficiencyScore', r.efficiency)) : '—'}
                     </td>
                   </tr>
                 )
@@ -154,6 +157,8 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
           </table>
         </div>
       )}
+      {points.length > 0 && <BudgetSparkline points={points} budget={budget} unit={unit} t={t} onSelect={onSelect} />}
+
       {tradeoff.next && tradeoff.best && (
         <p
           className={`muted top-value-next${tradeoff.valueDeltaPct != null && tradeoff.valueDeltaPct < 0 ? ' top-value-worse' : ''}`}
@@ -162,11 +167,11 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
           onClick={() => onSelect(tradeoff.next!.model.slug)}
         >
           {t.nextAboveBudgetPrefix}{' '}
-          <b>{tradeoff.next.model.isSubscription ? tradeoff.next.model.name : tradeoff.next.model.aaName}</b>{' '}
+          <b>{displayNameOf(tradeoff.next.model)}</b>{' '}
           · {formatUsd(tradeoff.next.cost)}{unit} · {t.valueScore} {formatMetric('valueScore', tradeoff.next.value)}
           {tradeoff.costDeltaPct != null && ` · Δ${t.cost} ${formatCostChangePct(tradeoff.costDeltaPct)}`}
           {tradeoff.valueDeltaPct != null && ` · Δ${t.valueScore} ${formatCostChangePct(tradeoff.valueDeltaPct)}`}{' '}
-          (vs {tradeoff.best.model.isSubscription ? tradeoff.best.model.name : tradeoff.best.model.aaName})
+          (vs {displayNameOf(tradeoff.best.model)})
           {tradeoff.valueDeltaPct != null && tradeoff.valueDeltaPct < 0 && (
             <span className="tag tag-warn" title={t.worseValueHint}>⚠ {t.worseValue}</span>
           )}

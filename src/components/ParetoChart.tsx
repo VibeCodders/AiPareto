@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Area, CartesianGrid, Cell, ComposedChart, Line, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis } from 'recharts'
 import type { Model, Point } from '../types'
 import { formatTokens, formatUsd, niceCeil } from '../pareto'
+import { shortNameOf } from '../modelMeta'
 import type { T } from '../i18n'
 
 export const FRONTIER_COLOR = '#f59e0b'
@@ -230,7 +231,7 @@ function ScatterShape(props: ShapeProps) {
   if (model && props.payload?.isFrontier && st.showLabels) {
     const nearRight = st.width > 0 && cx > st.width - 110
     const above = (props.index ?? 0) % 2 === 0
-    const name = model.subscription ? model.subscription.name : model.name
+    const name = shortNameOf(model)
     nameLabel = (
       <text
         x={nearRight ? cx - r - 7 : cx + r + 7}

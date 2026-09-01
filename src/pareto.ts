@@ -131,6 +131,8 @@ export interface BudgetedPareto {
   frontierSlugs: Set<string>
   /** Per-slug % cost change (and target model) to reach the next better-value frontier pick within the budget. */
   costToNext: Map<string, { pct: number; target: Model } | null>
+  /** The in-budget points (X = per-unit cost, Y = valueScore) used for the frontier. */
+  points: Point[]
 }
 
 /**
@@ -161,7 +163,7 @@ export function budgetedPareto(
     const up = frontierUpgradeOf(p, frontier, false)
     costToNext.set(p.model.slug, up ? { pct: up.costDeltaPct, target: up.model } : null)
   }
-  return { frontierSlugs, costToNext }
+  return { frontierSlugs, costToNext, points }
 }
 
 
