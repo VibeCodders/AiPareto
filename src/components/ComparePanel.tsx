@@ -1,5 +1,5 @@
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
-import { computeMetric, formatMetric, formatParams, formatTokens, formatUsd, costOf, type EfficiencyOpts } from '../pareto'
+import { blendedCostOf, computeMetric, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
 import type { T } from '../i18n'
 
@@ -67,7 +67,7 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
     { labelKey: 'input', higherIsBetter: false, value: (m) => m.inputPerM, format: (v) => formatUsd(v), estField: 'inputPerM' },
     { labelKey: 'output', higherIsBetter: false, value: (m) => m.outputPerM, format: (v) => formatUsd(v), estField: 'outputPerM' },
     { labelKey: 'cache', higherIsBetter: false, value: (m) => m.cacheReadPerM, format: (v) => formatUsd(v), estField: 'cacheReadPerM' },
-    { labelKey: 'blended', higherIsBetter: false, value: (m) => costOf(m, costView, taskInput, taskOutput), format: (v) => formatUsd(v), costView },
+    { labelKey: 'blended', higherIsBetter: false, value: (m) => blendedCostOf(m), format: (v) => formatUsd(v), costView: 'blended' },
     { labelKey: 'valueScore', higherIsBetter: true, value: (m) => computeMetric(m, 'valueScore', costView, taskInput, taskOutput, valueScoreBase), format: (v) => formatMetric('valueScore', v), estMetric: 'valueScore' },
     { labelKey: 'speedAdjustedScore', higherIsBetter: true, value: (m) => computeMetric(m, 'speedAdjustedScore', costView, taskInput, taskOutput), format: (v) => formatMetric('speedAdjustedScore', v), estMetric: 'speedAdjustedScore' },
     { labelKey: 'contextValue', higherIsBetter: true, value: (m) => computeMetric(m, 'contextValue', costView, taskInput, taskOutput), format: (v) => formatMetric('contextValue', v), estMetric: 'contextValue' },

@@ -26,7 +26,6 @@ type SortKey =
   | 'subscription'
   | 'frontierDelta'
   | 'dominates'
-  | 'maxCompletionTokens'
   | 'arenaElo'
   | 'arenaCodeElo'
   | 'benchlmScore'
@@ -68,10 +67,37 @@ interface Props {
   dominatedCounts: Map<string, number>
 }
 
+const LS_COLS = 'ai-pareto-table-cols'
+const DEFAULT_COLS: OptionalCol[] = ['subscription']
+
+/** Restore the user's previously chosen columns, falling back to the defaults. */
+function loadVisibleCols(): Set<OptionalCol> {
+  try {
+    const raw = localStorage.getItem(LS_COLS)
+    const arr: unknown = raw ? JSON.parse(raw) : null
+    if (Array.isArray(arr)) {
+      const valid = arr.filter((k): k is OptionalCol => OPTIONAL_COLS.some((c) => c.key === k))
+      if (valid.length > 0) return new Set(valid)
+    }
+  } catch {
+    /* ignore malformed storage */
+  }
+  return new Set(DEFAULT_COLS)
+}
+
 export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare, dominatedCounts }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('score')
   const [desc, setDesc] = useState(() => !isLowerBetter(metric))
-  const [visibleCols, setVisibleCols] = useState<Set<OptionalCol>>(new Set(['subscription']))
+  const [visibleCols, setVisibleCols] = useState<Set<OptionalCol>>(loadVisibleCols)
+
+  // The user's column picks survive reloads, mirroring how lang/theme are persisted elsewhere.
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_COLS, JSON.stringify([...visibleCols]))
+    } catch {
+      /* ignore storage-unavailable errors */
+    }
+  }, [visibleCols])
 
   // Reset to the metric-appropriate default direction when the metric changes.
   useEffect(() => {
@@ -107,7 +133,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
 
   const valueOf = (m: Model): number | string | null => {
     if (sortKey === 'score') return computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
-    if (sortKey === 'blended') return m.inputPerM != null && m.outputPerM != null ? 0.8 * m.inputPerM + 0.2 * m.outputPerM : null
+    if (sortKey === 'blended') return blendedCostOf(m)
     if (sortKey === 'name') return m.isSubscription ? m.name : m.aaName
     if (sortKey === 'family') return m.family
     if (sortKey === 'subscription') return m.subscription?.priceMonthly ?? (m.isSubscription ? 0 : 9999)

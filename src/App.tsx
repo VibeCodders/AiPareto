@@ -16,6 +16,7 @@ import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
 import TrendChart from './components/TrendChart'
+import StatCell from './components/StatCell'
 
 const BASE_MODELS = modelsData as unknown as Model[]
 const SUBSCRIPTIONS = subscriptionsData as SubscriptionPlan[]
@@ -953,21 +954,21 @@ function ModelCard({
         </div>
       </div>
       <div className="mc-grid">
-        <div><span className="muted">{t.family}</span><b>{model.family}</b></div>
-        <div><span className="muted">{metricLabelOf(t, metric)}</span><b className={scoreEstimated ? 'est' : ''} title={scoreEstimated ? t.estimated : undefined}>{scoreEstimated ? '≈ ' : ''}{formatMetric(metric, score)}</b></div>
+        <StatCell label={t.family} value={model.family} />
+        <StatCell label={metricLabelOf(t, metric)} estimated={scoreEstimated} title={t.estimated} value={formatMetric(metric, score)} />
         <div><span className="muted">{t.vsFrontier}</span><b className={frontierDelta != null && frontierDelta > 0.05 ? 'delta-behind' : 'delta-ok'}>{formatDelta(frontierDelta)}</b></div>
         <div><span className="muted">{t.dominates}</span><b title={t.dominatesHint}>{dominatedCount}</b></div>
-        <div><span className="muted">{t.input}</span><b className={estInput ? 'est' : ''} title={estInput ? t.estimated : undefined}>{estInput ? '≈ ' : ''}{formatUsd(model.inputPerM)}/1M</b></div>
-        <div><span className="muted">{t.output}</span><b className={estOutput ? 'est' : ''} title={estOutput ? t.estimated : undefined}>{estOutput ? '≈ ' : ''}{formatUsd(model.outputPerM)}/1M</b></div>
-        <div><span className="muted">{t.cache}</span><b className={estCache ? 'est' : ''} title={estCache ? t.estimated : undefined}>{estCache ? '≈ ' : ''}{formatUsd(model.cacheReadPerM)}/1M</b></div>
-        <div><span className="muted">{t.cacheWrite}</span><b className={estCacheWrite ? 'est' : ''} title={estCacheWrite ? t.estimated : undefined}>{estCacheWrite ? '≈ ' : ''}{formatUsd(model.cacheWritePerM)}/1M</b></div>
-        <div><span className="muted">{t.blended}</span><b className={estBlended ? 'est' : ''} title={estBlended ? t.estimated : undefined}>{estBlended ? '≈ ' : ''}{formatUsd(blended)}/1M</b></div>
-        <div><span className="muted">{t.outputSpeed}</span><b className={estSpeed ? 'est' : ''} title={estSpeed ? t.estimated : undefined}>{estSpeed ? '≈ ' : ''}{formatMetric('outputSpeed', model.outputSpeed)}</b></div>
-        <div><span className="muted">{t.latency}</span><b className={estLatency ? 'est' : ''} title={estLatency ? t.estimated : undefined}>{estLatency ? '≈ ' : ''}{formatMetric('latencySeconds', model.latencySeconds)}</b></div>
-        <div><span className="muted">{t.context}</span><b className={estContext ? 'est' : ''} title={estContext ? t.estimated : undefined}>{estContext ? '≈ ' : ''}{formatTokens(model.contextTokens)}</b></div>
-        <div><span className="muted">{t.parameters}</span><b className={estParameters ? 'est' : ''} title={estParameters ? t.estimated : undefined}>{estParameters ? '≈ ' : ''}{formatParams(model.parameters)}</b></div>
-        <div><span className="muted">{t.activeParameters}</span><b className={estActiveParameters ? 'est' : ''} title={estActiveParameters ? t.estimated : undefined}>{estActiveParameters ? '≈ ' : ''}{formatParams(model.activeParameters)}</b></div>
-        <div><span className="muted">{t.release}</span><b>{model.released ?? '—'}</b></div>
+        <StatCell label={t.input} estimated={estInput} title={t.estimated} value={<>{formatUsd(model.inputPerM)}/1M</>} />
+        <StatCell label={t.output} estimated={estOutput} title={t.estimated} value={<>{formatUsd(model.outputPerM)}/1M</>} />
+        <StatCell label={t.cache} estimated={estCache} title={t.estimated} value={<>{formatUsd(model.cacheReadPerM)}/1M</>} />
+        <StatCell label={t.cacheWrite} estimated={estCacheWrite} title={t.estimated} value={<>{formatUsd(model.cacheWritePerM)}/1M</>} />
+        <StatCell label={t.blended} estimated={estBlended} title={t.estimated} value={<>{formatUsd(blended)}/1M</>} />
+        <StatCell label={t.outputSpeed} estimated={estSpeed} title={t.estimated} value={formatMetric('outputSpeed', model.outputSpeed)} />
+        <StatCell label={t.latency} estimated={estLatency} title={t.estimated} value={formatMetric('latencySeconds', model.latencySeconds)} />
+        <StatCell label={t.context} estimated={estContext} title={t.estimated} value={formatTokens(model.contextTokens)} />
+        <StatCell label={t.parameters} estimated={estParameters} title={t.estimated} value={formatParams(model.parameters)} />
+        <StatCell label={t.activeParameters} estimated={estActiveParameters} title={t.estimated} value={formatParams(model.activeParameters)} />
+        <StatCell label={t.release} value={model.released ?? '—'} />
       </div>
       {model.isSubscription && model.subscription && (
         <div className="mc-subscription">
