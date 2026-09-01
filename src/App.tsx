@@ -88,6 +88,10 @@ const PALETTE = [
   '#a3e635', '#facc15', '#22d3ee', '#fda4af', '#93c5fd', '#86efac',
 ]
 
+function metricLabelOf(t: T, key: MetricKey): string {
+  return t[METRICS.find((m) => m.key === key)!.labelKey]
+}
+
 function colorFor(family: string): string {
   let h = 0
   for (const ch of family) h = (h * 31 + ch.charCodeAt(0)) >>> 0
@@ -388,6 +392,7 @@ export default function App() {
     setShowLabels(true)
     setEstimateMissing(true)
     setXMetric(null)
+    setPresetId(null)
   }
 
   const points: Point[] = useMemo(() => {
@@ -770,7 +775,7 @@ export default function App() {
             frontierSlugs={frontierSlugs}
             logScale={logScale}
             colorFor={colorFor}
-            metricName={t[METRICS.find((m) => m.key === metric)!.labelKey]}
+            metricName={metricLabelOf(t, metric)}
             xName={xMetric ? t[METRICS.find((m) => m.key === xMetric)!.labelKey] : costView === 'task' ? `${t.costViewTask} (${kTokens(taskInput)} → ${kTokens(taskOutput)})` : t[COST_VIEWS.find((v) => v.key === costView)!.labelKey]}
             xUnit={xMetric ? '' : costView === 'task' ? '/task' : '/1M'}
             xIsMetric={xMetric != null}
@@ -806,7 +811,7 @@ export default function App() {
             {pngSaved ? `✓ ${t.pngSaved}` : `⬇ ${t.downloadPng}`}
           </button>
         </div>
-        {showTrend && <TrendChart models={BASE_MODELS} metric={metric} metricName={t[METRICS.find((m) => m.key === metric)!.labelKey]} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} efficiencyOpts={efficiencyOpts} t={t} />}
+        {showTrend && <TrendChart models={BASE_MODELS} metric={metric} metricName={metricLabelOf(t, metric)} costView={costView} taskInput={taskInput} taskOutput={taskOutput} valueScoreBase={valueScoreBase} efficiencyOpts={efficiencyOpts} t={t} />}
       </section>
 
       {selected && (
@@ -833,6 +838,9 @@ export default function App() {
       <section className="table-section">
         <div className="table-head">
           <h2>{t.table}</h2>
+          <button className="csv-btn" style={{ marginRight: 8 }} onClick={() => exportModelsCsv(frontier.map((p) => p.model), costView, taskInput, taskOutput, t, buildFilterSummary(), '-frontier')} title={t.exportFrontierCsv}>
+            ⬇ {t.exportFrontierCsv}
+          </button>
           <button className="csv-btn" onClick={() => exportModelsCsv(visibleModels, costView, taskInput, taskOutput, t, buildFilterSummary())}>
             ⬇ {t.exportCsv}
           </button>

@@ -148,6 +148,7 @@ export interface Strings {
   logScaleOnlyCost: string
   resetZoom: string
   zoomHint: string
+  exportFrontierCsv: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -299,6 +300,7 @@ export const STRINGS: Record<Lang, Strings> = {
     logScaleOnlyCost: 'La scala logaritmica si applica solo agli assi costo',
     resetZoom: 'Azzera zoom',
     zoomHint: 'Rotella: zoom · Trascina: pan · Doppio clic: azzera',
+    exportFrontierCsv: 'Esporta CSV frontiera',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -448,6 +450,7 @@ export const STRINGS: Record<Lang, Strings> = {
     logScaleOnlyCost: 'Log scale only applies to cost axes',
     resetZoom: 'Reset zoom',
     zoomHint: 'Wheel: zoom · Drag: pan · Double-click: reset',
+    exportFrontierCsv: 'Export frontier CSV',
   },
 }
 
