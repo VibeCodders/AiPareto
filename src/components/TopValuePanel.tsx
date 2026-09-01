@@ -155,10 +155,16 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
         </div>
       )}
       {nextAbove && (
-        <p className="muted top-value-next">
+        <p
+          className="muted top-value-next"
+          title={t.details}
+          style={{ cursor: 'pointer' }}
+          onClick={() => onSelect(nextAbove.model.slug)}
+        >
           {t.nextAboveBudgetPrefix}{' '}
           <b>{nextAbove.model.isSubscription ? nextAbove.model.name : nextAbove.model.aaName}</b>{' '}
           · {formatUsd(nextAbove.cost)}{unit} · {t.valueScore} {formatMetric('valueScore', nextAbove.value)}
+          {rows.length > 0 && ` · ${formatCostChangePct(((nextAbove.cost - rows[0].cost) / rows[0].cost) * 100)} ${t.cost}`}
         </p>
       )}
     </section>
