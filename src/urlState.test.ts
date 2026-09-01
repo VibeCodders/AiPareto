@@ -50,6 +50,7 @@ describe('parseUrl', () => {
     expect(s.costView).toBe('input')
     expect(s.lang).toBe('it')
     expect(s.families).toBeNull()
+    expect(s.budget).toBe(40)
   })
   it('parses and clamps values', () => {
     const s = parseUrl('?metric=codingIndex&tin=9999999999&tout=-5&lang=en&min=9999', FAMILIES, METRIC_MAX)
@@ -110,6 +111,7 @@ describe('toSearch / parseUrl round-trip', () => {
       showLabels: false,
       estimateMissing: false,
       xMetric: 'hfHumanEval',
+      budget: 75,
     }
     const back = parseUrl(toSearch(s, FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)
     expect(back.metric).toBe('codingIndex')
@@ -124,5 +126,6 @@ describe('toSearch / parseUrl round-trip', () => {
     expect(back.sizeBy).toBe('downloads')
     expect(back.xMetric).toBe('hfHumanEval')
     expect(back.releasedFrom).toBe('2024-01-01')
+    expect(back.budget).toBe(75)
   })
 })

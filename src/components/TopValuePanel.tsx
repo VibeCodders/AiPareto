@@ -14,9 +14,11 @@ interface Props {
   t: T
   /** Opens the model card for a pick. */
   onSelect: (id: string) => void
+  /** Per-unit cost cap (controlled from the URL so it's shareable). */
+  budget: number
+  onBudgetChange: (n: number) => void
 }
 
-const DEFAULT_BUDGET = 40
 const MAX_ROWS = 8
 
 /**
@@ -24,8 +26,7 @@ const MAX_ROWS = 8
  * the models/subscriptions with the best valueScore, reusing the shared Pareto engine to
  * mark which picks are not dominated inside the budget.
  */
-export default function TopValuePanel({ items, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect }: Props) {
-  const [budget, setBudget] = useState(DEFAULT_BUDGET)
+export default function TopValuePanel({ items, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, budget, onBudgetChange }: Props) {
   const [sortBy, setSortBy] = useState<'value' | 'score'>('value')
 
   const unit = costUnitLabel(costView)
@@ -52,7 +53,7 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
               min={0}
               step={5}
               value={budget}
-              onChange={(e) => setBudget(Math.max(0, Number(e.target.value)))}
+              onChange={(e) => onBudgetChange(Math.max(0, Number(e.target.value)))}
             />
           </label>
           <div className="seg" role="group" aria-label={t.topValueSort}>

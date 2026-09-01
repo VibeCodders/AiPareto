@@ -6,7 +6,7 @@ import type { CostView, EfficiencyWeights, MetricKey, Model, Point, Subscription
 import { blendedCostOf, computeFrontier, computeMetric, costUnitLabel, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
-import { parseUrl, toSearch, type UrlState } from './urlState'
+import { DEFAULT_BUDGET, parseUrl, toSearch, type UrlState } from './urlState'
 import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
 import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
@@ -182,6 +182,7 @@ export default function App() {
   const [showLabels, setShowLabels] = useState(INITIAL.showLabels)
   const [estimateMissing, setEstimateMissing] = useState(INITIAL.estimateMissing)
   const [xMetric, setXMetric] = useState<MetricKey | null>(INITIAL.xMetric)
+  const [budget, setBudget] = useState<number>(INITIAL.budget)
   const chartSvgRef = useRef<SVGSVGElement | null>(null)
   const [svgReady, setSvgReady] = useState(false)
   const [pngSaved, triggerPngSaved] = useTransientFlag()
@@ -296,6 +297,7 @@ export default function App() {
     showLabels,
     estimateMissing,
     xMetric,
+    budget,
   }
 
   useEffect(() => {
@@ -304,7 +306,7 @@ export default function App() {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing, xMetric])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing, xMetric, budget])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -363,6 +365,7 @@ export default function App() {
     setShowLabels(s.showLabels)
     setEstimateMissing(s.estimateMissing)
     setXMetric(s.xMetric)
+    setBudget(s.budget)
   }
 
   const handleSavePreset = () => {
@@ -428,6 +431,7 @@ export default function App() {
     setShowLabels(true)
     setEstimateMissing(true)
     setXMetric(null)
+    setBudget(DEFAULT_BUDGET)
     setPresetId(null)
   }
 
@@ -883,6 +887,8 @@ export default function App() {
         efficiencyOpts={efficiencyOpts}
         t={t}
         onSelect={setSelectedId}
+        budget={budget}
+        onBudgetChange={setBudget}
       />
 
       {selected && (

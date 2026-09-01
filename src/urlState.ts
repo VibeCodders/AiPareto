@@ -45,7 +45,12 @@ export interface UrlState {
   estimateMissing: boolean
   /** Metric on the X axis; null means the X axis is the selected cost view instead. */
   xMetric: MetricKey | null
+  /** Per-unit cost cap for the "top value within budget" panel. */
+  budget: number
 }
+
+/** Default per-unit budget for the top-value panel. */
+export const DEFAULT_BUDGET = 40
 
 
 type SizeBy = 'none' | 'context' | 'speed' | 'downloads'
@@ -155,6 +160,7 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     showLabels: p.get('labels') !== '0',
     estimateMissing: p.get('est') !== '0',
     xMetric: METRICS.includes(p.get('xmet') as MetricKey) ? (p.get('xmet') as MetricKey) : null,
+    budget: clampFloat(p.get('tbudget'), 0, 100_000, DEFAULT_BUDGET),
   }
 }
 
@@ -199,6 +205,7 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (!s.showLabels) p.set('labels', '0')
   if (!s.estimateMissing) p.set('est', '0')
   if (s.xMetric) p.set('xmet', s.xMetric)
+  if (s.budget !== DEFAULT_BUDGET) p.set('tbudget', String(s.budget))
   return p.toString()
 }
 
