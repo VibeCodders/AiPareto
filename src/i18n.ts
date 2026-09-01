@@ -155,6 +155,12 @@ export interface Strings {
   benchlmScore: string
   hfDownloads: string
   hfMMLU: string
+  hfGSM8K: string
+  hfHumanEval: string
+  hfARC: string
+  hfWinogrande: string
+  hfHellaSwag: string
+  hfTruthfulQA: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -313,6 +319,12 @@ export const STRINGS: Record<Lang, Strings> = {
     benchlmScore: 'BenchLM',
     hfDownloads: 'Download (HF)',
     hfMMLU: 'HF MMLU',
+    hfGSM8K: 'HF GSM8K',
+    hfHumanEval: 'HF HumanEval',
+    hfARC: 'HF ARC',
+    hfWinogrande: 'HF WinoGrande',
+    hfHellaSwag: 'HF HellaSwag',
+    hfTruthfulQA: 'HF TruthfulQA',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -469,6 +481,12 @@ export const STRINGS: Record<Lang, Strings> = {
     benchlmScore: 'BenchLM',
     hfDownloads: 'Downloads (HF)',
     hfMMLU: 'HF MMLU',
+    hfGSM8K: 'HF GSM8K',
+    hfHumanEval: 'HF HumanEval',
+    hfARC: 'HF ARC',
+    hfWinogrande: 'HF WinoGrande',
+    hfHellaSwag: 'HF HellaSwag',
+    hfTruthfulQA: 'HF TruthfulQA',
   },
 }
 

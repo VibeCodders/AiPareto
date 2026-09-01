@@ -41,6 +41,19 @@ type MetricLabelKey =
   | 'arenaElo'
   | 'benchlmScore'
 
+// Community/HF benchmarks offered when picking an X-axis metric. Kept out of METRICS so
+// the Y-axis badge row stays focused on the main scores (they're still selectable via URL).
+const COMMON_METRICS: Array<{ key: MetricKey; labelKey: keyof T }> = [
+  { key: 'hfMMLU', labelKey: 'hfMMLU' },
+  { key: 'hfGSM8K', labelKey: 'hfGSM8K' },
+  { key: 'hfHumanEval', labelKey: 'hfHumanEval' },
+  { key: 'hfARC', labelKey: 'hfARC' },
+  { key: 'hfWinogrande', labelKey: 'hfWinogrande' },
+  { key: 'hfHellaSwag', labelKey: 'hfHellaSwag' },
+  { key: 'hfTruthfulQA', labelKey: 'hfTruthfulQA' },
+  { key: 'arenaCodeElo', labelKey: 'arenaCodeElo' },
+]
+
 const METRICS: Array<{ key: MetricKey; labelKey: MetricLabelKey; higherIsBetter: boolean }> = [
   { key: 'intelligenceIndex', labelKey: 'intel', higherIsBetter: true },
   { key: 'codingIndex', labelKey: 'coding', higherIsBetter: true },
@@ -94,8 +107,15 @@ const PALETTE = [
   '#a3e635', '#facc15', '#22d3ee', '#fda4af', '#93c5fd', '#86efac',
 ]
 
+// Every metric we can place on an axis (Y badges + X-axis community benchmarks).
+const AXIS_METRICS: Array<{ key: MetricKey; labelKey: keyof T }> = [...METRICS, ...COMMON_METRICS]
+
 function metricLabelOf(t: T, key: MetricKey): string {
-  return t[METRICS.find((m) => m.key === key)!.labelKey]
+  // Resolves any MetricKey to its label without assuming it lives in METRICS — a URL could
+  // select a community benchmark not shown as a Y-axis badge, which used to throw on a
+  // missing entry (null-asserted lookup).
+  const found = AXIS_METRICS.find((m) => m.key === key)
+  return found ? t[found.labelKey] : key
 }
 
 function costViewLabelOf(t: T, key: CostView): string {
@@ -590,7 +610,7 @@ export default function App() {
                 ))}
               </optgroup>
               <optgroup label={t.xAxisMetrics}>
-                {METRICS.map((m) => (
+                {AXIS_METRICS.map((m) => (
                   <option key={m.key} value={`metric:${m.key}`}>{t[m.labelKey]}</option>
                 ))}
               </optgroup>
