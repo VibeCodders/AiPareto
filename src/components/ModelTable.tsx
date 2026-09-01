@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
 import { blendedCostOf, computeMetric, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts, type FrontierUpgrade } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
@@ -103,6 +104,22 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
   const validKeys = pickVisibleCols(visibleColKeys, OPTIONAL_COLS.map((c) => c.key)) as OptionalCol[]
   const visibleCols = new Set<OptionalCol>(validKeys)
 
+  // The non-frontier row whose step-up buys the most score per % of cost (best ROI on the frontier).
+  const bestStepSlug = useMemo(() => {
+    let best: string | null = null
+    let bestRoi = 0
+    for (const m of models) {
+      const up = frontierUpgradeBySlug.get(m.slug)
+      if (!up || !(up.costDeltaPct > 0)) continue
+      const roi = up.scoreGain / up.costDeltaPct
+      if (best == null || roi > bestRoi) {
+        best = m.slug
+        bestRoi = roi
+      }
+    }
+    return best
+  }, [models, frontierUpgradeBySlug])
+
   const toggleCol = (k: OptionalCol) => {
     const next = new Set(visibleCols)
     if (next.has(k)) next.delete(k)
@@ -207,6 +224,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
               const delta = frontierDeltas.get(m.slug) ?? null
               const dominated = dominatedCounts.get(m.slug) ?? 0
               const upgrade = frontierUpgradeBySlug.get(m.slug) ?? null
+              const isBestStep = m.slug === bestStepSlug
 
               const estScore = isEstimated(m, metric, valueScoreBase)
               const estInput = isFieldEstimated(m, 'inputPerM')
@@ -233,7 +251,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                   tabIndex={0}
                   aria-selected={isSel}
                   onKeyDown={(e) => handleRowKeyDown(e, m.slug)}
-                  className={`${isFrontier ? 'row-frontier' : ''} ${isSel ? 'row-sel' : ''} ${m.isSubscription ? 'row-sub' : ''}`}
+                  className={`${isFrontier ? 'row-frontier' : ''} ${isSel ? 'row-sel' : ''} ${m.isSubscription ? 'row-sub' : ''} ${isBestStep ? 'row-upgrade-best' : ''}`}
                 >
                   <td className="center" onClick={(e) => e.stopPropagation()}>
                     <input
@@ -321,8 +339,8 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                     </td>
                   )}
                   {visibleCols.has('frontierScoreGain') && (
-                    <td className="num" title={upgrade ? upgrade.model.aaName : undefined} onClick={() => onSelect(m.slug)}>
-                      {upgrade ? `+${formatMetric(metric, upgrade.scoreGain)}` : '—'}
+                    <td className="num" title={upgrade ? `${upgrade.model.aaName}${isBestStep ? ` · ${t.bestStepHint}` : ''}` : undefined} onClick={() => onSelect(m.slug)}>
+                      {upgrade ? `${isBestStep ? '⚡ ' : ''}+${formatMetric(metric, upgrade.scoreGain)}` : '—'}
                     </td>
                   )}
                   {visibleCols.has('dominates') && (

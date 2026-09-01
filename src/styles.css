@@ -554,6 +554,10 @@ h1 {
   padding: 6px 8px;
 }
 
+.row-upgrade-best td {
+  background: color-mix(in srgb, #34d399 8%, transparent);
+}
+
 .mc-upgrade {
   margin-top: 10px;
   padding: 8px 10px;
