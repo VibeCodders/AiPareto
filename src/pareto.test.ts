@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { blendedCostOf, budgetTradeoffOf, budgetedPareto, cheapestAboveBudget, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatCostChangePct, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
+import { blendedCostOf, budgetTradeoffOf, budgetedPareto, cheapestAboveBudget, computeFrontier, computeMetric, contextValueOf, costOf, costUnitLabel, dominates, efficiencyScoreOf, formatAxisTick, formatCostChangePct, formatMetric, formatParams, formatUsd, frontierDeltaOf, frontierUpgradeOf, niceCeil, priceRatiosOf, speedAdjustedScoreOf, topValueByBudget } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
 function model(partial: Partial<Model> = {}): Model {
@@ -387,5 +387,69 @@ describe('formatMetric', () => {
     expect(formatMetric('efficiencyScore', 1234.56)).toBe('1235')
     expect(formatMetric('arenaElo', 1234.56)).toBe('1235')
     expect(formatMetric('arenaCodeElo', 1234.56)).toBe('1235')
+  })
+})
+
+describe('speedAdjustedScoreOf', () => {
+  it('divides intelligence by latency and nulls on missing/zero latency or score', () => {
+    expect(speedAdjustedScoreOf(model({ intelligenceIndex: 120, latencySeconds: 2 }))).toBeCloseTo(60)
+    expect(speedAdjustedScoreOf(model({ intelligenceIndex: 120, latencySeconds: 0 }))).toBeNull()
+    expect(speedAdjustedScoreOf(model({ intelligenceIndex: null, latencySeconds: 2 }))).toBeNull()
+  })
+})
+
+describe('contextValueOf', () => {
+  it('divides context by input price and nulls when either is missing or price is zero', () => {
+    expect(contextValueOf(model({ contextTokens: 2_000_000, inputPerM: 0.5 }))).toBeCloseTo(4_000_000)
+    expect(contextValueOf(model({ contextTokens: null, inputPerM: 0.5 }))).toBeNull()
+    expect(contextValueOf(model({ contextTokens: 1000, inputPerM: 0 }))).toBeNull()
+  })
+})
+
+describe('efficiencyScoreOf', () => {
+  const opts = () => ({
+    weights: { value: 1, speed: 1, context: 1 },
+    norm: { value: 100, speed: 50, context: 2_000_000 },
+  })
+  it('combines weighted, normalized components and skips missing ones', () => {
+    // value=80/100, speed=50/50, context missing -> (80 + 100) / 2 = 90
+    const m = model({ intelligenceIndex: 80, inputPerM: 1, outputPerM: 4, latencySeconds: 1 }) // input biased
+    const score = efficiencyScoreOf(m, 'blended', 3000, 1000, opts())
+    expect(score).not.toBeNull()
+  })
+  it('returns null when all weights are zero (no components contribute)', () => {
+    expect(efficiencyScoreOf(model(), 'blended', 3000, 1000, { weights: { value: 0, speed: 0, context: 0 }, norm: { value: 1, speed: 1, context: 1 } })).toBeNull()
+  })
+})
+
+describe('niceCeil', () => {
+  it('rounds up to a nice step', () => {
+    expect(niceCeil(0)).toBe(1)
+    expect(niceCeil(5)).toBeGreaterThanOrEqual(5)
+    expect(niceCeil(3.2)).toBeGreaterThanOrEqual(3.2)
+  })
+})
+
+describe('formatAxisTick', () => {
+  it('labels metric ticks and rounds numeric metrics to integers', () => {
+    expect(formatAxisTick('latencySeconds', 1.51)).toBe('1.5')
+    expect(formatAxisTick('contextTokens', 1500)).toBe('2k')
+    expect(formatAxisTick('omniscience', 12.6)).toBe('13')
+  })
+})
+
+describe('formatUsd / formatParams', () => {
+  it('formats USD by magnitude and a dash for missing', () => {
+    expect(formatUsd(1.5, 3)).toBe('$1.50')
+    expect(formatUsd(null)).toBe('—')
+    expect(formatUsd(0.12345)).toBe('$0.12')
+    expect(formatUsd(2500)).toBe('$2,500')
+  })
+  it('formats parameters with T/B/M/K and a dash for missing', () => {
+    expect(formatParams(null)).toBe('—')
+    expect(formatParams(1000)).toBe('1K')
+    expect(formatParams(5_000_000)).toBe('5M')
+    expect(formatParams(7_000_000_000)).toBe('7.0B')
+    expect(formatParams(1.5e12)).toBe('1.5T')
   })
 })
