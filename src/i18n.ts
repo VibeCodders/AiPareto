@@ -117,6 +117,8 @@ export interface Strings {
   valueScoreBase: string
   vsFrontier: string
   frontierUpgrade: string
+  bestInCompare: string
+  bestInCompareTitle: string
   onFrontier: string
   dominates: string
   dominatesHint: string
@@ -282,6 +284,8 @@ export const STRINGS: Record<Lang, Strings> = {
     valueScoreBase: 'Base Value Score',
     vsFrontier: 'Δ vs frontiera',
     frontierUpgrade: 'Salto di frontiera',
+    bestInCompare: 'Miglior valore',
+    bestInCompareTitle: 'Best value per questa metrica tra i modelli confrontati',
     onFrontier: 'Sulla frontiera',
     dominates: 'Domina',
     dominatesHint: 'Numero di modelli Pareto-dominati su entrambi gli assi',
@@ -445,6 +449,8 @@ export const STRINGS: Record<Lang, Strings> = {
     valueScoreBase: 'Value Score basis',
     vsFrontier: 'Δ vs frontier',
     frontierUpgrade: 'Frontier step',
+    bestInCompare: 'Best value',
+    bestInCompareTitle: 'Best value for this metric among the compared models',
     onFrontier: 'On frontier',
     dominates: 'Dominates',
     dominatesHint: 'Number of Pareto-dominated models on both axes',

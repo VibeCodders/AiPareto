@@ -12,6 +12,7 @@ import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
 import { useTransientFlag } from './useTransientFlag'
 import { estimateModels, isCostEstimated, isEstimated, isFieldEstimated, type EstimatedModel } from './estimation'
+import { bestSlugsFor } from './compare'
 import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
@@ -502,6 +503,12 @@ export default function App() {
 
   // For a model behind the frontier, the cheapest frontier model with a strictly better score
   // (and how much score that step buys per % of extra cost).
+  // The actual Model objects currently in the compare set (used by the model-card hint).
+  const comparedModels = useMemo(
+    () => compareIds.map((id) => ALL_ITEMS.find((m) => m.slug === id)).filter((m): m is Model => m != null),
+    [compareIds, ALL_ITEMS],
+  )
+
   const frontierUpgrade = useMemo(() => {
     if (!selected || frontierSlugs.has(selected.slug)) return null
     const p = points.find((q) => q.model.slug === selected.slug)
@@ -871,6 +878,7 @@ export default function App() {
           t={t}
           inCompare={compareIds.includes(selected.slug)}
           frontierUpgrade={frontierUpgrade}
+          comparedModels={comparedModels}
           onToggleCompare={() => toggleCompare(selected.slug)}
         />
       )}
@@ -937,6 +945,7 @@ function ModelCard({
   t,
   inCompare,
   onToggleCompare,
+  comparedModels,
 }: {
   model: Model
   metric: MetricKey
@@ -952,6 +961,7 @@ function ModelCard({
   t: T
   inCompare: boolean
   onToggleCompare: () => void
+  comparedModels: Model[]
 }) {
   const score = computeMetric(model, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
   const scoreEstimated = isEstimated(model, metric, valueScoreBase)
@@ -971,6 +981,14 @@ function ModelCard({
 
   // Subscriptions are synthesized items (id = "sub:…") that don't exist on OpenRouter/AA —
   // link to the underlying plan's model instead.
+  // Whether this model holds the best value for the current metric among the compared set
+  // (reuses the same best-value-per-row logic as the compare panel).
+  const isBestAmongCompared = useMemo(() => {
+    if (comparedModels.length === 0) return false
+    const value = (m: Model) => computeMetric(m, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
+    return bestSlugsFor(comparedModels, !isLowerBetter(metric), value).includes(model.slug)
+  }, [comparedModels, metric, model.slug, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts])
+
   const orId = model.isSubscription ? model.subscription?.modelId : model.id
   const aaSlug = model.isSubscription ? model.subscription?.modelSlug : model.slug
   return (
@@ -982,6 +1000,7 @@ function ModelCard({
           {model.effort && <span className="tag">{model.effort}</span>}
           {model.isReasoning && <span className="tag">reasoning</span>}
           {model.openWeights && <span className="tag tag-open">open weights</span>}
+          {isBestAmongCompared && <span className="tag tag-open" title={t.bestInCompareTitle}>★ {t.bestInCompare}: {metricLabelOf(t, metric)}</span>}
           {hasAnyEstimate > 0 && <span className="tag tag-est">≈ {t.estimated}</span>}
           <button className={`btn compare-toggle ${inCompare ? 'on' : ''}`} onClick={onToggleCompare}>
             {inCompare ? `✓ ${t.removeFromCompare}` : `+ ${t.addToCompare}`}

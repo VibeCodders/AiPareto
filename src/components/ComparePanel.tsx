@@ -1,6 +1,7 @@
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
 import { blendedCostOf, computeMetric, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
+import { bestSlugsFor } from '../compare'
 import type { T } from '../i18n'
 
 interface Row {
@@ -58,15 +59,9 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
     (row.estMetric ? isEstimated(m, row.estMetric, valueScoreBase) : false) ||
     (row.costView ? isCostEstimated(m, row.costView) : false)
 
-  const bestSlug = (row: Row): string | null => {
-    let best: { slug: string; v: number } | null = null
-    for (const m of compared) {
-      const v = row.value(m)
-      if (v == null) continue
-      if (!best || (row.higherIsBetter ? v > best.v : v < best.v)) best = { slug: m.slug, v }
-    }
-    return best?.slug ?? null
-  }
+  // Row winners across the compared set, using the shared best-value logic so every row
+  // (benchmarks, community signals, costs) highlights consistently, including ties.
+  const winnersOf = (row: Row): string[] => bestSlugsFor(compared, row.higherIsBetter, row.value)
 
   const costRows: Row[] = [
     { labelKey: 'input', higherIsBetter: false, value: (m) => m.inputPerM, format: (v) => formatUsd(v), estField: 'inputPerM' },
@@ -123,14 +118,15 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
               </tr>
               <tr className="compare-section"><td colSpan={compared.length + 1}>{t.benchmark}</td></tr>
               {BENCHMARK_ROWS.map((row) => {
-                const winner = bestSlug(row)
+                const winners = winnersOf(row)
                 return (
                   <tr key={String(row.labelKey)}>
                     <td className="muted">{t[row.labelKey] as string}</td>
                     {compared.map((m) => {
                       const est = isRowEstimated(row, m)
+                      const isWinner = winners.includes(m.slug)
                       return (
-                        <td key={m.slug} className={`${winner === m.slug ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={winner === m.slug ? t.rank : est ? t.estimated : undefined}>
+                        <td key={m.slug} className={`${isWinner ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={isWinner ? t.rank : est ? t.estimated : undefined}>
                           {est ? '≈ ' : ''}{row.format(row.value(m))}
                         </td>
                       )
@@ -140,14 +136,15 @@ export default function ComparePanel({ models, compareIds, costView, taskInput, 
               })}
               <tr className="compare-section"><td colSpan={compared.length + 1}>{t.costEfficiency}</td></tr>
               {costRows.map((row) => {
-                const winner = bestSlug(row)
+                const winners = winnersOf(row)
                 return (
                   <tr key={String(row.labelKey)}>
                     <td className="muted">{t[row.labelKey] as string}</td>
                     {compared.map((m) => {
                       const est = isRowEstimated(row, m)
+                      const isWinner = winners.includes(m.slug)
                       return (
-                        <td key={m.slug} className={`${winner === m.slug ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={winner === m.slug ? t.rank : est ? t.estimated : undefined}>
+                        <td key={m.slug} className={`${isWinner ? 'compare-best' : ''} ${est ? 'est' : ''}`} title={isWinner ? t.rank : est ? t.estimated : undefined}>
                           {est ? '≈ ' : ''}{row.format(row.value(m))}
                         </td>
                       )
