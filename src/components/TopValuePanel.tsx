@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
-import { costUnitLabel, formatMetric, formatUsd, frontierSlugsWithinBudget, topValueByBudget, type EfficiencyOpts } from '../pareto'
+import { budgetedPareto, costUnitLabel, formatMetric, formatUsd, topValueByBudget, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated } from '../estimation'
 import { exportModelsCsv } from '../csv'
 import type { T } from '../i18n'
@@ -40,8 +40,8 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
     [items, costView, taskInput, taskOutput, metric, valueScoreBase, efficiencyOpts, budget, sortBy],
   )
 
-  const frontierSlugs = useMemo(
-    () => frontierSlugsWithinBudget(items, costView, taskInput, taskOutput, budget, valueScoreBase),
+  const { frontierSlugs, costToNext } = useMemo(
+    () => budgetedPareto(items, costView, taskInput, taskOutput, budget, valueScoreBase),
     [items, costView, taskInput, taskOutput, budget, valueScoreBase],
   )
 
@@ -90,6 +90,7 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
                 <th>{t.model}</th>
                 <th>{t.family}</th>
                 <th className="num">{t.cost}</th>
+                <th className="num">{t.frontierCostGap}</th>
                 <th className="num">{t.score}</th>
                 <th className="num">{t.valueScore}</th>
               </tr>
@@ -117,6 +118,13 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
                     <td className="num muted">{r.model.family}</td>
                     <td className={`num ${estCost ? 'est' : ''}`} title={estCost ? t.estimated : undefined}>
                       {estCost ? '≈ ' : ''}{formatUsd(r.cost)}{unit}
+                    </td>
+                    <td className="num" title={t.frontierCostGap}>
+                      {(() => {
+                        const pct = costToNext.get(r.model.slug)
+                        if (pct == null) return '—'
+                        return `${pct >= 0 ? '+' : '−'}${Math.round(Math.abs(pct))}%`
+                      })()}
                     </td>
                     <td className={`num ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
                       {est ? '≈ ' : ''}{formatMetric(metric, r.score)}

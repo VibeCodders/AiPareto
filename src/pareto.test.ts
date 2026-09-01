@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { blendedCostOf, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
+import { blendedCostOf, budgetedPareto, computeFrontier, computeMetric, costOf, costUnitLabel, dominates, formatMetric, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, topValueByBudget } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
 function model(partial: Partial<Model> = {}): Model {
@@ -255,6 +255,21 @@ describe('topValueByBudget', () => {
   it('respects the maxRows cap', () => {
     const many = Array.from({ length: 12 }, (_, i) => model({ intelligenceIndex: 50 + i }))
     expect(topValueByBudget(many, 'blended', 3000, 1000, 'intelligenceIndex', 'intelligenceIndex', undefined, 100, 5)).toHaveLength(5)
+  })
+})
+
+describe('budgetedPareto', () => {
+  it('marks in-budget Pareto picks and the % cost to the next better value', () => {
+    const cheap = model({ slug: 'cheap', intelligenceIndex: 60 }) // value 60/0.12 = 500
+    const mid = model({ slug: 'mid', intelligenceIndex: 300, inputPerM: 0.5, outputPerM: 0.5 }) // value 300/0.5 = 600
+    const pricey = model({ slug: 'pricey', intelligenceIndex: 98, inputPerM: 5 }) // blended ~5 -> over budget 1
+    const res = budgetedPareto([cheap, mid, pricey], 'blended', 3000, 1000, 1, 'intelligenceIndex')
+    // pricey is excluded; cheap and mid are both value-Pareto within the budget.
+    expect(res.frontierSlugs.has('cheap')).toBe(true)
+    expect(res.frontierSlugs.has('mid')).toBe(true)
+    expect(res.frontierSlugs.size).toBe(2)
+    expect(res.costToNext.has('cheap')).toBe(true) // % cost to step up to 'mid'
+    expect(res.costToNext.has('pricey')).toBe(false)
   })
 })
 

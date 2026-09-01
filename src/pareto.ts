@@ -119,14 +119,26 @@ export function topValueByBudget(
  * Slugs that are Pareto-optimal within the budget when plotting cost (X) vs valueScore (Y),
  * i.e. not dominated by any cheaper-and-better-value model also inside the budget.
  */
-export function frontierSlugsWithinBudget(
+export interface BudgetedPareto {
+  /** Slugs that are Pareto-optimal within the budget (cost vs valueScore). */
+  frontierSlugs: Set<string>
+  /** Per-slug % cost change to reach the next strictly-better-value frontier pick within the budget. */
+  costToNext: Map<string, number | null>
+}
+
+/**
+ * One-pass Pareto analysis of the items inside `budget` on the cost (X) vs valueScore (Y)
+ * axes: which picks are not dominated, and how much each would pay (in % of its cost) to
+ * step up to the next strictly-better-value pick. Builds the points and frontier only once.
+ */
+export function budgetedPareto(
   items: Model[],
   costView: CostView,
   taskInput: number,
   taskOutput: number,
   budget: number,
   valueScoreBase: ValueScoreBase,
-): Set<string> {
+): BudgetedPareto {
   const points: Point[] = []
   for (const m of items) {
     const cost = costOf(m, costView, taskInput, taskOutput)
@@ -135,7 +147,13 @@ export function frontierSlugsWithinBudget(
     if (value == null) continue
     points.push({ model: m, x: cost, score: value })
   }
-  return new Set(computeFrontier(points, false, true).map((p) => p.model.slug))
+  const frontier = computeFrontier(points, false, true)
+  const frontierSlugs = new Set(frontier.map((p) => p.model.slug))
+  const costToNext = new Map<string, number | null>()
+  for (const p of points) {
+    costToNext.set(p.model.slug, frontierUpgradeOf(p, frontier, false)?.costDeltaPct ?? null)
+  }
+  return { frontierSlugs, costToNext }
 }
 
 
