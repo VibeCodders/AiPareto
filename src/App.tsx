@@ -978,6 +978,7 @@ export default function App() {
             sortKey={tableSort}
             sortDesc={tableDesc}
             onSortChange={(key, desc) => { setTableSort(key); setTableDesc(desc) }}
+            onAddCompare={(ids) => setCompareIds((prev) => [...new Set([...prev, ...ids])])}
             visibleColKeys={visibleCols}
             onColsChange={(keys) => setVisibleCols(keys)}
           />

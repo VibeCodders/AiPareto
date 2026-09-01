@@ -67,6 +67,8 @@ interface Props {
   onSelect: (id: string) => void
   compareIds: string[]
   onToggleCompare: (id: string) => void
+  /** Bulk-add the given slugs to the compare set (e.g. all frontier models). */
+  onAddCompare: (ids: string[]) => void
   dominatedCounts: Map<string, number>
   frontierUpgradeBySlug: Map<string, FrontierUpgrade | null>
   /** Sort column (controlled from the URL; validated against the columns here). */
@@ -96,7 +98,7 @@ const SORT_KEYS: SortKey[] = [
 ]
 
 
-export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare, dominatedCounts, frontierUpgradeBySlug, sortKey: sortKeyRaw, sortDesc, onSortChange, visibleColKeys, onColsChange }: Props) {
+export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t,  onSelect, compareIds, onToggleCompare, onAddCompare, dominatedCounts, frontierUpgradeBySlug, sortKey: sortKeyRaw, sortDesc, onSortChange, visibleColKeys, onColsChange }: Props) {
   // Sort and visible columns are controlled from the URL; invalid keys fall back sensibly.
   const sortKey: SortKey = SORT_KEYS.includes(sortKeyRaw as SortKey) ? (sortKeyRaw as SortKey) : 'score'
   const desc = sortDesc
@@ -198,6 +200,11 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
             {t[c.labelKey]}
           </label>
         ))}
+        <div className="compare-actions" style={{ marginLeft: 'auto' }}>
+          <button className="btn" disabled={frontierIds.size === 0} onClick={() => onAddCompare([...frontierIds])}>
+            ＋ {t.addFrontierToCompare}
+          </button>
+        </div>
       </div>
       <div className="table-wrap">
         <table className="model-table">
