@@ -3,7 +3,7 @@ import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
 import type { CostView, EfficiencyWeights, MetricKey, Model, Point, SubscriptionPlan, ValueScoreBase } from './types'
-import { blendedCostOf, computeFrontier, computeMetric, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, type EfficiencyOpts } from './pareto'
+import { blendedCostOf, computeFrontier, computeMetric, dominates, formatAxisTick, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, priceRatiosOf, type EfficiencyOpts } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { parseUrl, toSearch, type UrlState } from './urlState'
@@ -183,10 +183,9 @@ export default function App() {
         (baseModel as Partial<EstimatedModel>).estimatedMetrics ? Array.from((baseModel as Partial<EstimatedModel>).estimatedMetrics!) : [],
       )
 
-      // Subscriptions have flat effective token cost for input; derive output/cache proportional to base model or standard multipliers
-      const ratioOutput = baseModel.inputPerM && baseModel.outputPerM ? baseModel.outputPerM / baseModel.inputPerM : 3.0
-      const ratioCacheRead = baseModel.inputPerM && baseModel.cacheReadPerM ? baseModel.cacheReadPerM / baseModel.inputPerM : 0.25
-      const ratioCacheWrite = baseModel.inputPerM && baseModel.cacheWritePerM ? baseModel.cacheWritePerM / baseModel.inputPerM : 1.25
+      // Subscriptions have flat effective token cost for input; derive output/cache
+      // proportional to the base model's pricing shape (or standard multipliers).
+      const { output: ratioOutput, cacheRead: ratioCacheRead, cacheWrite: ratioCacheWrite } = priceRatiosOf(baseModel)
 
       const subOutputPerM = Number((effectiveCostPerM * ratioOutput).toFixed(4))
       const subCacheReadPerM = Number((effectiveCostPerM * ratioCacheRead).toFixed(4))

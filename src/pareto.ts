@@ -47,6 +47,27 @@ export function blendedCostOf(m: Model): number | null {
   return null
 }
 
+/** Output/cache price multipliers implied by a reference model, with industry-standard fallbacks. */
+export interface PriceRatios {
+  output: number
+  cacheRead: number
+  cacheWrite: number
+}
+
+/**
+ * The output:input, cache-read:input and cache-write:input price ratios of a model,
+ * falling back to the typical industry multipliers (3x, 0.25x, 1.25x) when the model
+ * doesn't publish one of the prices. Used to derive per-token pricing for synthesized
+ * subscription items from the pricing shape of their underlying model.
+ */
+export function priceRatiosOf(m: Model): PriceRatios {
+  return {
+    output: m.inputPerM && m.outputPerM ? m.outputPerM / m.inputPerM : 3.0,
+    cacheRead: m.inputPerM && m.cacheReadPerM ? m.cacheReadPerM / m.inputPerM : 0.25,
+    cacheWrite: m.inputPerM && m.cacheWritePerM ? m.cacheWritePerM / m.inputPerM : 1.25,
+  }
+}
+
 
 /** Benchmark score per dollar. Defaults to Intelligence Index; pass another benchmark to get e.g. coding-per-$ or agentic-per-$. */
 export function valueScoreOf(
@@ -240,6 +261,7 @@ export function formatMetric(metric: MetricKey, v: number | null | undefined): s
     case 'efficiencyScore':
       return v.toFixed(0)
     case 'arenaElo':
+    case 'arenaCodeElo':
       return String(Math.round(v))
     default:
       return v.toFixed(1)

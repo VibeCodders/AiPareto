@@ -154,6 +154,7 @@ export interface Strings {
   arenaCodeElo: string
   benchlmScore: string
   hfDownloads: string
+  hfMMLU: string
 }
 
 export const STRINGS: Record<Lang, Strings> = {
@@ -311,6 +312,7 @@ export const STRINGS: Record<Lang, Strings> = {
     arenaCodeElo: 'Arena ELO (code)',
     benchlmScore: 'BenchLM',
     hfDownloads: 'Download (HF)',
+    hfMMLU: 'HF MMLU',
   },
   en: {
     title: 'AI Pareto — cost vs intelligence',
@@ -466,6 +468,7 @@ export const STRINGS: Record<Lang, Strings> = {
     arenaCodeElo: 'Arena ELO (code)',
     benchlmScore: 'BenchLM',
     hfDownloads: 'Downloads (HF)',
+    hfMMLU: 'HF MMLU',
   },
 }
 

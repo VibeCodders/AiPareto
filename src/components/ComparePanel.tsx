@@ -27,6 +27,11 @@ const BENCHMARK_ROWS: Row[] = [
   { labelKey: 'maxOutputTokens', higherIsBetter: true, value: (m) => m.maxCompletionTokens, format: (v) => formatTokens(v), estField: 'maxCompletionTokens' },
   { labelKey: 'parameters', higherIsBetter: true, value: (m) => m.parameters, format: (v) => formatParams(v), estField: 'parameters' },
   { labelKey: 'activeParameters', higherIsBetter: true, value: (m) => m.activeParameters, format: (v) => formatParams(v), estField: 'activeParameters' },
+  { labelKey: 'hfMMLU', higherIsBetter: true, value: (m) => m.hfMMLU, format: (v) => formatMetric('hfMMLU', v), estMetric: 'hfMMLU' },
+  { labelKey: 'arenaElo', higherIsBetter: true, value: (m) => m.arenaElo, format: (v) => formatMetric('arenaElo', v), estMetric: 'arenaElo' },
+  { labelKey: 'arenaCodeElo', higherIsBetter: true, value: (m) => m.arenaCodeElo, format: (v) => formatMetric('arenaCodeElo', v), estMetric: 'arenaCodeElo' },
+  { labelKey: 'benchlmScore', higherIsBetter: true, value: (m) => m.benchlmScore, format: (v) => formatMetric('benchlmScore', v), estMetric: 'benchlmScore' },
+  { labelKey: 'hfDownloads', higherIsBetter: true, value: (m) => m.hfDownloads, format: (v) => formatTokens(v), estField: 'hfDownloads' },
 ]
 
 interface Props {
