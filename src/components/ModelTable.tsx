@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
 import { blendedCostOf, computeMetric, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts, type FrontierUpgrade } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
-import { isLowerBetter } from '../urlState'
 import type { T } from '../i18n'
 
 type SortKey =
@@ -68,7 +67,19 @@ interface Props {
   onToggleCompare: (id: string) => void
   dominatedCounts: Map<string, number>
   frontierUpgradeBySlug: Map<string, FrontierUpgrade | null>
+  /** Sort column (controlled from the URL; validated against the columns here). */
+  sortKey: string
+  /** Sort direction (true = descending). */
+  sortDesc: boolean
+  onSortChange: (key: string, desc: boolean) => void
 }
+
+const SORT_KEYS: SortKey[] = [
+  'name', 'family', 'score', 'inputPerM', 'outputPerM', 'cacheReadPerM', 'cacheWritePerM', 'blended',
+  'contextTokens', 'maxCompletionTokens', 'released', 'outputSpeed', 'latencySeconds', 'parameters',
+  'activeParameters', 'codingIndex', 'agenticIndex', 'subscription', 'frontierDelta', 'frontierCostGap',
+  'dominates', 'arenaElo', 'arenaCodeElo', 'benchlmScore', 'hfDownloads',
+]
 
 const LS_COLS = 'ai-pareto-table-cols'
 const DEFAULT_COLS: OptionalCol[] = ['subscription']
@@ -88,9 +99,10 @@ function loadVisibleCols(): Set<OptionalCol> {
   return new Set(DEFAULT_COLS)
 }
 
-export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare, dominatedCounts, frontierUpgradeBySlug }: Props) {
-  const [sortKey, setSortKey] = useState<SortKey>('score')
-  const [desc, setDesc] = useState(() => !isLowerBetter(metric))
+export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare, dominatedCounts, frontierUpgradeBySlug, sortKey: sortKeyRaw, sortDesc, onSortChange }: Props) {
+  // Sort is controlled from the URL; a key outside the valid column set falls back to the table default.
+  const sortKey: SortKey = SORT_KEYS.includes(sortKeyRaw as SortKey) ? (sortKeyRaw as SortKey) : 'score'
+  const desc = sortDesc
   const [visibleCols, setVisibleCols] = useState<Set<OptionalCol>>(loadVisibleCols)
 
   // The user's column picks survive reloads, mirroring how lang/theme are persisted elsewhere.
@@ -101,12 +113,6 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
       /* ignore storage-unavailable errors */
     }
   }, [visibleCols])
-
-  // Reset to the metric-appropriate default direction when the metric changes.
-  useEffect(() => {
-    setSortKey('score')
-    setDesc(!isLowerBetter(metric))
-  }, [metric])
 
   const toggleCol = (k: OptionalCol) => {
     setVisibleCols((prev) => {
@@ -159,11 +165,10 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
   })
 
   const toggle = (k: SortKey) => {
-    if (k === sortKey) setDesc(!desc)
+    if (k === sortKey) onSortChange(k, !desc)
     else {
-      setSortKey(k)
       // Text columns read more naturally ascending on first click; numeric columns descend.
-      setDesc(k !== 'name' && k !== 'family')
+      onSortChange(k, k !== 'name' && k !== 'family')
     }
   }
 

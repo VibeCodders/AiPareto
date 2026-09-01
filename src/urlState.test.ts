@@ -129,6 +129,8 @@ describe('toSearch / parseUrl round-trip', () => {
       xMetric: 'hfHumanEval',
       budget: 75,
       topValueSort: 'efficiency',
+      tableSort: 'blended',
+      tableDesc: false,
     }
     const back = parseUrl(toSearch(s, FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)
     expect(back.metric).toBe('codingIndex')
@@ -145,6 +147,27 @@ describe('toSearch / parseUrl round-trip', () => {
     expect(back.releasedFrom).toBe('2024-01-01')
     expect(back.budget).toBe(75)
     expect(back.topValueSort).toBe('efficiency')
+    expect(back.tableSort).toBe('blended')
+    expect(back.tableDesc).toBe(false)
+  })
+})
+
+describe('table sort serialization', () => {
+  it('round-trips the sort column and direction', () => {
+    const s = parseUrl('?ts=latencySeconds&td=0', FAMILIES, METRIC_MAX)
+    expect(s.tableSort).toBe('latencySeconds')
+    expect(s.tableDesc).toBe(false)
+    const back = parseUrl(toSearch(s, FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)
+    expect(back.tableSort).toBe('latencySeconds')
+    expect(back.tableDesc).toBe(false)
+  })
+  it('defaults to scope column descending and omits the params', () => {
+    const s = parseUrl('', FAMILIES, METRIC_MAX)
+    expect(s.tableSort).toBe('score')
+    expect(s.tableDesc).toBe(true)
+    const q = toSearch(s, FAMILIES, METRIC_MAX)
+    expect(q).not.toContain('ts=')
+    expect(q).not.toContain('td=')
   })
 })
 

@@ -6,7 +6,7 @@ import type { CostView, EfficiencyWeights, MetricKey, Model, Point, Subscription
 import { blendedCostOf, computeFrontier, computeMetric, costUnitLabel, dominates, formatAxisTick, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
-import { DEFAULT_BUDGET, DEFAULT_TOP_VALUE_SORT, parseUrl, toSearch, type TopValueSort, type UrlState } from './urlState'
+import { DEFAULT_BUDGET, DEFAULT_TABLE_SORT, DEFAULT_TOP_VALUE_SORT, parseUrl, toSearch, type TopValueSort, type UrlState } from './urlState'
 import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
 import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
@@ -184,6 +184,19 @@ export default function App() {
   const [xMetric, setXMetric] = useState<MetricKey | null>(INITIAL.xMetric)
   const [budget, setBudget] = useState<number>(INITIAL.budget)
   const [topValueSort, setTopValueSort] = useState<TopValueSort>(INITIAL.topValueSort)
+  const [tableSort, setTableSort] = useState<string>(INITIAL.tableSort)
+  const [tableDesc, setTableDesc] = useState<boolean>(INITIAL.tableDesc)
+  // Reset to the metric-appropriate sort when the metric changes (not on first render, so a
+  // shared URL like ?ts=blended keeps its own sort)
+  const prevMetricRef = useRef(metric)
+  useEffect(() => {
+    const prev = prevMetricRef.current
+    prevMetricRef.current = metric
+    if (prev === metric) return
+    setTableSort(DEFAULT_TABLE_SORT)
+    setTableDesc(!isLowerBetter(metric))
+  }, [metric])
+
   const chartSvgRef = useRef<SVGSVGElement | null>(null)
   const [svgReady, setSvgReady] = useState(false)
   const [pngSaved, triggerPngSaved] = useTransientFlag()
@@ -300,6 +313,8 @@ export default function App() {
     xMetric,
     budget,
     topValueSort,
+    tableSort,
+    tableDesc,
   }
 
   useEffect(() => {
@@ -308,7 +323,7 @@ export default function App() {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing, xMetric, budget, topValueSort])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing, xMetric, budget, topValueSort, tableSort, tableDesc])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -370,6 +385,8 @@ export default function App() {
     // Presets saved before these fields existed won't carry them -> fall back to the defaults.
     setBudget(typeof s.budget === 'number' ? s.budget : DEFAULT_BUDGET)
     setTopValueSort(s.topValueSort ?? DEFAULT_TOP_VALUE_SORT)
+    setTableSort(s.tableSort ?? DEFAULT_TABLE_SORT)
+    setTableDesc(typeof s.tableDesc === 'boolean' ? s.tableDesc : true)
   }
 
   const handleSavePreset = () => {
@@ -437,6 +454,8 @@ export default function App() {
     setXMetric(null)
     setBudget(DEFAULT_BUDGET)
     setTopValueSort(DEFAULT_TOP_VALUE_SORT)
+    setTableSort(DEFAULT_TABLE_SORT)
+    setTableDesc(true)
     setPresetId(null)
   }
 
@@ -952,6 +971,9 @@ export default function App() {
             onToggleCompare={toggleCompare}
             dominatedCounts={dominatedCounts}
             frontierUpgradeBySlug={frontierUpgradeBySlug}
+            sortKey={tableSort}
+            sortDesc={tableDesc}
+            onSortChange={(key, desc) => { setTableSort(key); setTableDesc(desc) }}
           />
         )}
       </section>

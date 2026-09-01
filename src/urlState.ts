@@ -49,12 +49,19 @@ export interface UrlState {
   budget: number
   /** Rank axis for the "top value within budget" panel. */
   topValueSort: TopValueSort
+  /** Main table sort column (validated against the table's columns on render). */
+  tableSort: string
+  /** Main table sort direction (true = descending). */
+  tableDesc: boolean
 }
 
 /** Default per-unit budget for the top-value panel. */
 export const DEFAULT_BUDGET = 40
 /** Upper bound the per-unit budget is clamped to when reading from the URL (must match what the input can type). */
 export const MAX_BUDGET = 1_000_000
+
+/** Default model-table sort column; the table validates any URL-provided value against its own column set. */
+export const DEFAULT_TABLE_SORT = 'score'
 
 /** How the top-value panel ranks its picks. */
 export type TopValueSort = 'value' | 'score' | 'efficiency'
@@ -172,6 +179,8 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     xMetric: METRICS.includes(p.get('xmet') as MetricKey) ? (p.get('xmet') as MetricKey) : null,
     budget: clampFloat(p.get('tbudget'), 0, MAX_BUDGET, DEFAULT_BUDGET),
     topValueSort: TOP_VALUE_SORTS.includes(p.get('tsort') as TopValueSort) ? (p.get('tsort') as TopValueSort) : DEFAULT_TOP_VALUE_SORT,
+    tableSort: p.get('ts') ?? DEFAULT_TABLE_SORT,
+    tableDesc: p.get('td') !== '0',
   }
 }
 
@@ -218,6 +227,8 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (s.xMetric) p.set('xmet', s.xMetric)
   if (s.budget !== DEFAULT_BUDGET) p.set('tbudget', String(s.budget))
   if (s.topValueSort !== DEFAULT_TOP_VALUE_SORT) p.set('tsort', s.topValueSort)
+  if (s.tableSort !== DEFAULT_TABLE_SORT) p.set('ts', s.tableSort)
+  if (!s.tableDesc) p.set('td', '0')
   return p.toString()
 }
 
