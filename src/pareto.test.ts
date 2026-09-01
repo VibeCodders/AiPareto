@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { CostView, MetricKey, Model, Point } from './types'
-import { blendedCostOf, budgetTradeoffOf, budgetedPareto, cheapestAboveBudget, computeFrontier, computeMetric, contextValueOf, costOf, costUnitLabel, dominates, efficiencyScoreOf, formatAxisTick, formatCostChangePct, formatMetric, formatParams, formatUsd, frontierDeltaOf, frontierUpgradeOf, niceCeil, priceRatiosOf, speedAdjustedScoreOf, topValueByBudget } from './pareto'
+import { blendedCostOf, budgetTradeoffOf, budgetedPareto, cheapestAboveBudget, computeFrontier, computeMetric, contextValueOf, costOf, costUnitLabel, dominates, efficiencyScoreOf, formatAxisTick, formatCostChangePct, formatMetric, formatParams, formatStepUpGain, formatUsd, frontierDeltaOf, frontierUpgradeOf, niceCeil, priceRatiosOf, speedAdjustedScoreOf, topValueByBudget } from './pareto'
 
 /** Minimal valid Model for pure-math tests (only fields under test are meaningful). */
 function model(partial: Partial<Model> = {}): Model {
@@ -317,6 +317,14 @@ describe('cheapestAboveBudget', () => {
   })
   it('returns null for a negative budget', () => {
     expect(cheapestAboveBudget([model()], 'blended', 3000, 1000, -1)).toBeNull()
+  })
+})
+
+describe('formatStepUpGain', () => {
+  it('signs higher-is-better gains as + and latency reductions as -', () => {
+    expect(formatStepUpGain('intelligenceIndex', 12.4)).toBe('+12.4')
+    expect(formatStepUpGain('latencySeconds', 1.51)).toBe('−1.5s')
+    expect(formatStepUpGain('intelligenceIndex', null)).toBe('—')
   })
 })
 

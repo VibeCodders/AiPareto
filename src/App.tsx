@@ -3,7 +3,7 @@ import modelsData from './data/models.json'
 import metaData from './data/meta.json'
 import subscriptionsData from './data/subscriptions.json'
 import type { CostView, EfficiencyWeights, MetricKey, Model, Point, SubscriptionPlan, ValueScoreBase } from './types'
-import { blendedCostOf, computeFrontier, computeMetric, costUnitLabel, dominates, formatAxisTick, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
+import { blendedCostOf, computeFrontier, computeMetric, costUnitLabel, dominates, formatAxisTick, formatCostChangePct, formatDelta, formatMetric, formatParams, formatStepUpGain, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
 import { DEFAULT_BUDGET, DEFAULT_TABLE_SORT, DEFAULT_TOP_VALUE_SORT, parseUrl, toSearch, type TopValueSort, type UrlState } from './urlState'
@@ -1099,7 +1099,7 @@ function ModelCard({
         {/* How much % the cost changes to reach the first frontier model with a strictly better score. */}
         <div>
           <span className="muted">{t.frontierCostGap}</span>
-          <b title={frontierUpgrade ? `${frontierUpgrade.model.aaName} · +${formatMetric(metric, frontierUpgrade.scoreGain)} ${metricLabelOf(t, metric)} · ${formatUsd(costOf(model, costView))} → ${formatUsd(costOf(frontierUpgrade.model, costView))}` : undefined}>
+          <b title={frontierUpgrade ? `${frontierUpgrade.model.aaName} · ${formatStepUpGain(metric, frontierUpgrade.scoreGain)} ${metricLabelOf(t, metric)} · ${formatUsd(costOf(model, costView))} → ${formatUsd(costOf(frontierUpgrade.model, costView))}` : undefined}>
             {frontierUpgrade ? `${formatCostChangePct(frontierUpgrade.costDeltaPct)} ${t.cost}` : '—'}
           </b>
         </div>

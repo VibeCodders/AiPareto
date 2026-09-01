@@ -354,6 +354,16 @@ export function formatDelta(v: number | null | undefined): string {
   return `-${v.toFixed(0)}%`
 }
 
+/**
+ * Signed "score gained" for a step-up, honouring metric direction: for lower-is-better
+ * metrics (latency) an improvement is a reduction, so it reads as `−`, not `+`.
+ */
+export function formatStepUpGain(metric: MetricKey, gain: number | null | undefined): string {
+  if (gain == null) return '—'
+  const prefix = metric === 'latencySeconds' ? '−' : '+'
+  return `${prefix}${formatMetric(metric, gain)}`
+}
+
 /** Signed % change with a dash for missing values (e.g. "+12%", "−5%", "—"). */
 export function formatCostChangePct(pct: number | null | undefined): string {
   if (pct == null) return '—'
