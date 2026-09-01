@@ -73,6 +73,15 @@ describe('parseUrl', () => {
     const s = parseUrl('?xmet=not-a-metric', FAMILIES, METRIC_MAX)
     expect(s.xMetric).toBeNull()
   })
+  it('round-trips price caps above $1000', () => {
+    const s = parseUrl('?pmin=12.5&pmax=2500', FAMILIES, METRIC_MAX)
+    expect(s.minPrice).toBe(12.5)
+    expect(s.maxPrice).toBe(2500)
+    // serialize keeps the high cap, then parse restores it.
+    const back = parseUrl(toSearch(s, FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)
+    expect(back.minPrice).toBe(12.5)
+    expect(back.maxPrice).toBe(2500)
+  })
 })
 
 describe('toSearch / parseUrl round-trip', () => {

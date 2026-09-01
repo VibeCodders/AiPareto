@@ -122,8 +122,8 @@ export function topValueByBudget(
 export interface BudgetedPareto {
   /** Slugs that are Pareto-optimal within the budget (cost vs valueScore). */
   frontierSlugs: Set<string>
-  /** Per-slug % cost change to reach the next strictly-better-value frontier pick within the budget. */
-  costToNext: Map<string, number | null>
+  /** Per-slug % cost change (and target model) to reach the next better-value frontier pick within the budget. */
+  costToNext: Map<string, { pct: number; target: Model } | null>
 }
 
 /**
@@ -149,9 +149,10 @@ export function budgetedPareto(
   }
   const frontier = computeFrontier(points, false, true)
   const frontierSlugs = new Set(frontier.map((p) => p.model.slug))
-  const costToNext = new Map<string, number | null>()
+  const costToNext = new Map<string, { pct: number; target: Model } | null>()
   for (const p of points) {
-    costToNext.set(p.model.slug, frontierUpgradeOf(p, frontier, false)?.costDeltaPct ?? null)
+    const up = frontierUpgradeOf(p, frontier, false)
+    costToNext.set(p.model.slug, up ? { pct: up.costDeltaPct, target: up.model } : null)
   }
   return { frontierSlugs, costToNext }
 }

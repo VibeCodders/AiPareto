@@ -139,8 +139,9 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     presetId: p.get('p') || null,
     reasoningOnly: p.get('reason') === '1',
     openWeightsOnly: p.get('open') === '1',
-    minPrice: clampFloat(p.get('pmin'), 0, 1000, 0),
-    maxPrice: clampFloat(p.get('pmax'), 0, 1000, 1000),
+    // Price caps must survive values above $1000 (shareable/reload), so the clamp bound is high.
+    minPrice: clampFloat(p.get('pmin'), 0, 1_000_000, 0),
+    maxPrice: clampFloat(p.get('pmax'), 0, 1_000_000, 1000),
     compareIds,
     minContext: clampInt(p.get('ctxmin'), 0, 10_000_000, 0),
     releasedFrom: /^\d{4}-\d{2}-\d{2}$/.test(p.get('relfrom') ?? '') ? (p.get('relfrom') as string) : '',
@@ -187,7 +188,7 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (s.reasoningOnly) p.set('reason', '1')
   if (s.openWeightsOnly) p.set('open', '1')
   if (s.minPrice > 0) p.set('pmin', String(s.minPrice))
-  if (s.maxPrice < 1000) p.set('pmax', String(s.maxPrice))
+  if (s.maxPrice !== 1000) p.set('pmax', String(s.maxPrice))
   if (s.compareIds.length > 0) p.set('cmp', s.compareIds.join(','))
   if (s.minContext > 0) p.set('ctxmin', String(s.minContext))
   if (s.releasedFrom) p.set('relfrom', s.releasedFrom)

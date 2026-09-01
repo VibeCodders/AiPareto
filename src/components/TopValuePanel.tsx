@@ -119,11 +119,15 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
                     <td className={`num ${estCost ? 'est' : ''}`} title={estCost ? t.estimated : undefined}>
                       {estCost ? '≈ ' : ''}{formatUsd(r.cost)}{unit}
                     </td>
-                    <td className="num" title={t.frontierCostGap}>
+                    <td className="num" title={(() => {
+                      const step = costToNext.get(r.model.slug)
+                      if (step == null) return t.frontierCostGap
+                      return `${t.frontierCostGap}: ${step.target.aaName}`
+                    })()}>
                       {(() => {
-                        const pct = costToNext.get(r.model.slug)
-                        if (pct == null) return '—'
-                        return `${pct >= 0 ? '+' : '−'}${Math.round(Math.abs(pct))}%`
+                        const step = costToNext.get(r.model.slug)
+                        if (step == null) return '—'
+                        return `${step.pct >= 0 ? '+' : '−'}${Math.round(Math.abs(step.pct))}%`
                       })()}
                     </td>
                     <td className={`num ${est ? 'est' : ''}`} title={est ? t.estimated : undefined}>
