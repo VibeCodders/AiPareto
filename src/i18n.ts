@@ -116,6 +116,7 @@ export interface Strings {
   weightContext: string
   valueScoreBase: string
   vsFrontier: string
+  frontierCostGap: string
   frontierUpgrade: string
   bestInCompare: string
   bestInCompareTitle: string
@@ -289,6 +290,7 @@ export const STRINGS: Record<Lang, Strings> = {
     weightContext: 'Peso contesto/$',
     valueScoreBase: 'Base Value Score',
     vsFrontier: 'Δ vs frontiera',
+    frontierCostGap: 'Δ costo per salire',
     frontierUpgrade: 'Salto di frontiera',
     bestInCompare: 'Miglior valore',
     bestInCompareTitle: 'Best value per questa metrica tra i modelli confrontati',
@@ -460,6 +462,7 @@ export const STRINGS: Record<Lang, Strings> = {
     weightContext: 'Context/$ weight',
     valueScoreBase: 'Value Score basis',
     vsFrontier: 'Δ vs frontier',
+    frontierCostGap: 'Cost to step up',
     frontierUpgrade: 'Frontier step',
     bestInCompare: 'Best value',
     bestInCompareTitle: 'Best value for this metric among the compared models',

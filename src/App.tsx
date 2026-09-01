@@ -1023,6 +1023,13 @@ function ModelCard({
         <StatCell label={t.family} value={model.family} />
         <StatCell label={metricLabelOf(t, metric)} estimated={scoreEstimated} title={t.estimated} value={formatMetric(metric, score)} />
         <div><span className="muted">{t.vsFrontier}</span><b className={frontierDelta != null && frontierDelta > 0.05 ? 'delta-behind' : 'delta-ok'}>{formatDelta(frontierDelta)}</b></div>
+        {/* How much % the cost changes to reach the first frontier model with a strictly better score. */}
+        <div>
+          <span className="muted">{t.frontierCostGap}</span>
+          <b title={frontierUpgrade ? `${frontierUpgrade.model.aaName} · +${formatMetric(metric, frontierUpgrade.scoreGain)} ${metricLabelOf(t, metric)}` : undefined}>
+            {frontierUpgrade ? `${frontierUpgrade.costDeltaPct >= 0 ? '+' : '−'}${Math.round(Math.abs(frontierUpgrade.costDeltaPct))}% ${t.cost}` : '—'}
+          </b>
+        </div>
         <div><span className="muted">{t.dominates}</span><b title={t.dominatesHint}>{dominatedCount}</b></div>
         <StatCell label={t.input} estimated={estInput} title={t.estimated} value={<>{formatUsd(model.inputPerM)}/1M</>} />
         <StatCell label={t.output} estimated={estOutput} title={t.estimated} value={<>{formatUsd(model.outputPerM)}/1M</>} />
