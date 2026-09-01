@@ -12,7 +12,7 @@ import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
 import { useTransientFlag } from './useTransientFlag'
 import { estimateModels, isCostEstimated, isEstimated, isFieldEstimated, type EstimatedModel } from './estimation'
-import { bestSlugsFor } from './compare'
+import { bestSlugsFor, winCount } from './compare'
 import ParetoChart, { type SizeBy } from './components/ParetoChart'
 import ModelTable from './components/ModelTable'
 import ComparePanel from './components/ComparePanel'
@@ -882,6 +882,7 @@ export default function App() {
         valueScoreBase={valueScoreBase}
         efficiencyOpts={efficiencyOpts}
         t={t}
+        onSelect={setSelectedId}
       />
 
       {selected && (
@@ -1011,6 +1012,30 @@ function ModelCard({
     return bestSlugsFor(comparedModels, !isLowerBetter(metric), value).includes(model.slug)
   }, [comparedModels, metric, model.slug, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts])
 
+  // How many benchmark/derived rows this model is the best at among the compared set.
+  const comparedWins = useMemo(() => {
+    if (comparedModels.length === 0) return null
+    const derived = (k: MetricKey) => (m: Model) => computeMetric(m, k, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts)
+    const rows: Array<{ higherIsBetter: boolean; value: (m: Model) => number | null }> = [
+      { higherIsBetter: true, value: (m) => m.intelligenceIndex },
+      { higherIsBetter: true, value: (m) => m.codingIndex },
+      { higherIsBetter: true, value: (m) => m.agenticIndex },
+      { higherIsBetter: true, value: (m) => m.tau2 },
+      { higherIsBetter: true, value: (m) => m.hle },
+      { higherIsBetter: true, value: (m) => m.omniscience },
+      { higherIsBetter: false, value: (m) => m.latencySeconds },
+      { higherIsBetter: true, value: derived('valueScore') },
+      { higherIsBetter: true, value: derived('speedAdjustedScore') },
+      { higherIsBetter: true, value: derived('contextValue') },
+      { higherIsBetter: true, value: derived('efficiencyScore') },
+      { higherIsBetter: true, value: (m) => m.hfMMLU },
+      { higherIsBetter: true, value: (m) => m.arenaElo },
+      { higherIsBetter: true, value: (m) => m.arenaCodeElo },
+      { higherIsBetter: true, value: (m) => m.benchlmScore },
+    ]
+    return { wins: winCount(model, comparedModels, rows), total: rows.length }
+  }, [model, comparedModels, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts])
+
   const orId = model.isSubscription ? model.subscription?.modelId : model.id
   const aaSlug = model.isSubscription ? model.subscription?.modelSlug : model.slug
   return (
@@ -1023,6 +1048,7 @@ function ModelCard({
           {model.isReasoning && <span className="tag">reasoning</span>}
           {model.openWeights && <span className="tag tag-open">open weights</span>}
           {isBestAmongCompared && <span className="tag tag-open" title={t.bestInCompareTitle}>★ {t.bestInCompare}: {metricLabelOf(t, metric)}</span>}
+          {comparedWins && <span className="tag" title={t.bestInCompareTitle}>🏅 {comparedWins.wins}/{comparedWins.total} {t.winsAmong}</span>}
           {hasAnyEstimate > 0 && <span className="tag tag-est">≈ {t.estimated}</span>}
           <button className={`btn compare-toggle ${inCompare ? 'on' : ''}`} onClick={onToggleCompare}>
             {inCompare ? `✓ ${t.removeFromCompare}` : `+ ${t.addToCompare}`}

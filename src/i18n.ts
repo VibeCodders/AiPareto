@@ -120,6 +120,7 @@ export interface Strings {
   frontierUpgrade: string
   bestInCompare: string
   bestInCompareTitle: string
+  winsAmong: string
   topValueTitle: string
   topValueBudget: string
   topValueSort: string
@@ -294,6 +295,7 @@ export const STRINGS: Record<Lang, Strings> = {
     frontierUpgrade: 'Salto di frontiera',
     bestInCompare: 'Miglior valore',
     bestInCompareTitle: 'Best value per questa metrica tra i modelli confrontati',
+    winsAmong: 'metriche vinte tra i confrontati',
     topValueTitle: 'Top value nel budget',
     topValueBudget: 'Budget massimo',
     topValueSort: 'Ordina top value',
@@ -466,6 +468,7 @@ export const STRINGS: Record<Lang, Strings> = {
     frontierUpgrade: 'Frontier step',
     bestInCompare: 'Best value',
     bestInCompareTitle: 'Best value for this metric among the compared models',
+    winsAmong: 'metrics won among compared',
     topValueTitle: 'Top value within budget',
     topValueBudget: 'Max budget',
     topValueSort: 'Sort top value',

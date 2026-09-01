@@ -12,6 +12,8 @@ interface Props {
   valueScoreBase: ValueScoreBase
   efficiencyOpts: EfficiencyOpts
   t: T
+  /** Opens the model card for a pick. */
+  onSelect: (id: string) => void
 }
 
 const DEFAULT_BUDGET = 40
@@ -22,7 +24,7 @@ const MAX_ROWS = 8
  * the models/subscriptions with the best valueScore, reusing the shared Pareto engine to
  * mark which picks are not dominated inside the budget.
  */
-export default function TopValuePanel({ items, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t }: Props) {
+export default function TopValuePanel({ items, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect }: Props) {
   const [budget, setBudget] = useState(DEFAULT_BUDGET)
   const [sortBy, setSortBy] = useState<'value' | 'score'>('value')
 
@@ -77,7 +79,13 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
             </thead>
             <tbody>
               {rows.map((r, i) => (
-                <tr key={r.model.slug} className={frontierSlugs.has(r.model.slug) ? 'row-frontier' : ''}>
+                <tr
+                  key={r.model.slug}
+                  className={frontierSlugs.has(r.model.slug) ? 'row-frontier' : ''}
+                  title={t.details}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => onSelect(r.model.slug)}
+                >
                   <td className="num">{i + 1}</td>
                   <td className="bold">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
