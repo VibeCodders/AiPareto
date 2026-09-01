@@ -117,6 +117,7 @@ export interface Strings {
   valueScoreBase: string
   vsFrontier: string
   frontierCostGap: string
+  frontierScoreGain: string
   frontierUpgrade: string
   bestInCompare: string
   bestInCompareTitle: string
@@ -298,6 +299,7 @@ export const STRINGS: Record<Lang, Strings> = {
     valueScoreBase: 'Base Value Score',
     vsFrontier: 'Δ vs frontiera',
     frontierCostGap: 'Δ costo per salire',
+    frontierScoreGain: 'Δ punteggio per salire',
     frontierUpgrade: 'Salto di frontiera',
     bestInCompare: 'Miglior valore',
     bestInCompareTitle: 'Best value per questa metrica tra i modelli confrontati',
@@ -477,6 +479,7 @@ export const STRINGS: Record<Lang, Strings> = {
     valueScoreBase: 'Value Score basis',
     vsFrontier: 'Δ vs frontier',
     frontierCostGap: 'Cost to step up',
+    frontierScoreGain: 'Score to step up',
     frontierUpgrade: 'Frontier step',
     bestInCompare: 'Best value',
     bestInCompareTitle: 'Best value for this metric among the compared models',

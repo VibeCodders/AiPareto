@@ -24,15 +24,16 @@ type SortKey =
   | 'subscription'
   | 'frontierDelta'
   | 'frontierCostGap'
+  | 'frontierScoreGain'
   | 'dominates'
   | 'arenaElo'
   | 'arenaCodeElo'
   | 'benchlmScore'
   | 'hfDownloads'
 
-type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta' | 'frontierCostGap' | 'cacheWritePerM' | 'dominates' | 'maxCompletionTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads'
+type OptionalCol = 'outputSpeed' | 'latencySeconds' | 'codingIndex' | 'agenticIndex' | 'subscription' | 'frontierDelta' | 'frontierCostGap' | 'frontierScoreGain' | 'cacheWritePerM' | 'dominates' | 'maxCompletionTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads'
 
-const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' | 'frontierCostGap' | 'cacheWrite' | 'dominates' | 'maxOutputTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads' }> = [
+const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latency' | 'coding' | 'agentic' | 'subscriptions' | 'vsFrontier' | 'frontierCostGap' | 'frontierScoreGain' | 'cacheWrite' | 'dominates' | 'maxOutputTokens' | 'arenaElo' | 'arenaCodeElo' | 'benchlmScore' | 'hfDownloads' }> = [
   { key: 'subscription', labelKey: 'subscriptions' },
   { key: 'cacheWritePerM', labelKey: 'cacheWrite' },
   { key: 'codingIndex', labelKey: 'coding' },
@@ -41,6 +42,7 @@ const OPTIONAL_COLS: Array<{ key: OptionalCol; labelKey: 'outputSpeed' | 'latenc
   { key: 'latencySeconds', labelKey: 'latency' },
   { key: 'frontierDelta', labelKey: 'vsFrontier' },
   { key: 'frontierCostGap', labelKey: 'frontierCostGap' },
+  { key: 'frontierScoreGain', labelKey: 'frontierScoreGain' },
   { key: 'dominates', labelKey: 'dominates' },
   { key: 'maxCompletionTokens', labelKey: 'maxOutputTokens' },
   { key: 'arenaElo', labelKey: 'arenaElo' },
@@ -80,7 +82,7 @@ const SORT_KEYS: SortKey[] = [
   'name', 'family', 'score', 'inputPerM', 'outputPerM', 'cacheReadPerM', 'cacheWritePerM', 'blended',
   'contextTokens', 'maxCompletionTokens', 'released', 'outputSpeed', 'latencySeconds', 'parameters',
   'activeParameters', 'codingIndex', 'agenticIndex', 'subscription', 'frontierDelta', 'frontierCostGap',
-  'dominates', 'arenaElo', 'arenaCodeElo', 'benchlmScore', 'hfDownloads',
+  'frontierScoreGain', 'dominates', 'arenaElo', 'arenaCodeElo', 'benchlmScore', 'hfDownloads',
 ]
 
 
@@ -124,6 +126,7 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
     if (sortKey === 'frontierDelta') return frontierDeltas.get(m.slug) ?? null
     if (sortKey === 'dominates') return dominatedCounts.get(m.slug) ?? 0
     if (sortKey === 'frontierCostGap') return frontierUpgradeBySlug.get(m.slug)?.costDeltaPct ?? null
+    if (sortKey === 'frontierScoreGain') return frontierUpgradeBySlug.get(m.slug)?.scoreGain ?? null
     if (sortKey === 'parameters') return m.parameters
     if (sortKey === 'activeParameters') return m.activeParameters
     return (m as unknown as Record<string, number | string | null>)[sortKey]
@@ -305,6 +308,11 @@ export default function ModelTable({ models, metric, frontierIds, frontierDeltas
                   {visibleCols.has('frontierCostGap') && (
                     <td className="num" title={upgrade ? upgrade.model.aaName : undefined} onClick={() => onSelect(m.slug)}>
                       {formatCostChangePct(upgrade?.costDeltaPct)}
+                    </td>
+                  )}
+                  {visibleCols.has('frontierScoreGain') && (
+                    <td className="num" title={upgrade ? upgrade.model.aaName : undefined} onClick={() => onSelect(m.slug)}>
+                      {upgrade ? `+${formatMetric(metric, upgrade.scoreGain)}` : '—'}
                     </td>
                   )}
                   {visibleCols.has('dominates') && (
