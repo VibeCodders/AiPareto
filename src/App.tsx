@@ -186,6 +186,7 @@ export default function App() {
   const [topValueSort, setTopValueSort] = useState<TopValueSort>(INITIAL.topValueSort)
   const [tableSort, setTableSort] = useState<string>(INITIAL.tableSort)
   const [tableDesc, setTableDesc] = useState<boolean>(INITIAL.tableDesc)
+  const [visibleCols, setVisibleCols] = useState<string[]>(INITIAL.visibleCols)
   // Reset to the metric-appropriate sort when the metric changes (not on first render, so a
   // shared URL like ?ts=blended keeps its own sort)
   const prevMetricRef = useRef(metric)
@@ -315,6 +316,7 @@ export default function App() {
     topValueSort,
     tableSort,
     tableDesc,
+    visibleCols: [...visibleCols],
   }
 
   useEffect(() => {
@@ -323,7 +325,7 @@ export default function App() {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing, xMetric, budget, topValueSort, tableSort, tableDesc])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing, xMetric, budget, topValueSort, tableSort, tableDesc, visibleCols])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -387,6 +389,7 @@ export default function App() {
     setTopValueSort(s.topValueSort ?? DEFAULT_TOP_VALUE_SORT)
     setTableSort(s.tableSort ?? DEFAULT_TABLE_SORT)
     setTableDesc(typeof s.tableDesc === 'boolean' ? s.tableDesc : true)
+    setVisibleCols(Array.isArray(s.visibleCols) ? s.visibleCols : [])
   }
 
   const handleSavePreset = () => {
@@ -456,6 +459,7 @@ export default function App() {
     setTopValueSort(DEFAULT_TOP_VALUE_SORT)
     setTableSort(DEFAULT_TABLE_SORT)
     setTableDesc(true)
+    setVisibleCols([])
     setPresetId(null)
   }
 
@@ -974,6 +978,8 @@ export default function App() {
             sortKey={tableSort}
             sortDesc={tableDesc}
             onSortChange={(key, desc) => { setTableSort(key); setTableDesc(desc) }}
+            visibleColKeys={visibleCols}
+            onColsChange={(keys) => setVisibleCols(keys)}
           />
         )}
       </section>

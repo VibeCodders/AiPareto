@@ -53,6 +53,8 @@ export interface UrlState {
   tableSort: string
   /** Main table sort direction (true = descending). */
   tableDesc: boolean
+  /** Extra model-table columns the user chose to show (in addition to the mandatory ones). */
+  visibleCols: string[]
 }
 
 /** Default per-unit budget for the top-value panel. */
@@ -181,6 +183,7 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     topValueSort: TOP_VALUE_SORTS.includes(p.get('tsort') as TopValueSort) ? (p.get('tsort') as TopValueSort) : DEFAULT_TOP_VALUE_SORT,
     tableSort: p.get('ts') ?? DEFAULT_TABLE_SORT,
     tableDesc: p.get('td') !== '0',
+    visibleCols: p.get('cols') ? p.get('cols')!.split(',').filter(Boolean) : [],
   }
 }
 
@@ -229,6 +232,8 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (s.topValueSort !== DEFAULT_TOP_VALUE_SORT) p.set('tsort', s.topValueSort)
   if (s.tableSort !== DEFAULT_TABLE_SORT) p.set('ts', s.tableSort)
   if (!s.tableDesc) p.set('td', '0')
+  // Extra optional columns shown beyond the default set (empty here = the default set).
+  if (s.visibleCols.length > 0) p.set('cols', s.visibleCols.join(','))
   return p.toString()
 }
 

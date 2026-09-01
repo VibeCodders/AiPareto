@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import type { CostView, Model, MetricKey, ValueScoreBase } from '../types'
 import { blendedCostOf, computeMetric, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, type EfficiencyOpts, type FrontierUpgrade } from '../pareto'
 import { isCostEstimated, isEstimated, isFieldEstimated } from '../estimation'
@@ -72,6 +71,9 @@ interface Props {
   /** Sort direction (true = descending). */
   sortDesc: boolean
   onSortChange: (key: string, desc: boolean) => void
+  /** Extra columns to show beyond the mandatory ones (controlled from the URL). */
+  visibleColKeys: string[]
+  onColsChange: (keys: string[]) => void
 }
 
 const SORT_KEYS: SortKey[] = [
@@ -81,46 +83,19 @@ const SORT_KEYS: SortKey[] = [
   'dominates', 'arenaElo', 'arenaCodeElo', 'benchlmScore', 'hfDownloads',
 ]
 
-const LS_COLS = 'ai-pareto-table-cols'
-const DEFAULT_COLS: OptionalCol[] = ['subscription']
 
-/** Restore the user's previously chosen columns, falling back to the defaults. */
-function loadVisibleCols(): Set<OptionalCol> {
-  try {
-    const raw = localStorage.getItem(LS_COLS)
-    const arr: unknown = raw ? JSON.parse(raw) : null
-    if (Array.isArray(arr)) {
-      const valid = arr.filter((k): k is OptionalCol => OPTIONAL_COLS.some((c) => c.key === k))
-      if (valid.length > 0) return new Set(valid)
-    }
-  } catch {
-    /* ignore malformed storage */
-  }
-  return new Set(DEFAULT_COLS)
-}
-
-export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare, dominatedCounts, frontierUpgradeBySlug, sortKey: sortKeyRaw, sortDesc, onSortChange }: Props) {
-  // Sort is controlled from the URL; a key outside the valid column set falls back to the table default.
+export default function ModelTable({ models, metric, frontierIds, frontierDeltas, selectedId, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, compareIds, onToggleCompare, dominatedCounts, frontierUpgradeBySlug, sortKey: sortKeyRaw, sortDesc, onSortChange, visibleColKeys, onColsChange }: Props) {
+  // Sort and visible columns are controlled from the URL; invalid keys fall back sensibly.
   const sortKey: SortKey = SORT_KEYS.includes(sortKeyRaw as SortKey) ? (sortKeyRaw as SortKey) : 'score'
   const desc = sortDesc
-  const [visibleCols, setVisibleCols] = useState<Set<OptionalCol>>(loadVisibleCols)
-
-  // The user's column picks survive reloads, mirroring how lang/theme are persisted elsewhere.
-  useEffect(() => {
-    try {
-      localStorage.setItem(LS_COLS, JSON.stringify([...visibleCols]))
-    } catch {
-      /* ignore storage-unavailable errors */
-    }
-  }, [visibleCols])
+  const validKeys = visibleColKeys.filter((k): k is OptionalCol => OPTIONAL_COLS.some((c) => c.key === k))
+  const visibleCols = new Set<OptionalCol>(validKeys)
 
   const toggleCol = (k: OptionalCol) => {
-    setVisibleCols((prev) => {
-      const next = new Set(prev)
-      if (next.has(k)) next.delete(k)
-      else next.add(k)
-      return next
-    })
+    const next = new Set(visibleCols)
+    if (next.has(k)) next.delete(k)
+    else next.add(k)
+    onColsChange([...next])
   }
 
   const cols: Array<{ key: SortKey; label: string; num?: boolean }> = [

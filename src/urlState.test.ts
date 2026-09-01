@@ -131,6 +131,7 @@ describe('toSearch / parseUrl round-trip', () => {
       topValueSort: 'efficiency',
       tableSort: 'blended',
       tableDesc: false,
+      visibleCols: ['outputSpeed', 'arenaCodeElo'],
     }
     const back = parseUrl(toSearch(s, FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)
     expect(back.metric).toBe('codingIndex')
@@ -149,6 +150,20 @@ describe('toSearch / parseUrl round-trip', () => {
     expect(back.topValueSort).toBe('efficiency')
     expect(back.tableSort).toBe('blended')
     expect(back.tableDesc).toBe(false)
+    expect(back.visibleCols).toEqual(['outputSpeed', 'arenaCodeElo'])
+  })
+})
+
+describe('visible columns serialization', () => {
+  it('round-trips the extra visible columns', () => {
+    const s = parseUrl('?cols=arenaElo,hfDownloads', FAMILIES, METRIC_MAX)
+    expect(s.visibleCols).toEqual(['arenaElo', 'hfDownloads'])
+    const back = parseUrl(toSearch(s, FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)
+    expect(back.visibleCols).toEqual(['arenaElo', 'hfDownloads'])
+  })
+  it('defaults to the default set (param omitted) and drops empty keys', () => {
+    expect(parseUrl('', FAMILIES, METRIC_MAX).visibleCols).toEqual([])
+    expect(parseUrl('?cols=a,,b', FAMILIES, METRIC_MAX).visibleCols).toEqual(['a', 'b'])
   })
 })
 
