@@ -466,23 +466,9 @@ export function estimateModels(models: Model[]): EstimatedModel[] {
         v /= total
       }
 
-      if (x === 'tau2') {
-        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
-      } else if (x === 'latencySeconds') {
-        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
-      } else if (x === 'outputSpeed') {
-        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
-      } else if (x === 'contextTokens') {
-        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
-      } else if (x === 'maxCompletionTokens') {
-        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
-      } else if (x === 'inputPerM' || x === 'outputPerM' || x === 'cacheReadPerM' || x === 'cacheWritePerM') {
-        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
-      } else if (x === 'parameters' || x === 'activeParameters') {
-        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
-      } else {
-        v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
-      }
+      // Round and clamp to the observed target range (clampAndRound applies field-specific
+      // precision/flooring, so the type of x is the only thing that varies here).
+      v = clampAndRound(x, v, targetMin[x] ?? 0, targetMax[x] ?? 100)
 
       out[x] = v
       estimatedMetrics.add(x)

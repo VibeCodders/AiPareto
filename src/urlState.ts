@@ -62,6 +62,8 @@ const METRICS: MetricKey[] = [
   'speedAdjustedScore',
   'contextValue',
   'efficiencyScore',
+  'arenaElo',
+  'benchlmScore',
 ]
 const VALUE_SCORE_BASES: ValueScoreBase[] = ['intelligenceIndex', 'codingIndex', 'agenticIndex']
 const COST_VIEWS: CostView[] = ['input', 'blended', 'cache', 'output', 'task']

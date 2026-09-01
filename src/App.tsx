@@ -38,6 +38,8 @@ type MetricLabelKey =
   | 'speedAdjustedScore'
   | 'contextValue'
   | 'efficiencyScore'
+  | 'arenaElo'
+  | 'benchlmScore'
 
 const METRICS: Array<{ key: MetricKey; labelKey: MetricLabelKey; higherIsBetter: boolean }> = [
   { key: 'intelligenceIndex', labelKey: 'intel', higherIsBetter: true },
@@ -53,6 +55,8 @@ const METRICS: Array<{ key: MetricKey; labelKey: MetricLabelKey; higherIsBetter:
   { key: 'speedAdjustedScore', labelKey: 'speedAdjustedScore', higherIsBetter: true },
   { key: 'contextValue', labelKey: 'contextValue', higherIsBetter: true },
   { key: 'efficiencyScore', labelKey: 'efficiencyScore', higherIsBetter: true },
+  { key: 'arenaElo', labelKey: 'arenaElo', higherIsBetter: true },
+  { key: 'benchlmScore', labelKey: 'benchlmScore', higherIsBetter: true },
 ]
 
 const VALUE_SCORE_BASES: Array<{ key: ValueScoreBase; labelKey: 'intel' | 'coding' | 'agentic' }> = [
