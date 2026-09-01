@@ -1099,7 +1099,7 @@ function ModelCard({
         {/* How much % the cost changes to reach the first frontier model with a strictly better score. */}
         <div>
           <span className="muted">{t.frontierCostGap}</span>
-          <b title={frontierUpgrade ? `${frontierUpgrade.model.aaName} · +${formatMetric(metric, frontierUpgrade.scoreGain)} ${metricLabelOf(t, metric)}` : undefined}>
+          <b title={frontierUpgrade ? `${frontierUpgrade.model.aaName} · +${formatMetric(metric, frontierUpgrade.scoreGain)} ${metricLabelOf(t, metric)} · ${formatUsd(costOf(model, costView))} → ${formatUsd(costOf(frontierUpgrade.model, costView))}` : undefined}>
             {frontierUpgrade ? `${formatCostChangePct(frontierUpgrade.costDeltaPct)} ${t.cost}` : '—'}
           </b>
         </div>
