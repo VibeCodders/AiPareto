@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { CostView, MetricKey, Model, ValueScoreBase } from '../types'
+import type { TopValueSort } from '../urlState'
 import { budgetedPareto, costUnitLabel, formatCostChangePct, formatMetric, formatUsd, topValueByBudget, type EfficiencyOpts } from '../pareto'
 import { isCostEstimated, isEstimated } from '../estimation'
 import { exportModelsCsv } from '../csv'
@@ -19,6 +20,9 @@ interface Props {
   /** Per-unit cost cap (controlled from the URL so it's shareable). */
   budget: number
   onBudgetChange: (n: number) => void
+  /** Rank axis (controlled from the URL so presets carry it). */
+  sort: TopValueSort
+  onSortChange: (s: TopValueSort) => void
   /** Adds the given model slugs to the compare set. */
   onCompare: (ids: string[]) => void
 }
@@ -30,8 +34,8 @@ const MAX_ROWS = 8
  * the models/subscriptions with the best valueScore, reusing the shared Pareto engine to
  * mark which picks are not dominated inside the budget.
  */
-export default function TopValuePanel({ items, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, budget, onBudgetChange, onCompare }: Props) {
-  const [sortBy, setSortBy] = useState<'value' | 'score' | 'efficiency'>('value')
+export default function TopValuePanel({ items, metric, costView, taskInput, taskOutput, valueScoreBase, efficiencyOpts, t, onSelect, budget, onBudgetChange, sort, onSortChange, onCompare }: Props) {
+  const sortBy = sort
 
   const unit = costUnitLabel(costView)
 
@@ -73,9 +77,9 @@ export default function TopValuePanel({ items, metric, costView, taskInput, task
             ⬇ {t.exportCsv}
           </button>
           <div className="seg" role="group" aria-label={t.topValueSort}>
-            <button className={sortBy === 'value' ? 'on' : ''} onClick={() => setSortBy('value')}>{t.topValueByValue}</button>
-            <button className={sortBy === 'score' ? 'on' : ''} onClick={() => setSortBy('score')}>{t.topValueByScore}</button>
-            <button className={sortBy === 'efficiency' ? 'on' : ''} onClick={() => setSortBy('efficiency')}>{t.topValueByEfficiency}</button>
+            <button className={sortBy === 'value' ? 'on' : ''} onClick={() => onSortChange('value')}>{t.topValueByValue}</button>
+            <button className={sortBy === 'score' ? 'on' : ''} onClick={() => onSortChange('score')}>{t.topValueByScore}</button>
+            <button className={sortBy === 'efficiency' ? 'on' : ''} onClick={() => onSortChange('efficiency')}>{t.topValueByEfficiency}</button>
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ import type { CostView, EfficiencyWeights, MetricKey, Model, Point, Subscription
 import { blendedCostOf, computeFrontier, computeMetric, costUnitLabel, dominates, formatAxisTick, formatCostChangePct, formatDelta, formatMetric, formatParams, formatTokens, formatUsd, costOf, frontierDeltaOf, frontierUpgradeOf, priceRatiosOf, type EfficiencyOpts, type FrontierUpgrade } from './pareto'
 import { isLowerBetter } from './urlState'
 import { STRINGS, type Lang, type T } from './i18n'
-import { DEFAULT_BUDGET, parseUrl, toSearch, type UrlState } from './urlState'
+import { DEFAULT_BUDGET, DEFAULT_TOP_VALUE_SORT, parseUrl, toSearch, type TopValueSort, type UrlState } from './urlState'
 import { deletePreset, getPreset, listPresets, savePreset, type Preset } from './presets'
 import { exportModelsCsv } from './csv'
 import { downloadChartPng } from './chartExport'
@@ -183,6 +183,7 @@ export default function App() {
   const [estimateMissing, setEstimateMissing] = useState(INITIAL.estimateMissing)
   const [xMetric, setXMetric] = useState<MetricKey | null>(INITIAL.xMetric)
   const [budget, setBudget] = useState<number>(INITIAL.budget)
+  const [topValueSort, setTopValueSort] = useState<TopValueSort>(INITIAL.topValueSort)
   const chartSvgRef = useRef<SVGSVGElement | null>(null)
   const [svgReady, setSvgReady] = useState(false)
   const [pngSaved, triggerPngSaved] = useTransientFlag()
@@ -298,6 +299,7 @@ export default function App() {
     estimateMissing,
     xMetric,
     budget,
+    topValueSort,
   }
 
   useEffect(() => {
@@ -306,7 +308,7 @@ export default function App() {
     const url = new URL(window.location.href)
     url.search = toSearch(currentState, ALL_FAMILIES, METRIC_MAX, presetId)
     window.history.replaceState(null, '', url.toString())
-  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing, xMetric, budget])
+  }, [lang, theme, metric, costView, taskInput, taskOutput, logScale, includeEfforts, maxEffortOnly, minScore, query, families, selectedId, presetId, reasoningOnly, openWeightsOnly, minPrice, maxPrice, compareIds, minContext, releasedFrom, showSubscriptions, usageFactor, subscriptionOnly, valueScoreBase, efficiencyWeights, showTrend, paretoOnly, maxMonthlyCost, sizeBy, showLabels, estimateMissing, xMetric, budget, topValueSort])
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -365,8 +367,9 @@ export default function App() {
     setShowLabels(s.showLabels)
     setEstimateMissing(s.estimateMissing)
     setXMetric(s.xMetric)
-    // Presets saved before the budget field existed won't carry it -> fall back to the default.
+    // Presets saved before these fields existed won't carry them -> fall back to the defaults.
     setBudget(typeof s.budget === 'number' ? s.budget : DEFAULT_BUDGET)
+    setTopValueSort(s.topValueSort ?? DEFAULT_TOP_VALUE_SORT)
   }
 
   const handleSavePreset = () => {
@@ -433,6 +436,7 @@ export default function App() {
     setEstimateMissing(true)
     setXMetric(null)
     setBudget(DEFAULT_BUDGET)
+    setTopValueSort(DEFAULT_TOP_VALUE_SORT)
     setPresetId(null)
   }
 
@@ -890,6 +894,8 @@ export default function App() {
         onSelect={setSelectedId}
         budget={budget}
         onBudgetChange={setBudget}
+        sort={topValueSort}
+        onSortChange={setTopValueSort}
         onCompare={(ids) => setCompareIds((prev) => [...new Set([...prev, ...ids])])}
       />
 

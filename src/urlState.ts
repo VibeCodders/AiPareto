@@ -47,10 +47,17 @@ export interface UrlState {
   xMetric: MetricKey | null
   /** Per-unit cost cap for the "top value within budget" panel. */
   budget: number
+  /** Rank axis for the "top value within budget" panel. */
+  topValueSort: TopValueSort
 }
 
 /** Default per-unit budget for the top-value panel. */
 export const DEFAULT_BUDGET = 40
+
+/** How the top-value panel ranks its picks. */
+export type TopValueSort = 'value' | 'score' | 'efficiency'
+const TOP_VALUE_SORTS: TopValueSort[] = ['value', 'score', 'efficiency']
+export const DEFAULT_TOP_VALUE_SORT: TopValueSort = 'value'
 
 
 type SizeBy = 'none' | 'context' | 'speed' | 'downloads'
@@ -162,6 +169,7 @@ export function parseUrl(search: string, allFamilies: string[], metricMax: Recor
     estimateMissing: p.get('est') !== '0',
     xMetric: METRICS.includes(p.get('xmet') as MetricKey) ? (p.get('xmet') as MetricKey) : null,
     budget: clampFloat(p.get('tbudget'), 0, 100_000, DEFAULT_BUDGET),
+    topValueSort: TOP_VALUE_SORTS.includes(p.get('tsort') as TopValueSort) ? (p.get('tsort') as TopValueSort) : DEFAULT_TOP_VALUE_SORT,
   }
 }
 
@@ -207,6 +215,7 @@ export function toSearch(s: UrlState, allFamilies: string[], metricMax: Record<M
   if (!s.estimateMissing) p.set('est', '0')
   if (s.xMetric) p.set('xmet', s.xMetric)
   if (s.budget !== DEFAULT_BUDGET) p.set('tbudget', String(s.budget))
+  if (s.topValueSort !== DEFAULT_TOP_VALUE_SORT) p.set('tsort', s.topValueSort)
   return p.toString()
 }
 

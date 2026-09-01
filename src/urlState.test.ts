@@ -51,6 +51,7 @@ describe('parseUrl', () => {
     expect(s.lang).toBe('it')
     expect(s.families).toBeNull()
     expect(s.budget).toBe(40)
+    expect(s.topValueSort).toBe('value')
   })
   it('parses and clamps values', () => {
     const s = parseUrl('?metric=codingIndex&tin=9999999999&tout=-5&lang=en&min=9999', FAMILIES, METRIC_MAX)
@@ -121,6 +122,7 @@ describe('toSearch / parseUrl round-trip', () => {
       estimateMissing: false,
       xMetric: 'hfHumanEval',
       budget: 75,
+      topValueSort: 'efficiency',
     }
     const back = parseUrl(toSearch(s, FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)
     expect(back.metric).toBe('codingIndex')
@@ -136,5 +138,19 @@ describe('toSearch / parseUrl round-trip', () => {
     expect(back.xMetric).toBe('hfHumanEval')
     expect(back.releasedFrom).toBe('2024-01-01')
     expect(back.budget).toBe(75)
+    expect(back.topValueSort).toBe('efficiency')
+  })
+})
+
+describe('topValueSort serialization', () => {
+  it('round-trips the panel sort axis and rejects unknown values', () => {
+    const s = parseUrl('?tsort=score', FAMILIES, METRIC_MAX)
+    expect(s.topValueSort).toBe('score')
+    const back = parseUrl(toSearch(s, FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)
+    expect(back.topValueSort).toBe('score')
+    expect(parseUrl('?tsort=bogus', FAMILIES, METRIC_MAX).topValueSort).toBe('value')
+  })
+  it('omits the param for the default sort', () => {
+    expect(toSearch(parseUrl('', FAMILIES, METRIC_MAX), FAMILIES, METRIC_MAX)).not.toContain('tsort')
   })
 })
