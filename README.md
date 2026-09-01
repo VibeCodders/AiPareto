@@ -15,9 +15,12 @@ sull'asse X il costo (prezzi OpenRouter, USD per 1M token), sull'asse Y il punte
 - **Zoom e pan sul grafico**: rotella per zoomare (centrato sul puntatore), trascinamento per spostare la vista, doppio clic o pulsante ↺ per azzerare; lo zoom si azzera automaticamente quando cambiano i filtri o gli assi.
 - Metriche (Artificial Analysis): **Intelligence Index, Coding Index, Agentic Index, Tau2, HLE, Omniscience**. Costo: input, blended 80/20, cache, output, **task configurabile** (token in/out).
 - Scala log/lineare, filtri per famiglia, ricerca, soglia minima, varianti di effort.
-- **Stato dei filtri nell'URL** (`?metric=…&cost=…&tin=…`): copia l'URL per condividere una vista.
+- **Stato dei filtri nell'URL** (`?metric=…&cost=…&tin=…`): copia l'URL per condividere una vista. Oltre ai filtri, nell'URL viaggiano anche l'**ordinamento della tabella** (`ts`/`td`), le **colonne visibili** (`cols`), il **budget** del pannello Top value (`tbudget`) e il suo **ordinamento** (`tsort`).
 - **Preset nominati** (localStorage): salva una combinazione di parametri, ricaricala dal dropdown, eliminala, e condividila via link (`?…&p=<id>`); il link è autosufficiente anche per chi non ha il preset.
-- **Esportazione CSV** della tabella (separatore `;`, BOM UTF-8, compatibile con Excel).
+- **Pannello "Top value nel budget"**: dato un tetto di costo per unità, elenca modelli e abbonamenti col miglior valueScore (ordinabile per valore/punteggio/efficiency), marca con ★ i pick Pareto-ottimali nel budget, mostra stime `≈`, il **trade-off** tra il miglior valore in-budget e il primo pick sopra il tetto (Δ costo % e Δ valore %, con ⚠ se alzare il budget non migliora il valore), permette di **confrontare i top pick** e di **esportarli in CSV**. Budget e ordinamento sono persistenti nell'URL e nei preset.
+- **Analisi di salto di frontiera**: per ogni modello dietro la frontiera la tabella mostra quanto **costa in %** raggiungere il prossimo pick di frontiera con punteggio migliore e **quanto punteggio si guadagna** (con segno corretto anche per metriche lower-is-better tipo latenza); la riga col **miglior ROI sul salto** (punteggio per % di costo) è evidenziata, e scheda/tabella mostrano il **costo assoluto** del movimento.
+- **Esportazione CSV** della tabella e dei top pick (separatore `;`, BOM UTF-8, compatibile con Excel): si apre con una riga `#` con i filtri attivi e una riga `# estimated: X/Y` che riassume quanti modelli dipendono da stime.
+- **Confidenza del dato**: la scheda modello mostra il **numero di campi stimati** (`≈ N estimated fields`) con la metodologia in tooltip.
 - Tema scuro/chiaro e lingua IT/EN, **persistiti tra le sessioni** (localStorage, con override via URL).
 - **Azzera filtri** in un clic; messaggio dedicato quando nessun elemento corrisponde ai filtri.
 - Accessibilità: righe della tabella e punti del grafico **navigabili da tastiera** (Enter/Spazio).
@@ -29,7 +32,15 @@ npm install
 npm run dev      # dev server
 npm run build    # build statico in dist/
 npm run preview  # serve dist/
+npm test         # unit test (vitest)
+npm run coverage # unit test + report di copertura (soglia in vite.config)
 ```
+
+## Test e CI
+
+La suite (vitest) copre le utility condivise (`pareto`, `compare`, `urlState`, `estimation`,
+`csv`, `download`, `chartExport`, colonne visibili). La CI esegue typecheck, test, **copertura
+con soglia minima** e build prima del deploy su GitHub Pages.
 
 ## Dati
 
