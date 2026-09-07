@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-06T09:26:34.973Z",
+  "fetchedAt": "2026-09-07T10:13:57.114Z",
   "sources": {
     "openrouter": "https://openrouter.ai/api/v1/models",
     "artificialAnalysis": "https://artificialanalysis.ai/models",
@@ -12,16 +12,16 @@
   "preservation": {
     "total": 642,
     "added": [],
-    "updated": 623,
+    "updated": 622,
     "preserved": 642,
     "removed": []
   },
   "autoMatched": 57,
-  "orOnly": 335,
+  "orOnly": 334,
   "withoutScore": 8,
-  "arenaMatched": 45,
+  "arenaMatched": 73,
   "benchlmMatched": 253,
-  "litellmMatched": 438,
+  "litellmMatched": 437,
   "hfMatched": 0,
   "hfTotalIds": 152
 }
