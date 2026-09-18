@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-17T10:07:23.085Z",
+  "fetchedAt": "2026-09-18T09:41:02.240Z",
   "sources": {
     "openrouter": "https://openrouter.ai/api/v1/models",
     "artificialAnalysis": "https://artificialanalysis.ai/models",
@@ -10,23 +10,28 @@
   },
   "note": "Prices are USD per 1M tokens from OpenRouter. Scores are Artificial Analysis Intelligence Index (and friends). Arena ELO from LMSYS Chatbot Arena. BenchLM scores from BenchLM.ai. LiteLLM provides additional pricing/context from aggregated provider lists. HF benchmark scores (MMLU, GSM8K, HumanEval, ARC, Winogrande, HellaSwag, TruthfulQA) from Hugging Face Hub. Missing values are estimated at runtime via k-NN similarity.",
   "preservation": {
-    "total": 673,
+    "total": 682,
     "added": [
-      "deepseek-v4-flash-0731",
-      "gemini-3-5-flash",
-      "union-alpha",
-      "grok-4-3"
+      "k2-horizon-0-9b",
+      "k2-horizon-3-7b",
+      "k2-horizon-7b",
+      "k2-horizon-mova-36b-a4b",
+      "claude-sonnet-4-6",
+      "deepseek-v4-flash-0731-free",
+      "qwen3-5-35b-a3b",
+      "qwen3-8-27b-free",
+      "pareto"
     ],
-    "updated": 619,
-    "preserved": 669,
+    "updated": 614,
+    "preserved": 673,
     "removed": []
   },
-  "autoMatched": 55,
-  "orOnly": 355,
-  "withoutScore": 161,
-  "arenaMatched": 68,
+  "autoMatched": 54,
+  "orOnly": 362,
+  "withoutScore": 166,
+  "arenaMatched": 56,
   "benchlmMatched": 237,
-  "litellmMatched": 440,
+  "litellmMatched": 525,
   "hfMatched": 0,
-  "hfTotalIds": 157
+  "hfTotalIds": 156
 }
