@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-20T09:54:11.249Z",
+  "fetchedAt": "2026-09-21T10:42:16.169Z",
   "sources": {
     "openrouter": "https://openrouter.ai/api/v1/models",
     "artificialAnalysis": "https://artificialanalysis.ai/models",
@@ -19,7 +19,7 @@
   "autoMatched": 54,
   "orOnly": 363,
   "withoutScore": 166,
-  "arenaMatched": 39,
+  "arenaMatched": 34,
   "benchlmMatched": 239,
   "litellmMatched": 527,
   "hfMatched": 0,
